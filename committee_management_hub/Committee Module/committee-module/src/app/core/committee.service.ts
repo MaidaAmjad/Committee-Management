@@ -8,6 +8,9 @@ export interface CommitteeFormData {
   maxMembers: number;
   description: string;
   durationMonths: number;
+  paymentDeadlineDate: string;  // ISO date string e.g. "2026-06-10"
+  gracePeriodDays: number;
+  paymentCycleDays: number;     // e.g. 30 for monthly, 10 for 10-day cycle
 }
 
 export interface Committee {
@@ -20,6 +23,9 @@ export interface Committee {
   created_by: string;
   status: string;
   created_at: string;
+  payment_deadline_date: string | null;
+  grace_period_days: number;
+  payment_cycle_days: number;
 }
 
 export interface CommitteeMember {
@@ -48,17 +54,35 @@ export class CommitteeService {
     const user = this.auth.user();
     if (!user) return { error: 'Not authenticated' };
 
-    const { error } = await this.supabase.from('committees').insert({
-      name:            data.name,
-      monthly_amount:  data.monthlyAmount,
-      max_members:     data.maxMembers,
-      description:     data.description,
-      duration_months: data.durationMonths,
-      created_by:      user.id,
-      status:          'Recruiting',
-    });
+    const { data: newCommittee, error } = await this.supabase.from('committees').insert({
+      name:                   data.name,
+      monthly_amount:         data.monthlyAmount,
+      max_members:            data.maxMembers,
+      description:            data.description,
+      duration_months:        data.durationMonths,
+      created_by:             user.id,
+      status:                 'Recruiting',
+      payment_deadline_date:  data.paymentDeadlineDate || null,
+      grace_period_days:      data.gracePeriodDays ?? 3,
+      payment_cycle_days:     data.paymentCycleDays ?? 30,
+    }).select('id').single();
 
     if (error) return { error: error.message };
+
+    // Auto-add the creator as the first approved member
+    const { error: memberError } = await this.supabase.from('committee_members').insert({
+      committee_id: newCommittee.id,
+      user_id:      user.id,
+      full_name:    user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'Admin',
+      email:        user.email,
+      status:       'approved',
+    });
+
+    if (memberError) {
+      console.warn('Auto-member insert failed:', memberError.message);
+      // Don't fail the whole operation — committee was created
+    }
+
     return { error: null };
   }
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { NotificationService } from '../../core/notification.service';
 
 @Component({
   selector: 'app-topnav',
@@ -35,7 +36,7 @@ export class TopnavComponent {
 
   email = computed(() => this.auth.user()?.email || '');
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, public notificationService: NotificationService) {}
 
   toggleUserMenu(): void {
     this.showUserMenu = !this.showUserMenu;

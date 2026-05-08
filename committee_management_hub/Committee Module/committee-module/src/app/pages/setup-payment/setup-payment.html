@@ -1,0 +1,300 @@
+<div class="min-h-screen bg-[#f7f9fb] flex flex-col"
+  style="background-image: radial-gradient(at 0% 0%, rgba(0,74,198,0.05) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0,74,198,0.08) 0px, transparent 50%);">
+
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-[#c3c6d7] shadow-sm h-16 flex items-center justify-between px-6">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-[#2563eb] rounded-lg flex items-center justify-center">
+        <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings:'FILL' 1;">security</span>
+      </div>
+      <span class="text-lg font-bold text-[#004ac6]">TrustCom</span>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-[#737686]">
+      <span class="material-symbols-outlined text-[18px]">lock</span>
+      Secure Setup
+    </div>
+  </header>
+
+  <main class="flex-1 flex items-start justify-center p-6 pt-10">
+    <div class="w-full max-w-[640px]">
+
+      <!-- Progress Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 bg-[#dbe1ff] text-[#004ac6] px-4 py-1.5 rounded-full text-xs font-bold mb-4">
+          <span class="material-symbols-outlined text-[16px]">payments</span>
+          Step 2 of 2 — Payment Setup
+        </div>
+        <h1 class="text-[28px] font-bold text-[#191c1e] leading-tight">Set Up Payment Details</h1>
+        <p class="text-sm text-[#737686] mt-2 max-w-md mx-auto">
+          Add your payment methods so committee members can send you money.
+          This information is only visible to your committee members and admins.
+        </p>
+      </div>
+
+      <!-- Success / Error -->
+      @if (successMsg()) {
+        <div class="flex items-center gap-2 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-2xl px-5 py-3 mb-4 text-sm">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span>
+          {{ successMsg() }}
+        </div>
+      }
+      @if (errorMsg()) {
+        <div class="flex items-center gap-2 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-3 mb-4 text-sm">
+          <span class="material-symbols-outlined text-[18px]">error</span>
+          {{ errorMsg() }}
+        </div>
+      }
+
+      <!-- Existing Methods -->
+      @if (!loading() && methods().length > 0) {
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm mb-4 overflow-hidden">
+          <div class="px-6 py-4 border-b border-[#f2f4f6] flex items-center justify-between">
+            <h2 class="text-sm font-bold text-[#191c1e]">Your Payment Methods</h2>
+            <span class="text-xs text-[#737686]">{{ methods().length }} method{{ methods().length !== 1 ? 's' : '' }}</span>
+          </div>
+          <div class="divide-y divide-[#f2f4f6]">
+            @for (method of methods(); track method.id) {
+              <div class="flex items-center gap-4 px-6 py-4">
+                <!-- Icon -->
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                  [style.background-color]="getMethodInfo(method.method_type).bg">
+                  <span class="material-symbols-outlined text-[22px]"
+                    [style.color]="getMethodInfo(method.method_type).color">
+                    {{ getMethodInfo(method.method_type).icon }}
+                  </span>
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-bold text-[#191c1e]">{{ getMethodInfo(method.method_type).label }}</span>
+                    @if (method.is_primary) {
+                      <span class="bg-[#004ac6] text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1;">star</span>
+                        Primary
+                      </span>
+                    }
+                  </div>
+                  <p class="text-xs text-[#191c1e] font-semibold mt-0.5">{{ method.account_title }}</p>
+                  <p class="text-xs text-[#737686]">{{ method.account_number }}</p>
+                  @if (method.bank_name) {
+                    <p class="text-xs text-[#737686]">{{ method.bank_name }}</p>
+                  }
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  @if (!method.is_primary) {
+                    <button (click)="setPrimary(method.id)"
+                      title="Set as primary"
+                      class="p-2 rounded-xl hover:bg-[#dbe1ff] transition-colors text-[#737686] hover:text-[#004ac6]">
+                      <span class="material-symbols-outlined text-[18px]">star</span>
+                    </button>
+                  }
+                  <button (click)="openEditForm(method)"
+                    title="Edit"
+                    class="p-2 rounded-xl hover:bg-[#f2f4f6] transition-colors text-[#737686]">
+                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                  </button>
+                  <button (click)="deleteMethod(method.id)"
+                    [disabled]="deleting() === method.id"
+                    title="Delete"
+                    class="p-2 rounded-xl hover:bg-[#ffdad6] transition-colors text-[#737686] hover:text-[#ba1a1a] disabled:opacity-50">
+                    @if (deleting() === method.id) {
+                      <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                    } @else {
+                      <span class="material-symbols-outlined text-[18px]">delete</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Add Method Form -->
+      @if (showForm()) {
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm mb-4 overflow-hidden">
+          <div class="bg-gradient-to-r from-[#004ac6] to-[#2563eb] px-6 py-4 flex items-center gap-3">
+            <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-white text-[18px]">add_card</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-white">{{ editingId() ? 'Edit Payment Method' : 'Add Payment Method' }}</h2>
+              <p class="text-xs text-white/70">Fill in your payment details below</p>
+            </div>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-6 flex flex-col gap-5" novalidate>
+
+            <!-- Method Type Selector -->
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-[#191c1e]">Payment Method Type <span class="text-[#ba1a1a]">*</span></label>
+              <div class="grid grid-cols-3 gap-3">
+                @for (type of methodTypes; track type.value) {
+                  <button type="button"
+                    (click)="form.get('method_type')?.setValue(type.value)"
+                    class="flex flex-col items-center gap-2 p-4 border-2 rounded-2xl transition-all"
+                    [class.border-[#004ac6]]="selectedType === type.value"
+                    [class.bg-[#f7f9ff]]="selectedType === type.value"
+                    [class.border-[#c3c6d7]]="selectedType !== type.value"
+                    [class.bg-white]="selectedType !== type.value"
+                    [class.hover:border-[#004ac6]]="selectedType !== type.value">
+                    <span class="material-symbols-outlined text-[28px]" [style.color]="type.color">{{ type.icon }}</span>
+                    <span class="text-xs font-bold" [style.color]="selectedType === type.value ? '#004ac6' : '#434655'">{{ type.label }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Account Title -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold text-[#191c1e]" for="account_title">
+                Account Title <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[18px]">person</span>
+                <input id="account_title" type="text" formControlName="account_title"
+                  placeholder="Full name as on account"
+                  class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm outline-none transition-all"
+                  [class.border-[#ba1a1a]]="fieldError('account_title')"
+                  [class.border-[#c3c6d7]]="!fieldError('account_title')" />
+              </div>
+              @if (fieldError('account_title')) {
+                <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
+                  Account title is required.
+                </p>
+              }
+            </div>
+
+            <!-- Account Number / Phone -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold text-[#191c1e]" for="account_number">
+                {{ isBank ? 'Account Number' : 'Phone Number' }} <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[18px]">
+                  {{ isBank ? 'tag' : 'phone' }}
+                </span>
+                <input id="account_number" type="text" formControlName="account_number"
+                  [placeholder]="getPhoneHint(selectedType)"
+                  class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm outline-none transition-all"
+                  [class.border-[#ba1a1a]]="fieldError('account_number')"
+                  [class.border-[#c3c6d7]]="!fieldError('account_number')" />
+              </div>
+              @if (fieldError('account_number')) {
+                <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
+                  Account number is required.
+                </p>
+              }
+            </div>
+
+            <!-- Bank-specific fields -->
+            @if (isBank) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold text-[#191c1e]" for="bank_name">Bank Name</label>
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[18px]">account_balance</span>
+                    <input id="bank_name" type="text" formControlName="bank_name"
+                      placeholder="e.g. HBL, UBL, Meezan"
+                      class="w-full h-12 pl-11 pr-4 border border-[#c3c6d7] rounded-xl text-sm outline-none focus:border-[#004ac6] transition-all" />
+                  </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-semibold text-[#191c1e]" for="iban">IBAN (optional)</label>
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[18px]">numbers</span>
+                    <input id="iban" type="text" formControlName="iban"
+                      placeholder="e.g. PK36SCBL0000001123456702"
+                      class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm outline-none transition-all uppercase"
+                      [class.border-[#ba1a1a]]="fieldError('iban')"
+                      [class.border-[#c3c6d7]]="!fieldError('iban')" />
+                  </div>
+                  @if (fieldError('iban')) {
+                    <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]">error</span>
+                      Invalid IBAN format.
+                    </p>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Set as Primary -->
+            <label class="flex items-center gap-3 cursor-pointer p-4 bg-[#f7f9fb] rounded-xl border border-[#f2f4f6] hover:border-[#004ac6] transition-all">
+              <input type="checkbox" formControlName="is_primary"
+                class="w-4 h-4 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6]" />
+              <div>
+                <p class="text-sm font-semibold text-[#191c1e]">Set as Primary Payment Method</p>
+                <p class="text-xs text-[#737686]">This method will appear first when members need to pay you.</p>
+              </div>
+              <span class="material-symbols-outlined text-[#004ac6] ml-auto text-[20px]" style="font-variation-settings:'FILL' 1;">star</span>
+            </label>
+
+            <!-- Form Actions -->
+            <div class="flex gap-3">
+              <button type="submit" [disabled]="saving()"
+                class="flex-1 h-12 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                @if (saving()) {
+                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Saving...
+                } @else {
+                  <span class="material-symbols-outlined text-[18px]">save</span>
+                  {{ editingId() ? 'Update Method' : 'Save Method' }}
+                }
+              </button>
+              <button type="button" (click)="cancelForm()"
+                class="w-28 h-12 bg-white border border-[#c3c6d7] text-[#434655] text-sm font-semibold rounded-xl hover:bg-[#f2f4f6] transition-all">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- Add Another Button -->
+      @if (!showForm() && methods().length > 0) {
+        <button (click)="openAddForm()"
+          class="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-[#c3c6d7] rounded-2xl text-sm font-semibold text-[#434655] hover:border-[#004ac6] hover:text-[#004ac6] hover:bg-[#f7f9ff] transition-all mb-4">
+          <span class="material-symbols-outlined text-[20px]">add</span>
+          Add Another Payment Method
+        </button>
+      }
+
+      <!-- Security Note -->
+      <div class="flex items-start gap-3 bg-[#f7f9fb] border border-[#c3c6d7] rounded-2xl p-4 mb-6">
+        <span class="material-symbols-outlined text-[#004ac6] text-[20px] flex-shrink-0 mt-0.5" style="font-variation-settings:'FILL' 1;">shield</span>
+        <p class="text-xs text-[#737686] leading-relaxed">
+          Your payment details are <strong class="text-[#191c1e]">only visible to committee members and admins</strong>
+          of committees you join. They are never shown publicly on the platform.
+        </p>
+      </div>
+
+      <!-- Continue Button -->
+      <button (click)="finishSetup()"
+        [disabled]="methods().length === 0"
+        class="w-full h-14 text-white text-base font-bold rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg disabled:cursor-not-allowed"
+        [class.bg-[#004ac6]]="methods().length > 0"
+        [class.hover:bg-[#2563eb]]="methods().length > 0"
+        [class.bg-[#9ab0e0]]="methods().length === 0">
+        <span class="material-symbols-outlined text-[22px]">arrow_forward</span>
+        Continue to Dashboard
+      </button>
+
+      @if (methods().length === 0 && !showForm()) {
+        <p class="text-center text-xs text-[#737686] mt-3">Add at least one payment method to continue.</p>
+      }
+
+    </div>
+  </main>
+</div>

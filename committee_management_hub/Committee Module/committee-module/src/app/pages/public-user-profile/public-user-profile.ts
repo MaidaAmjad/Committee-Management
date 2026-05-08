@@ -1,8 +1,10 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
+import { PaymentMethodService, PaymentMethod } from '../../core/payment-method.service';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 
@@ -15,11 +17,13 @@ export interface Review {
 @Component({
   selector: 'app-public-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopnavComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopnavComponent],
   templateUrl: './public-user-profile.html',
   styleUrl: './public-user-profile.scss'
 })
-export class PublicUserProfileComponent {
+export class PublicUserProfileComponent implements OnInit {
+
+  paymentMethods = signal<PaymentMethod[]>([]);
 
   // ── Computed user data from Supabase session ──────────────────────────────
   displayName = computed(() => {
@@ -54,13 +58,20 @@ export class PublicUserProfileComponent {
   constructor(
     public auth: AuthService,
     private supabaseService: SupabaseService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private paymentMethodService: PaymentMethodService
   ) {
     this.editForm = this.fb.group({
       full_name: ['', [Validators.required, Validators.minLength(2)]],
       phone:     [''],
       bio:       ['', [Validators.maxLength(300)]],
     });
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.auth.ready;
+    const { data } = await this.paymentMethodService.getMyMethods();
+    this.paymentMethods.set(data);
   }
 
   openEditModal(): void {
@@ -146,5 +157,9 @@ export class PublicUserProfileComponent {
 
   getStars(rating: number): number[] {
     return Array(5).fill(0).map((_, i) => i < rating ? 1 : 0);
+  }
+
+  getMethodInfo(type: string) {
+    return this.paymentMethodService.getMethodInfo(type as any);
   }
 }

@@ -20,17 +20,23 @@ export class CreateCommitteeComponent {
   success   = false;
   errorMsg  = '';
 
+  // Min date for deadline picker = today
+  minDate = new Date().toISOString().split('T')[0];
+
   constructor(
     private fb: FormBuilder,
     private committeeService: CommitteeService,
     private router: Router
   ) {
     this.form = this.fb.group({
-      name:           ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80)]],
-      monthlyAmount:  [null, [Validators.required, Validators.min(1)]],
-      maxMembers:     [null, [Validators.required, Validators.min(2), Validators.max(100)]],
-      description:    ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
-      durationMonths: [null, [Validators.required, Validators.min(1), Validators.max(120)]],
+      name:                 ['', [Validators.required, Validators.minLength(3), Validators.maxLength(80)]],
+      monthlyAmount:        [null, [Validators.required, Validators.min(1)]],
+      maxMembers:           [null, [Validators.required, Validators.min(2), Validators.max(100)]],
+      description:          ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+      durationMonths:       [null, [Validators.required, Validators.min(1), Validators.max(120)]],
+      paymentDeadlineDate:  ['', Validators.required],
+      gracePeriodDays:      [3, [Validators.required, Validators.min(0), Validators.max(30)]],
+      paymentCycleDays:     [30, [Validators.required, Validators.min(1), Validators.max(365)]],
     });
   }
 
@@ -52,21 +58,28 @@ export class CreateCommitteeComponent {
     return 'Invalid value.';
   }
 
+  /** Compute end date from deadline + duration */
+  get endDate(): string {
+    const deadline = this.f['paymentDeadlineDate'].value;
+    const months   = this.f['durationMonths'].value;
+    if (!deadline || !months) return '';
+    const d = new Date(deadline);
+    d.setMonth(d.getMonth() + Number(months));
+    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
   async onSubmit(): Promise<void> {
     this.submitted = true;
     if (this.form.invalid) return;
 
-    this.loading = true;
+    this.loading  = true;
     this.errorMsg = '';
 
     const { error } = await this.committeeService.createCommittee(this.form.value);
 
     this.loading = false;
 
-    if (error) {
-      this.errorMsg = error;
-      return;
-    }
+    if (error) { this.errorMsg = error; return; }
 
     this.success = true;
     setTimeout(() => this.router.navigate(['/my-committees']), 1800);

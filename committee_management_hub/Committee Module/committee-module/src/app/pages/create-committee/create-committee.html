@@ -200,11 +200,135 @@
             <p class="text-xs text-[#737686]">{{ f['description'].value?.length || 0 }}/500 characters</p>
           </div>
 
+          <!-- ── Payment Settings Section ─────────────────────────── -->
+          <div class="bg-[#f7f9ff] rounded-2xl border border-[#dbe1ff] p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="material-symbols-outlined text-[#004ac6] text-[20px]">payments</span>
+              <h3 class="text-sm font-bold text-[#191c1e]">Payment Settings</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+              <!-- Payment Deadline Date -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold text-[#191c1e]" for="paymentDeadlineDate">
+                  First Payment Deadline <span class="text-[#ba1a1a]">*</span>
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">event</span>
+                  <input
+                    id="paymentDeadlineDate"
+                    type="date"
+                    formControlName="paymentDeadlineDate"
+                    [min]="minDate"
+                    class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] outline-none transition-all"
+                    [class.border-[#ba1a1a]]="fieldError('paymentDeadlineDate')"
+                    [class.bg-[#fff8f8]]="fieldError('paymentDeadlineDate')"
+                    [class.border-[#c3c6d7]]="!fieldError('paymentDeadlineDate')"
+                  />
+                </div>
+                @if (fieldError('paymentDeadlineDate')) {
+                  <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">error</span>
+                    {{ getError('paymentDeadlineDate') }}
+                  </p>
+                }
+                <p class="text-xs text-[#737686]">Members must submit proof by this date</p>
+              </div>
+
+              <!-- Payment Cycle Days -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold text-[#191c1e]" for="paymentCycleDays">
+                  Payment Cycle (days) <span class="text-[#ba1a1a]">*</span>
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">autorenew</span>
+                  <input
+                    id="paymentCycleDays"
+                    type="number"
+                    formControlName="paymentCycleDays"
+                    placeholder="e.g. 30"
+                    min="1"
+                    max="365"
+                    class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                    [class.border-[#ba1a1a]]="fieldError('paymentCycleDays')"
+                    [class.bg-[#fff8f8]]="fieldError('paymentCycleDays')"
+                    [class.border-[#c3c6d7]]="!fieldError('paymentCycleDays')"
+                  />
+                </div>
+                @if (fieldError('paymentCycleDays')) {
+                  <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">error</span>
+                    {{ getError('paymentCycleDays') }}
+                  </p>
+                }
+                <p class="text-xs text-[#737686]">How often payments repeat (30 = monthly, 10 = every 10 days)</p>
+              </div>
+
+              <!-- Grace Period -->
+              <div class="flex flex-col gap-1.5 sm:col-span-2">
+                <label class="text-sm font-semibold text-[#191c1e]" for="gracePeriodDays">
+                  Late Submission Grace Period (days)
+                </label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">hourglass_bottom</span>
+                  <input
+                    id="gracePeriodDays"
+                    type="number"
+                    formControlName="gracePeriodDays"
+                    placeholder="e.g. 3"
+                    min="0"
+                    max="30"
+                    class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                    [class.border-[#ba1a1a]]="fieldError('gracePeriodDays')"
+                    [class.bg-[#fff8f8]]="fieldError('gracePeriodDays')"
+                    [class.border-[#c3c6d7]]="!fieldError('gracePeriodDays')"
+                  />
+                </div>
+                @if (fieldError('gracePeriodDays')) {
+                  <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">error</span>
+                    {{ getError('gracePeriodDays') }}
+                  </p>
+                }
+                <p class="text-xs text-[#737686]">
+                  Members can still submit after deadline for this many extra days (marked as "Late Submission").
+                  Set 0 for no grace period.
+                </p>
+              </div>
+            </div>
+
+            <!-- Deadline preview -->
+            @if (f['paymentDeadlineDate'].value && f['gracePeriodDays'].value >= 0) {
+              <div class="mt-4 flex flex-wrap gap-3">
+                <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-[#c3c6d7] text-xs">
+                  <span class="material-symbols-outlined text-[#004ac6] text-[16px]">event</span>
+                  <span class="text-[#737686]">Deadline:</span>
+                  <span class="font-bold text-[#191c1e]">{{ f['paymentDeadlineDate'].value | date:'MMM d, y' }}</span>
+                </div>
+                @if (f['gracePeriodDays'].value > 0) {
+                  <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-[#fde68a] text-xs">
+                    <span class="material-symbols-outlined text-[#854d0e] text-[16px]">hourglass_bottom</span>
+                    <span class="text-[#737686]">Grace ends:</span>
+                    <span class="font-bold text-[#854d0e]">+{{ f['gracePeriodDays'].value }} days after deadline</span>
+                  </div>
+                }
+                @if (endDate) {
+                  <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-[#c3c6d7] text-xs">
+                    <span class="material-symbols-outlined text-[#737686] text-[16px]">flag</span>
+                    <span class="text-[#737686]">Committee ends:</span>
+                    <span class="font-bold text-[#191c1e]">{{ endDate }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
           <!-- Summary Preview -->
           @if (form.valid) {
             <div class="bg-[#f2f4f6] rounded-2xl p-5 border border-[#c3c6d7]">
               <p class="text-xs font-semibold text-[#434655] uppercase tracking-wider mb-3">Summary Preview</p>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div class="flex flex-col gap-0.5">
                   <span class="text-xs text-[#737686]">Monthly</span>
                   <span class="text-sm font-bold text-[#004ac6]">${{ f['monthlyAmount'].value }}</span>
@@ -222,6 +346,14 @@
                   <span class="text-sm font-bold text-[#28a745]">
                     ${{ f['monthlyAmount'].value * f['maxMembers'].value * f['durationMonths'].value | number }}
                   </span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-xs text-[#737686]">First Deadline</span>
+                  <span class="text-sm font-bold text-[#191c1e]">{{ f['paymentDeadlineDate'].value | date:'MMM d, y' }}</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-xs text-[#737686]">Grace Period</span>
+                  <span class="text-sm font-bold text-[#854d0e]">{{ f['gracePeriodDays'].value }} days</span>
                 </div>
               </div>
             </div>

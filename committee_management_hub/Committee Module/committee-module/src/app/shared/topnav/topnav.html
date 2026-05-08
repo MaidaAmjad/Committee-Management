@@ -17,9 +17,15 @@
   <div class="flex items-center gap-3">
 
     <!-- Notifications -->
-    <button class="p-2 hover:bg-[#e6e8ea] rounded-full transition-colors relative">
+    <button
+      (click)="notificationService.showNextPopup()"
+      class="p-2 hover:bg-[#e6e8ea] rounded-full transition-colors relative">
       <span class="material-symbols-outlined text-[#434655]">notifications</span>
-      <span class="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
+      @if (notificationService.unreadCount() > 0) {
+        <span class="absolute top-1 right-1 min-w-[18px] h-[18px] bg-[#ba1a1a] rounded-full flex items-center justify-center">
+          <span class="text-white text-[10px] font-bold px-1">{{ notificationService.unreadCount() }}</span>
+        </span>
+      }
     </button>
 
     <!-- User Menu -->

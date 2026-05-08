@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { NotificationService } from '../../core/notification.service';
+import { PaymentMethodService } from '../../core/payment-method.service';
 
 @Component({
   selector: 'app-login',
@@ -16,22 +18,24 @@ export class LoginComponent {
   password = '';
   rememberMe = false;
   showPassword = false;
-
   loading = false;
   errorMessage = '';
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private notificationService: NotificationService,
+    private paymentMethodService: PaymentMethodService
+  ) {}
 
   togglePassword(): void { this.showPassword = !this.showPassword; }
 
   async onSubmit(): Promise<void> {
     if (!this.email || !this.password) return;
-
     this.loading = true;
     this.errorMessage = '';
 
     const { error } = await this.auth.signIn(this.email, this.password);
-
     this.loading = false;
 
     if (error) {
@@ -43,6 +47,15 @@ export class LoginComponent {
       return;
     }
 
+    // Check payment setup
+    const setupComplete = await this.paymentMethodService.isSetupComplete();
+    if (!setupComplete) {
+      this.router.navigate(['/setup-payment']);
+      return;
+    }
+
+    // Load notifications after login
+    await this.notificationService.loadUnread();
     this.router.navigate(['/dashboard']);
   }
 }

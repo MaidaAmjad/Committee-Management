@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { PaymentMethodService } from '../../core/payment-method.service';
 
 @Component({
   selector: 'app-signup',
@@ -24,7 +25,7 @@ export class SignupComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private paymentMethodService: PaymentMethodService) {}
 
   get passwordMismatch(): boolean {
     return this.confirmPassword.length > 0 && this.password !== this.confirmPassword;
@@ -59,7 +60,6 @@ export class SignupComponent {
       return;
     }
 
-    // Check if email confirmation is required
     this.successMessage = 'Account created! Please check your email inbox and click the confirmation link, then come back to sign in.';
     setTimeout(() => this.router.navigate(['/login']), 3500);
   }
