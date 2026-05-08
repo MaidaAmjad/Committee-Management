@@ -32,6 +32,14 @@
         </div>
       }
 
+      <!-- Error Banner -->
+      @if (errorMsg) {
+        <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-6 py-4 mb-6 shadow-sm">
+          <span class="material-symbols-outlined">error</span>
+          <p class="text-sm font-semibold">{{ errorMsg }}</p>
+        </div>
+      }
+
       <!-- Form Card -->
       <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm overflow-hidden">
 
@@ -79,34 +87,63 @@
             <p class="text-xs text-[#737686]">{{ f['name'].value?.length || 0 }}/80 characters</p>
           </div>
 
-          <!-- Two-column row: Amount + Max Members -->
+          <!-- Monthly Contribution (full width) -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold text-[#191c1e]" for="monthlyAmount">
+              Monthly Contribution <span class="text-[#ba1a1a]">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-sm font-bold">$</span>
+              <input
+                id="monthlyAmount"
+                type="number"
+                formControlName="monthlyAmount"
+                placeholder="0.00"
+                min="1"
+                class="w-full h-12 pl-8 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                [class.border-[#ba1a1a]]="fieldError('monthlyAmount')"
+                [class.bg-[#fff8f8]]="fieldError('monthlyAmount')"
+                [class.border-[#c3c6d7]]="!fieldError('monthlyAmount')"
+              />
+            </div>
+            @if (fieldError('monthlyAmount')) {
+              <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ getError('monthlyAmount') }}
+              </p>
+            }
+          </div>
+
+          <!-- Two-column row: Duration + Max Members -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-            <!-- Monthly Contribution -->
+            <!-- Duration in Months -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold text-[#191c1e]" for="monthlyAmount">
-                Monthly Contribution <span class="text-[#ba1a1a]">*</span>
+              <label class="text-sm font-semibold text-[#191c1e]" for="durationMonths">
+                Committee Duration (months) <span class="text-[#ba1a1a]">*</span>
               </label>
               <div class="relative">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-sm font-bold">$</span>
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">calendar_month</span>
                 <input
-                  id="monthlyAmount"
+                  id="durationMonths"
                   type="number"
-                  formControlName="monthlyAmount"
-                  placeholder="0.00"
+                  formControlName="durationMonths"
+                  placeholder="e.g. 12"
                   min="1"
-                  class="w-full h-12 pl-8 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
-                  [class.border-[#ba1a1a]]="fieldError('monthlyAmount')"
-                  [class.bg-[#fff8f8]]="fieldError('monthlyAmount')"
-                  [class.border-[#c3c6d7]]="!fieldError('monthlyAmount')"
+                  max="120"
+                  class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                  [class.border-[#ba1a1a]]="fieldError('durationMonths')"
+                  [class.bg-[#fff8f8]]="fieldError('durationMonths')"
+                  [class.border-[#c3c6d7]]="!fieldError('durationMonths')"
                 />
               </div>
-              @if (fieldError('monthlyAmount')) {
+              @if (fieldError('durationMonths')) {
                 <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
                   <span class="material-symbols-outlined text-[14px]">error</span>
-                  {{ getError('monthlyAmount') }}
+                  {{ getError('durationMonths') }}
                 </p>
               }
+              <p class="text-xs text-[#737686]">Enter any number of months (e.g. 5, 7, 10)</p>
             </div>
 
             <!-- Maximum Members -->
@@ -137,39 +174,6 @@
               }
               <p class="text-xs text-[#737686]">Minimum 2 members required</p>
             </div>
-          </div>
-
-          <!-- Duration -->
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-semibold text-[#191c1e]">
-              Committee Duration <span class="text-[#ba1a1a]">*</span>
-            </label>
-            <div class="grid grid-cols-3 sm:grid-cols-7 gap-2">
-              @for (months of durationOptions; track months) {
-                <button
-                  type="button"
-                  (click)="form.get('durationMonths')?.setValue(months)"
-                  class="h-12 rounded-xl text-sm font-semibold border transition-all"
-                  [class.bg-[#004ac6]]="f['durationMonths'].value === months"
-                  [class.text-white]="f['durationMonths'].value === months"
-                  [class.border-[#004ac6]]="f['durationMonths'].value === months"
-                  [class.shadow-md]="f['durationMonths'].value === months"
-                  [class.bg-white]="f['durationMonths'].value !== months"
-                  [class.text-[#434655]]="f['durationMonths'].value !== months"
-                  [class.border-[#c3c6d7]]="f['durationMonths'].value !== months"
-                  [class.hover:border-[#004ac6]]="f['durationMonths'].value !== months"
-                  [class.hover:text-[#004ac6]]="f['durationMonths'].value !== months"
-                >
-                  {{ months }}mo
-                </button>
-              }
-            </div>
-            @if (fieldError('durationMonths')) {
-              <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">error</span>
-                {{ getError('durationMonths') }}
-              </p>
-            }
           </div>
 
           <!-- Description -->
@@ -227,11 +231,19 @@
           <div class="flex flex-col sm:flex-row gap-3 pt-2">
             <button
               type="submit"
-              [disabled]="success"
+              [disabled]="success || loading"
               class="flex-1 h-12 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span class="material-symbols-outlined text-[18px]">add_circle</span>
-              Create Committee
+              @if (loading) {
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                Creating...
+              } @else {
+                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                Create Committee
+              }
             </button>
             <button
               type="button"
@@ -243,37 +255,6 @@
           </div>
 
         </form>
-      </div>
-
-      <!-- Info Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-5 shadow-sm flex gap-3 items-start">
-          <div class="w-9 h-9 bg-[#dbe1ff] rounded-xl flex items-center justify-center flex-shrink-0">
-            <span class="material-symbols-outlined text-[#004ac6] text-[18px]">shield</span>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-[#191c1e]">Escrow Protected</p>
-            <p class="text-xs text-[#737686] mt-0.5">All funds are held securely until payout.</p>
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-5 shadow-sm flex gap-3 items-start">
-          <div class="w-9 h-9 bg-[#d0e1fb] rounded-xl flex items-center justify-center flex-shrink-0">
-            <span class="material-symbols-outlined text-[#2563eb] text-[18px]">verified_user</span>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-[#191c1e]">Verified Members</p>
-            <p class="text-xs text-[#737686] mt-0.5">Only trusted members can join your circle.</p>
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-5 shadow-sm flex gap-3 items-start">
-          <div class="w-9 h-9 bg-[#ffdbcd] rounded-xl flex items-center justify-center flex-shrink-0">
-            <span class="material-symbols-outlined text-[#943700] text-[18px]">payments</span>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-[#191c1e]">Auto Payments</p>
-            <p class="text-xs text-[#737686] mt-0.5">Automated monthly collection and payouts.</p>
-          </div>
-        </div>
       </div>
 
     </main>

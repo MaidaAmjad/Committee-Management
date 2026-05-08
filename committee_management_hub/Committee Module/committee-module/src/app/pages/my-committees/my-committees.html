@@ -1,148 +1,273 @@
 <div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
-  <!-- Sidebar -->
   <app-sidebar></app-sidebar>
 
-  <!-- Main -->
   <div class="flex flex-col flex-1 md:ml-64">
     <app-topnav></app-topnav>
 
     <main class="flex-1 p-6 max-w-[1280px] mx-auto w-full">
 
       <!-- Page Header -->
-      <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+      <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
         <div>
           <h1 class="text-[36px] font-bold text-[#191c1e] leading-[44px] mb-1">My Committees</h1>
           <p class="text-base text-[#434655]">Manage your created groups and current memberships.</p>
         </div>
-        <div class="flex bg-[#e6e8ea] p-1 rounded-xl self-start">
+        <div class="flex items-center gap-3">
+          <!-- Tab Toggle -->
+          <div class="flex bg-[#e6e8ea] p-1 rounded-xl">
+            <button
+              (click)="activeTab = 'Active'"
+              class="px-6 py-2 rounded-lg text-sm font-semibold transition-colors"
+              [class.bg-white]="activeTab === 'Active'"
+              [class.text-[#191c1e]]="activeTab === 'Active'"
+              [class.shadow-sm]="activeTab === 'Active'"
+              [class.text-[#434655]]="activeTab !== 'Active'"
+            >Active</button>
+            <button
+              (click)="activeTab = 'Past'"
+              class="px-6 py-2 rounded-lg text-sm font-semibold transition-colors"
+              [class.bg-white]="activeTab === 'Past'"
+              [class.text-[#191c1e]]="activeTab === 'Past'"
+              [class.shadow-sm]="activeTab === 'Past'"
+              [class.text-[#434655]]="activeTab !== 'Past'"
+            >Past</button>
+          </div>
+          <!-- Create Button -->
           <button
-            (click)="activeTab = 'Active'"
-            class="px-8 py-2 rounded-lg text-sm font-semibold transition-colors"
-            [class.bg-white]="activeTab === 'Active'"
-            [class.text-[#191c1e]]="activeTab === 'Active'"
-            [class.shadow-sm]="activeTab === 'Active'"
-            [class.text-[#434655]]="activeTab !== 'Active'"
-          >Active</button>
-          <button
-            (click)="activeTab = 'Past'"
-            class="px-8 py-2 rounded-lg text-sm font-semibold transition-colors"
-            [class.bg-white]="activeTab === 'Past'"
-            [class.text-[#191c1e]]="activeTab === 'Past'"
-            [class.shadow-sm]="activeTab === 'Past'"
-            [class.text-[#434655]]="activeTab !== 'Past'"
-          >Past</button>
+            (click)="goToCreate()"
+            class="flex items-center gap-2 px-4 py-2.5 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            New Committee
+          </button>
         </div>
       </header>
 
-      <!-- Committees I Lead -->
-      <section class="mb-16">
-        <div class="flex items-center gap-4 mb-8">
-          <span class="material-symbols-outlined text-[#004ac6]" style="font-variation-settings:'FILL' 1;">stars</span>
-          <h2 class="text-[30px] font-semibold text-[#191c1e] leading-[38px]">Committees I Lead</h2>
+      <!-- Error -->
+      @if (errorMsg()) {
+        <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-6 py-4 mb-6">
+          <span class="material-symbols-outlined">error</span>
+          <div>
+            <p class="font-semibold text-sm">{{ errorMsg() }}</p>
+            @if (errorMsg().includes('relation') || errorMsg().includes('does not exist')) {
+              <p class="text-xs mt-1 opacity-80">
+                The <strong>committees</strong> table doesn't exist yet in Supabase.
+                Please create it — see the setup note below.
+              </p>
+            }
+          </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          @for (committee of leadCommittees; track committee.name) {
-            <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="text-2xl font-semibold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">{{ committee.name }}</h3>
-                  <span class="text-sm text-[#434655] flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[18px]">verified_user</span> {{ committee.role }}
+      }
+
+      <!-- ── Committees I Lead ─────────────────────────────────────────── -->
+      <section class="mb-12">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="material-symbols-outlined text-[#004ac6]" style="font-variation-settings:'FILL' 1;">stars</span>
+          <h2 class="text-2xl font-bold text-[#191c1e]">Committees I Lead</h2>
+          @if (!loading()) {
+            <span class="bg-[#dbe1ff] text-[#004ac6] text-xs font-bold px-2.5 py-0.5 rounded-full">
+              {{ leadCommittees().length }}
+            </span>
+          }
+        </div>
+
+        <!-- Loading skeleton -->
+        @if (loading()) {
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @for (i of [1,2]; track i) {
+              <div class="bg-white rounded-2xl border border-[#c3c6d7] p-6 shadow-sm animate-pulse">
+                <div class="h-5 bg-[#e6e8ea] rounded w-2/3 mb-3"></div>
+                <div class="h-3 bg-[#e6e8ea] rounded w-1/4 mb-6"></div>
+                <div class="grid grid-cols-2 gap-4 py-4 border-y border-[#f2f4f6]">
+                  <div class="h-8 bg-[#e6e8ea] rounded"></div>
+                  <div class="h-8 bg-[#e6e8ea] rounded"></div>
+                </div>
+                <div class="h-10 bg-[#e6e8ea] rounded-xl mt-4"></div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Empty state -->
+        @if (!loading() && leadCommittees().length === 0 && !errorMsg()) {
+          <div class="bg-white rounded-2xl border-2 border-dashed border-[#c3c6d7] p-12 flex flex-col items-center justify-center text-center">
+            <div class="w-16 h-16 bg-[#dbe1ff] rounded-2xl flex items-center justify-center mb-4">
+              <span class="material-symbols-outlined text-[#004ac6] text-3xl">groups</span>
+            </div>
+            <h3 class="text-lg font-bold text-[#191c1e] mb-2">No committees yet</h3>
+            <p class="text-sm text-[#737686] mb-6 max-w-xs">You haven't created any committees. Start one and invite members to join your savings circle.</p>
+            <button
+              (click)="goToCreate()"
+              class="flex items-center gap-2 px-6 py-3 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">add_circle</span>
+              Create Your First Committee
+            </button>
+          </div>
+        }
+
+        <!-- Real committees -->
+        @if (!loading() && leadCommittees().length > 0) {
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @for (committee of leadCommittees(); track committee.id) {
+              <div class="bg-white rounded-2xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
+
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 class="text-xl font-bold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">
+                      {{ committee.name }}
+                    </h3>
+                    <span class="text-sm text-[#434655] flex items-center gap-1 mt-0.5">
+                      <span class="material-symbols-outlined text-[16px]">verified_user</span> Admin
+                    </span>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold border"
+                    [style.background-color]="getStatusStyle(committee.status).bg"
+                    [style.color]="getStatusStyle(committee.status).color"
+                    [style.border-color]="getStatusStyle(committee.status).border">
+                    {{ committee.status }}
                   </span>
                 </div>
-                <span class="px-4 py-1 rounded-full text-xs font-semibold border"
-                  [style.background-color]="committee.statusBg"
-                  [style.color]="committee.statusColor"
-                  [style.border-color]="committee.statusBorder">
-                  {{ committee.status }}
-                </span>
-              </div>
 
-              <div class="grid grid-cols-2 gap-4 py-4 border-y border-[#c3c6d7] mb-4">
-                <div>
-                  <p class="text-xs font-semibold text-[#434655] mb-1">Contribution</p>
-                  <p class="text-sm font-semibold text-[#191c1e]">{{ committee.contribution }} <span class="text-sm font-normal">/mo</span></p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-[#434655] mb-1">Next Payment</p>
-                  <p class="text-sm font-semibold text-[#191c1e]">{{ committee.nextPayment }}</p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-[#434655] mb-1">Participants</p>
-                  <div class="flex -space-x-2 mt-1">
-                    @for (member of committee.members; track member.src) {
-                      <img [src]="member.src" [alt]="member.alt" class="inline-block h-6 w-6 rounded-full ring-2 ring-white" />
-                    }
-                    <div class="flex items-center justify-center h-6 w-6 rounded-full bg-[#f1f5f9] text-[10px] font-bold text-[#64748b] ring-2 ring-white">
-                      {{ committee.extraCount }}
-                    </div>
+                <!-- Description -->
+                <p class="text-sm text-[#737686] mb-4 line-clamp-2">{{ committee.description }}</p>
+
+                <!-- Stats grid -->
+                <div class="grid grid-cols-2 gap-4 py-4 border-y border-[#f2f4f6] mb-4">
+                  <div>
+                    <p class="text-xs font-semibold text-[#737686] mb-1 uppercase tracking-wide">Monthly</p>
+                    <p class="text-sm font-bold text-[#191c1e]">{{ formatAmount(committee.monthly_amount) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-[#737686] mb-1 uppercase tracking-wide">Duration</p>
+                    <p class="text-sm font-bold text-[#191c1e]">{{ committee.duration_months }} months</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-[#737686] mb-1 uppercase tracking-wide">Max Members</p>
+                    <p class="text-sm font-bold text-[#191c1e]">{{ committee.max_members }} slots</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-[#737686] mb-1 uppercase tracking-wide">Created</p>
+                    <p class="text-sm font-bold text-[#191c1e]">{{ committee.created_at | date:'MMM d, y' }}</p>
                   </div>
                 </div>
-                <div>
-                  <p class="text-xs font-semibold text-[#434655] mb-1">Trust Score</p>
-                  <div class="w-full bg-[#f1f5f9] h-1.5 rounded-full mt-2">
-                    <div class="bg-[#004ac6] h-1.5 rounded-full" [style.width]="committee.trustWidth"></div>
-                  </div>
-                </div>
-              </div>
 
-              <button class="w-full py-4 bg-[#f1f5f9] text-[#191c1e] rounded-xl text-sm font-semibold hover:bg-[#004ac6] hover:text-white transition-all flex items-center justify-center gap-2">
-                View Details
-                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-              </button>
+                <!-- Total pool -->
+                <div class="flex items-center justify-between bg-[#f2f4f6] rounded-xl px-4 py-3 mb-4">
+                  <span class="text-xs font-semibold text-[#737686]">Total Pool Value</span>
+                  <span class="text-sm font-bold text-[#004ac6]">
+                    ${{ (committee.monthly_amount * committee.max_members * committee.duration_months).toLocaleString() }}
+                  </span>
+                </div>
+
+                <button
+                  (click)="viewDetails(committee.id)"
+                  class="w-full py-3 bg-[#f2f4f6] text-[#191c1e] rounded-xl text-sm font-semibold hover:bg-[#004ac6] hover:text-white transition-all flex items-center justify-center gap-2">
+                  View Details
+                  <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+              </div>
+            }
+
+            <!-- Add another card -->
+            <div
+              (click)="goToCreate()"
+              class="bg-white rounded-2xl border-2 border-dashed border-[#c3c6d7] p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] hover:bg-[#f7f9ff] transition-all min-h-[200px]">
+              <div class="w-12 h-12 rounded-full bg-[#dbe1ff] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-[#004ac6]">add</span>
+              </div>
+              <h3 class="text-sm font-bold text-[#191c1e]">Create Another</h3>
+              <p class="text-xs text-[#737686] mt-1">Start a new savings circle</p>
             </div>
-          }
-        </div>
+          </div>
+        }
       </section>
 
-      <!-- Committees I'm In -->
+      <!-- ── Committees I'm In ─────────────────────────────────────────── -->
       <section>
-        <div class="flex items-center gap-4 mb-8">
+        <div class="flex items-center gap-3 mb-6">
           <span class="material-symbols-outlined text-[#505f76]" style="font-variation-settings:'FILL' 1;">group</span>
-          <h2 class="text-[30px] font-semibold text-[#191c1e] leading-[38px]">Committees I'm In</h2>
+          <h2 class="text-2xl font-bold text-[#191c1e]">Committees I'm In</h2>
+          @if (!loading()) {
+            <span class="bg-[#e6e8ea] text-[#434655] text-xs font-bold px-2.5 py-0.5 rounded-full">
+              {{ joinedCommittees().length }}
+            </span>
+          }
         </div>
+
+        @if (loading()) {
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            @for (i of [1,2]; track i) {
+              <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm animate-pulse">
+                <div class="h-4 bg-[#e6e8ea] rounded w-2/3 mb-3"></div>
+                <div class="h-3 bg-[#e6e8ea] rounded w-1/3 mb-6"></div>
+                <div class="space-y-2">
+                  <div class="h-3 bg-[#e6e8ea] rounded"></div>
+                  <div class="h-3 bg-[#e6e8ea] rounded w-3/4"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          @for (committee of memberCommittees; track committee.name) {
-            <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="text-sm font-semibold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">{{ committee.name }}</h3>
-                  <span class="text-sm text-[#434655]">Member</span>
+
+          <!-- Real joined committees -->
+          @if (!loading()) {
+            @for (committee of joinedCommittees(); track committee.id) {
+              <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 class="text-sm font-bold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">
+                      {{ committee.name }}
+                    </h3>
+                    <span class="text-xs text-[#434655] flex items-center gap-1 mt-0.5">
+                      <span class="material-symbols-outlined text-[14px]">person</span> Member
+                    </span>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold border"
+                    [style.background-color]="getStatusStyle(committee.status).bg"
+                    [style.color]="getStatusStyle(committee.status).color"
+                    [style.border-color]="getStatusStyle(committee.status).border">
+                    {{ committee.status }}
+                  </span>
                 </div>
-                <span class="px-4 py-1 rounded-full text-xs font-semibold border"
-                  [style.background-color]="committee.statusBg"
-                  [style.color]="committee.statusColor"
-                  [style.border-color]="committee.statusBorder">
-                  {{ committee.status }}
-                </span>
+
+                <p class="text-xs text-[#737686] mb-4 line-clamp-2">{{ committee.description }}</p>
+
+                <div class="space-y-2 py-4 border-y border-[#f2f4f6] mb-4">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-[#737686]">Monthly Contribution</span>
+                    <span class="text-sm font-bold text-[#004ac6]">{{ formatAmount(committee.monthly_amount) }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-[#737686]">Duration</span>
+                    <span class="text-sm font-semibold text-[#191c1e]">{{ committee.duration_months }} months</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-[#737686]">Max Members</span>
+                    <span class="text-sm font-semibold text-[#191c1e]">{{ committee.max_members }} slots</span>
+                  </div>
+                </div>
+
+                <button
+                  (click)="viewDetails(committee.id)"
+                  class="w-full py-2.5 text-[#004ac6] text-sm font-semibold hover:bg-[#dbe1ff] rounded-xl transition-all flex items-center justify-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px]">info</span>
+                  View Details
+                </button>
               </div>
-              <div class="space-y-2 py-4 border-y border-[#c3c6d7] mb-4">
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-[#434655]">Contribution</span>
-                  <span class="text-sm font-semibold">{{ committee.contribution }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-[#434655]">Payment Date</span>
-                  <span class="text-sm font-semibold">{{ committee.paymentDate }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-[#434655]">Participants</span>
-                  <span class="text-sm font-semibold">{{ committee.participants }}</span>
-                </div>
-              </div>
-              <button class="w-full py-2 text-[#004ac6] text-sm font-semibold hover:bg-[#dbe1ff] rounded-lg transition-all">
-                View Details
-              </button>
-            </div>
+            }
           }
 
-          <!-- Join New Committee Card -->
-          <div class="bg-[#f2f4f6] rounded-xl border-2 border-dashed border-[#c3c6d7] p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] transition-all">
-            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[#004ac6]">add</span>
+          <!-- Join New Committee CTA -->
+          <div
+            (click)="goToBrowse()"
+            class="bg-[#f2f4f6] rounded-xl border-2 border-dashed border-[#c3c6d7] p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] hover:bg-[#f7f9ff] transition-all min-h-[160px]">
+            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[#004ac6]">search</span>
             </div>
-            <h3 class="text-sm font-semibold text-[#191c1e]">Join New Committee</h3>
-            <p class="text-sm text-[#434655] mt-1">Explore local and global groups</p>
+            <h3 class="text-sm font-bold text-[#191c1e]">Join a Committee</h3>
+            <p class="text-xs text-[#737686] mt-1">Browse and join savings circles</p>
           </div>
         </div>
       </section>
@@ -171,4 +296,3 @@
     </button>
   </nav>
 </div>
-

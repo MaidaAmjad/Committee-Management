@@ -12,7 +12,11 @@ export class AuthService {
   private supabase: SupabaseClient;
 
   session = signal<Session | null>(null);
-  user = signal<User | null>(null);
+  user    = signal<User | null>(null);
+
+  /** Resolves once the initial session has been loaded from storage */
+  readonly ready: Promise<void>;
+  private _resolveReady!: () => void;
 
   constructor(
     private supabaseService: SupabaseService,
@@ -20,20 +24,23 @@ export class AuthService {
   ) {
     this.supabase = this.supabaseService.client;
 
-    // Restore session on app load
+    // Create the ready promise before anything async
+    this.ready = new Promise(resolve => { this._resolveReady = resolve; });
+
+    // Restore session on app load — resolves `ready` when done
     this.supabase.auth.getSession().then(({ data }) => {
       this.session.set(data.session);
       this.user.set(data.session?.user ?? null);
+      this._resolveReady();
     });
 
-    // Listen for auth state changes
+    // Keep signals in sync on any auth event (login, logout, token refresh)
     this.supabase.auth.onAuthStateChange((_event, session) => {
       this.session.set(session);
       this.user.set(session?.user ?? null);
     });
   }
 
-  /** Sign up with email + password */
   async signUp(email: string, password: string, fullName: string): Promise<AuthResult> {
     const { error } = await this.supabase.auth.signUp({
       email,
@@ -43,15 +50,15 @@ export class AuthService {
     return { error };
   }
 
-  /** Sign in with email + password */
   async signIn(email: string, password: string): Promise<AuthResult> {
     const { error } = await this.supabase.auth.signInWithPassword({ email, password });
     return { error };
   }
 
-  /** Sign out and redirect to signup */
   async signOut(): Promise<void> {
     await this.supabase.auth.signOut();
+    this.session.set(null);
+    this.user.set(null);
     this.router.navigate(['/signup']);
   }
 

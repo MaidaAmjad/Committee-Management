@@ -16,6 +16,21 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent)
   },
   {
+    path: 'user/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/user-profile-view/user-profile-view').then(m => m.UserProfileViewComponent)
+  },
+  {
+    path: 'join-requests',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/join-requests/join-requests').then(m => m.JoinRequestsComponent)
+  },
+  {
+    path: 'committee/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/committee-detail/committee-detail').then(m => m.CommitteeDetailComponent)
+  },
+  {
     path: 'create-committee',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/create-committee/create-committee').then(m => m.CreateCommitteeComponent)

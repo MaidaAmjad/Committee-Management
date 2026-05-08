@@ -1,113 +1,125 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
+import { CommitteeService, Committee } from '../../core/committee.service';
+import { AuthService } from '../../core/auth.service';
 
-export interface CommitteeCard {
-  id: number;
-  image: string;
-  category: string;
-  name: string;
-  trustLabel: string;
-  trustIcon: string;
-  trustIconColor: string;
-  monthly: string;
-  duration: string;
-  membersJoined: number;
-  membersTotal: number;
-  slotLabel: string;
-  slotBg: string;
-  slotColor: string;
-  memberAvatars: string[];
-  extraCount: number | string;
-}
-
-export interface SmallCard {
-  id: number;
-  iconBg: string;
-  icon: string;
-  iconColor: string;
-  category: string;
-  name: string;
-  description: string;
-  monthly: string;
-}
+// Per-card request state
+interface RequestState { requested: boolean; status: string | null; }
 
 @Component({
   selector: 'app-browse-committees',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, TopnavComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent],
   templateUrl: './browse-committees.html',
   styleUrl: './browse-committees.scss'
 })
-export class BrowseCommitteesComponent {
-  categories = ['Education', 'Healthcare', 'Real Estate', 'General Savings'];
-  selectedCategories: Record<string, boolean> = { Education: true, 'Real Estate': true };
-  selectedSlot = '3-5 slots';
-  slots = ['1-2 slots', '3-5 slots', '5+ slots', 'Unlimited'];
+export class BrowseCommitteesComponent implements OnInit {
 
-  committeeCards: CommitteeCard[] = [
-    {
-      id: 1,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuANq4YcPUx4vQqmzfxpCsdoQvJ0ZPh7yGE9m2gaVGpxxWluH63x9TWcRdCYmWQymQWALCTuDXeb2CcuhcyBmOuoo-i3Gyzq9NxMVa6I4LQT5JF5bMaPjgyNPyF96fX7487D9HhJM3eJdY2cQ9g6cd1IHr_qvyaV23g2hMg4SI2bTHlAApdu5q4HC2ZdNsabSe19GEC0T6LJHhQLbfrBmX-8XKSbsoei5pvA77x6jPKjAeG3Zm4a_WZCte-0lMfUUZqJt15BIqcUuus',
-      category: 'Real Estate', name: 'Lagos Property Circle',
-      trustLabel: 'Top Tier Trust', trustIcon: 'verified', trustIconColor: '#004ac6',
-      monthly: '$500/mo', duration: '12 Months',
-      membersJoined: 8, membersTotal: 10,
-      slotLabel: '2 SLOTS LEFT', slotBg: '#ffdbcd', slotColor: '#7d2d00',
-      memberAvatars: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCMznGX1fK7UFnRpwYNxTe41Ttv8q1AlmiRNfgjdmqgwpvcFNg1qnsFKz6FlH4lhQ1D8yyOQ-1Lc4BISwBZDWhKFeWZafJzhnFv1eBgnm5wkeqUlTpzd2oJVAj14KqeDMPvr_UtbGvEmzrWU9QKK_99I_tjQCzlQeOdYpIh6pXZM8IOwY4nqTeNZ2J67zTK63LUhhDl1QTRt8p7GL8SMLNGLfMxm8DF8DmbPt2JR8GaE3ZWd93Wfcw6qRHc0IMpPf72nQQIIxxl8Fg',
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuD2_rD2-29meiiXrJ8_MJPwkJIbOYrcW58JLjGj25iV4X9g0FcQ1BjK-HnrGcaqP6vIwlpHvZjunsuyRBku9ZjrSzw6dCRv0MdvuFCjyCfGkN5HWRNuwgqd1dHUqjwa_AJ3X-dCh1WxJne9OpZ-2zA6oq5nPtKg05SHBu_tIajAwTUg95x0ALhx6dYUh5qCEDfXoPya1brl8nWUqnePYI-9qbBgQBgqor66btguCY7OphqE-oG4dTI8cjTu1xkz_L8WYK5WhYdNKQk',
-      ],
-      extraCount: '+6'
-    },
-    {
-      id: 2,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDACO_-DJ4MRTeERTlyQvpVmY7g0x4Zjt9cSbaMDy-pfBMQ-BqABjtk2LfRoUkwC2DqegsKvVsUxDdISrVD1G2pjKbKAg0QpLCDBynd0y0-yWWHPzW9c3IrcBCEuQGbwNpm7jZOe72DutU2-t2j-T5rdAbrzYiM3ABZjGD_7LqQtfgaEq6uUHZPAEgERRPE-s_j05lPcLvhPVh6rDClN7OESUTxb5NPSK6xD3mPJVLHyvAdyWcniuwuw6XnlZTKWcYcOVblH6J12oM',
-      category: 'Education', name: 'MBA Funding Circle',
-      trustLabel: 'Starts in 3 days', trustIcon: 'lock_clock', trustIconColor: '#505f76',
-      monthly: '$1,200/mo', duration: '24 Months',
-      membersJoined: 18, membersTotal: 20,
-      slotLabel: 'LIMITED SLOTS', slotBg: '#ffdbcd', slotColor: '#7d2d00',
-      memberAvatars: [], extraCount: '+16'
-    },
-    {
-      id: 3,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBF_GKF_9dqMfDkHtOhhl_NQ-0Mip6w6DcpOfzih0_esMYY9Q6ildT4feSEzN2pYMEq60pQlpb5YNZ6JG1x46AIZqgOvYPSfmgnHGjM9j-E_8cI91Eo6ZLMIvcaQTuILk775VslFNB-lcV4rivzp5t7bN1g1Kh9XdtJTq5aS-Dag1v_eUwO1oz-ZJEJ8cM8-wlakdTvKyVDP0RoJxCUoaNBGRmoMpjIlbtE8v7Q_rmEflWhgxtExmhPzHxw_-S6WQzAPKHg62LvqLU',
-      category: 'General Savings', name: 'Holiday Trip Fund',
-      trustLabel: 'Open to all members', trustIcon: 'public', trustIconColor: '#505f76',
-      monthly: '$100/mo', duration: '6 Months',
-      membersJoined: 3, membersTotal: 15,
-      slotLabel: '12 SLOTS OPEN', slotBg: '#d0e1fb', slotColor: '#54647a',
-      memberAvatars: [
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuD2Ajjli4TwcnnAkpOk4lEo6x4PW1SZyEnrEP1naVdwywwGtVVUNt0vYe_tssf9FWpsXdgr6rjQphvqz1M58-84mu0LnXjP9SRA4JfCOnVuDN2wIja34KSnJKSLIZovhlDThqr8WMY2qv_Kida4mkMopTtY10qmMnSVsR_xcYzEjYvCwygAZvYc_qxDyQbynNF62Eq9hnlf6QGA7EYB0aaVqYbHqcQNlXGIh-1CI0Ueqh_dWH_0AJCKqIsIEhd5FZIKbP8m5IC3qtA',
-      ],
-      extraCount: '+2'
+  allCommittees  = signal<Committee[]>([]);
+  requestStates  = signal<Record<string, RequestState>>({});
+  joiningId      = signal<string | null>(null);
+  loading        = signal(true);
+  errorMsg       = signal('');
+  searchQuery    = signal('');
+  maxAmount      = signal(10000);
+  amountFilter   = signal(10000);
+
+  currentUserId = computed(() => this.auth.user()?.id ?? '');
+
+  filteredCommittees = computed(() => {
+    const q      = this.searchQuery().toLowerCase().trim();
+    const maxAmt = this.amountFilter();
+    return this.allCommittees().filter(c =>
+      (!q || c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)) &&
+      c.monthly_amount <= maxAmt
+    );
+  });
+
+  constructor(
+    private committeeService: CommitteeService,
+    private auth: AuthService,
+    private router: Router
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    await this.auth.ready;
+    this.loading.set(true);
+
+    // Run both queries in parallel — one for committees, one for user's memberships
+    const [committeesRes, membershipMap] = await Promise.all([
+      this.committeeService.getAllCommittees(),
+      this.committeeService.getMyMembershipStatuses(),
+    ]);
+
+    this.loading.set(false);
+
+    if (committeesRes.error) { this.errorMsg.set(committeesRes.error); return; }
+
+    this.allCommittees.set(committeesRes.data);
+
+    // Build request states from the single membership query
+    const states: Record<string, RequestState> = {};
+    committeesRes.data.forEach(c => {
+      const status = membershipMap[c.id] ?? null;
+      states[c.id] = { requested: !!status, status };
+    });
+    this.requestStates.set(states);
+
+    if (committeesRes.data.length) {
+      const max = Math.max(...committeesRes.data.map(c => c.monthly_amount));
+      this.maxAmount.set(max > 0 ? max : 10000);
+      this.amountFilter.set(max > 0 ? max : 10000);
     }
-  ];
-
-  smallCards: SmallCard[] = [
-    {
-      id: 4, iconBg: '#d3e4fe', icon: 'medical_services', iconColor: '#38485d',
-      category: 'HEALTHCARE', name: 'Medical Emergency Fund',
-      description: 'High-priority circle for shared medical emergency liquidity.',
-      monthly: '$250'
-    },
-    {
-      id: 5, iconBg: '#ffdbcd', icon: 'home_work', iconColor: '#7d2d00',
-      category: 'REAL ESTATE', name: 'Office Space Equity',
-      description: 'Crowdfunding commercial office renovations in tech hubs.',
-      monthly: '$800'
-    }
-  ];
-
-  getMemberProgress(joined: number, total: number): number {
-    return (joined / total) * 100;
   }
 
-  resetFilters(): void {
-    this.selectedCategories = {};
-    this.selectedSlot = '';
+  isOwner(c: Committee): boolean {
+    return c.created_by === this.currentUserId();
   }
+
+  getRequestState(c: Committee): RequestState {
+    return this.requestStates()[c.id] ?? { requested: false, status: null };
+  }
+
+  async joinCommittee(c: Committee, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.joiningId.set(c.id);
+    const { error } = await this.committeeService.joinCommittee(c.id);
+    this.joiningId.set(null);
+    if (error) { this.errorMsg.set(error); return; }
+    // Mark as pending
+    this.requestStates.update(s => ({ ...s, [c.id]: { requested: true, status: 'pending' } }));
+  }
+
+  viewDetails(c: Committee): void {
+    this.router.navigate(['/committee', c.id]);
+  }
+
+  getSlotsLeft(c: Committee): number { return c.max_members; }
+
+  getSlotLabel(c: Committee): string {
+    const s = this.getSlotsLeft(c);
+    return s <= 2 ? `${s} SLOTS LEFT` : `${s} SLOTS OPEN`;
+  }
+
+  getSlotStyle(c: Committee): { bg: string; color: string } {
+    const s = this.getSlotsLeft(c);
+    if (s <= 2) return { bg: '#ffdbcd', color: '#7d2d00' };
+    if (s <= 5) return { bg: '#fef9c3', color: '#854d0e' };
+    return { bg: '#d0e1fb', color: '#54647a' };
+  }
+
+  getStatusBadge(c: Committee): { bg: string; color: string } {
+    return c.status === 'Active'
+      ? { bg: '#f0fdf4', color: '#15803d' }
+      : { bg: '#eff6ff', color: '#1d4ed8' };
+  }
+
+  goToCreate(): void { this.router.navigate(['/create-committee']); }
+  onSearch(v: string): void { this.searchQuery.set(v); }
+  onAmountChange(v: number): void { this.amountFilter.set(v); }
+  resetFilters(): void { this.searchQuery.set(''); this.amountFilter.set(this.maxAmount()); }
 }
