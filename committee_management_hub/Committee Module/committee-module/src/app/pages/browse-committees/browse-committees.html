@@ -1,0 +1,202 @@
+<div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Main -->
+  <div class="flex flex-col flex-1 md:ml-64">
+    <app-topnav [offsetLeft]="false"></app-topnav>
+
+    <!-- Workspace -->
+    <div class="flex flex-col lg:flex-row flex-grow max-w-[1440px] mx-auto w-full p-6 gap-6">
+
+      <!-- Filter Sidebar -->
+      <aside class="w-full lg:w-72 flex flex-col gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-[#c3c6d7] shadow-sm">
+          <h2 class="text-2xl font-semibold text-[#191c1e] mb-6">Filters</h2>
+          <div class="flex flex-col gap-8">
+
+            <!-- Category Filter -->
+            <div>
+              <label class="text-sm font-semibold text-[#191c1e] block mb-4">Category</label>
+              <div class="space-y-2">
+                @for (cat of categories; track cat) {
+                  <label class="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="selectedCategories[cat]"
+                      [name]="cat"
+                      class="w-5 h-5 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#004ac6] cursor-pointer"
+                    />
+                    <span class="text-sm text-[#434655] group-hover:text-[#191c1e]">{{ cat }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+
+            <!-- Amount Range -->
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <label class="text-sm font-semibold text-[#191c1e]">Monthly Amount</label>
+                <span class="text-xs font-semibold text-[#004ac6]">$100 - $1k</span>
+              </div>
+              <input type="range" min="50" max="2000" step="50" class="w-full h-2 bg-[#e0e3e5] rounded-lg appearance-none cursor-pointer accent-[#004ac6]" />
+              <div class="flex justify-between mt-2">
+                <span class="text-xs font-semibold text-[#434655]">$50</span>
+                <span class="text-xs font-semibold text-[#434655]">$2k+</span>
+              </div>
+            </div>
+
+            <!-- Available Slots -->
+            <div>
+              <label class="text-sm font-semibold text-[#191c1e] block mb-4">Available Slots</label>
+              <div class="grid grid-cols-2 gap-2">
+                @for (slot of slots; track slot) {
+                  <button
+                    (click)="selectedSlot = slot"
+                    class="px-4 py-2 border rounded-xl text-xs font-semibold transition-colors"
+                    [class.border-[#004ac6]]="selectedSlot === slot"
+                    [class.bg-[#dbe1ff]]="selectedSlot === slot"
+                    [class.text-[#004ac6]]="selectedSlot === slot"
+                    [class.border-[#c3c6d7]]="selectedSlot !== slot"
+                    [class.text-[#434655]]="selectedSlot !== slot"
+                    [class.hover:bg-[#e6e8ea]]="selectedSlot !== slot"
+                  >
+                    {{ slot }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <button (click)="resetFilters()" class="w-full py-4 bg-[#505f76] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-colors">
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Promo Card -->
+        <div class="bg-[#004ac6] rounded-2xl p-6 text-white shadow-lg overflow-hidden relative">
+          <div class="relative z-10">
+            <h3 class="text-2xl font-semibold mb-2">Premium Tiers</h3>
+            <p class="text-sm opacity-90 mb-6">Unlock high-limit committees with advanced escrow protection.</p>
+            <button class="bg-white text-[#004ac6] px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#dbe1ff] transition-colors">Upgrade Now</button>
+          </div>
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-[#003ea8] opacity-20 rounded-full"></div>
+        </div>
+      </aside>
+
+      <!-- Grid Section -->
+      <div class="flex-grow">
+        <div class="flex justify-between items-center mb-6">
+          <div class="flex flex-col">
+            <h1 class="text-[30px] font-semibold text-[#191c1e] leading-[38px]">Browse Committees</h1>
+            <p class="text-sm text-[#434655]">Showing 158 active investment circles</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="p-2 bg-white border border-[#c3c6d7] rounded-lg text-[#434655] hover:bg-[#e6e8ea] transition-all">
+              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">grid_view</span>
+            </button>
+            <button class="p-2 bg-white border border-[#c3c6d7] rounded-lg text-[#434655] hover:bg-[#e6e8ea] transition-all">
+              <span class="material-symbols-outlined">list</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Committee Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+          <!-- Large Cards -->
+          @for (card of committeeCards; track card.id) {
+            <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm hover:shadow-md transition-all group overflow-hidden">
+              <div class="h-32 bg-[#e6e8ea] flex items-center justify-center relative">
+                <img [src]="card.image" alt="Committee Theme" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" />
+                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full shadow-sm">
+                  <span class="text-xs font-semibold text-[#004ac6]">{{ card.category }}</span>
+                </div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-lg font-bold text-[#191c1e] mb-1">{{ card.name }}</h3>
+                <div class="flex items-center gap-1 mb-4">
+                  <span class="material-symbols-outlined text-[18px]" [style.color]="card.trustIconColor"
+                    style="font-variation-settings:'FILL' 1;">{{ card.trustIcon }}</span>
+                  <span class="text-xs font-semibold text-[#434655]">{{ card.trustLabel }}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                  <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-[#434655] uppercase tracking-wider">Monthly</span>
+                    <span class="text-sm font-semibold text-[#191c1e]">{{ card.monthly }}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-[#434655] uppercase tracking-wider">Duration</span>
+                    <span class="text-sm font-semibold text-[#191c1e]">{{ card.duration }}</span>
+                  </div>
+                </div>
+                <div class="space-y-2 mb-6">
+                  <div class="flex justify-between items-center text-xs font-semibold">
+                    <span class="text-[#434655]">Members Joined</span>
+                    <span class="text-[#191c1e]">{{ card.membersJoined }} / {{ card.membersTotal }}</span>
+                  </div>
+                  <div class="w-full h-2 bg-[#e0e3e5] rounded-full overflow-hidden">
+                    <div class="bg-[#004ac6] h-full rounded-full" [style.width.%]="getMemberProgress(card.membersJoined, card.membersTotal)"></div>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="px-2 py-1 rounded-lg text-[10px] font-bold" [style.background-color]="card.slotBg" [style.color]="card.slotColor">
+                      {{ card.slotLabel }}
+                    </span>
+                    <div class="flex -space-x-2">
+                      @for (avatar of card.memberAvatars; track avatar) {
+                        <img [src]="avatar" alt="Member" class="w-6 h-6 rounded-full border-2 border-white" />
+                      }
+                      <div class="w-6 h-6 rounded-full border-2 border-white bg-[#e0e3e5] flex items-center justify-center text-[10px] font-bold text-[#434655]">
+                        {{ card.extraCount }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button class="w-full py-4 bg-[#004ac6] text-white rounded-xl text-sm font-semibold hover:bg-[#003ea8] transition-all flex items-center justify-center gap-2">
+                  Join Committee
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Small Cards -->
+          @for (card of smallCards; track card.id) {
+            <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm hover:shadow-md transition-all group p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-start mb-4">
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center" [style.background-color]="card.iconBg">
+                    <span class="material-symbols-outlined" [style.color]="card.iconColor">{{ card.icon }}</span>
+                  </div>
+                  <span class="px-2 py-1 bg-[#e0e3e5] text-[#434655] rounded-lg text-[10px] font-bold">{{ card.category }}</span>
+                </div>
+                <h3 class="text-lg font-bold text-[#191c1e] mb-1">{{ card.name }}</h3>
+                <p class="text-sm text-[#434655] mb-4">{{ card.description }}</p>
+              </div>
+              <div class="mt-4 pt-4 border-t border-[#c3c6d7]">
+                <div class="flex justify-between items-end">
+                  <div>
+                    <span class="text-xs font-semibold text-[#434655] block">Monthly contribution</span>
+                    <span class="text-2xl font-semibold text-[#004ac6]">{{ card.monthly }}</span>
+                  </div>
+                  <button class="bg-[#f2f4f6] border border-[#c3c6d7] text-[#191c1e] p-2 rounded-xl hover:bg-[#e6e8ea] transition-colors">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Empty State / Invite Card -->
+          <div class="border-2 border-dashed border-[#c3c6d7] rounded-2xl flex flex-col items-center justify-center p-8 text-center group hover:bg-[#f2f4f6] transition-all cursor-pointer">
+            <div class="w-16 h-16 rounded-full bg-[#e6e8ea] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[#004ac6] text-3xl">add</span>
+            </div>
+            <h3 class="text-sm font-semibold text-[#191c1e] mb-1">Create a Committee</h3>
+            <p class="text-sm text-[#434655]">Start your own savings circle</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

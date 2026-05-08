@@ -1,0 +1,173 @@
+<div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Main -->
+  <div class="flex flex-col flex-1 md:ml-64">
+    <app-topnav [offsetLeft]="false"></app-topnav>
+
+    <main class="flex-1 p-6 max-w-[1280px] mx-auto w-full">
+
+      <!-- Page Header -->
+      <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+        <div>
+          <h1 class="text-[36px] font-bold text-[#191c1e] leading-[44px] mb-1">My Committees</h1>
+          <p class="text-base text-[#434655]">Manage your created groups and current memberships.</p>
+        </div>
+        <div class="flex bg-[#e6e8ea] p-1 rounded-xl self-start">
+          <button
+            (click)="activeTab = 'Active'"
+            class="px-8 py-2 rounded-lg text-sm font-semibold transition-colors"
+            [class.bg-white]="activeTab === 'Active'"
+            [class.text-[#191c1e]]="activeTab === 'Active'"
+            [class.shadow-sm]="activeTab === 'Active'"
+            [class.text-[#434655]]="activeTab !== 'Active'"
+          >Active</button>
+          <button
+            (click)="activeTab = 'Past'"
+            class="px-8 py-2 rounded-lg text-sm font-semibold transition-colors"
+            [class.bg-white]="activeTab === 'Past'"
+            [class.text-[#191c1e]]="activeTab === 'Past'"
+            [class.shadow-sm]="activeTab === 'Past'"
+            [class.text-[#434655]]="activeTab !== 'Past'"
+          >Past</button>
+        </div>
+      </header>
+
+      <!-- Committees I Lead -->
+      <section class="mb-16">
+        <div class="flex items-center gap-4 mb-8">
+          <span class="material-symbols-outlined text-[#004ac6]" style="font-variation-settings:'FILL' 1;">stars</span>
+          <h2 class="text-[30px] font-semibold text-[#191c1e] leading-[38px]">Committees I Lead</h2>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          @for (committee of leadCommittees; track committee.name) {
+            <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="text-2xl font-semibold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">{{ committee.name }}</h3>
+                  <span class="text-sm text-[#434655] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[18px]">verified_user</span> {{ committee.role }}
+                  </span>
+                </div>
+                <span class="px-4 py-1 rounded-full text-xs font-semibold border"
+                  [style.background-color]="committee.statusBg"
+                  [style.color]="committee.statusColor"
+                  [style.border-color]="committee.statusBorder">
+                  {{ committee.status }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 py-4 border-y border-[#c3c6d7] mb-4">
+                <div>
+                  <p class="text-xs font-semibold text-[#434655] mb-1">Contribution</p>
+                  <p class="text-sm font-semibold text-[#191c1e]">{{ committee.contribution }} <span class="text-sm font-normal">/mo</span></p>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-[#434655] mb-1">Next Payment</p>
+                  <p class="text-sm font-semibold text-[#191c1e]">{{ committee.nextPayment }}</p>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-[#434655] mb-1">Participants</p>
+                  <div class="flex -space-x-2 mt-1">
+                    @for (member of committee.members; track member.src) {
+                      <img [src]="member.src" [alt]="member.alt" class="inline-block h-6 w-6 rounded-full ring-2 ring-white" />
+                    }
+                    <div class="flex items-center justify-center h-6 w-6 rounded-full bg-[#f1f5f9] text-[10px] font-bold text-[#64748b] ring-2 ring-white">
+                      {{ committee.extraCount }}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-[#434655] mb-1">Trust Score</p>
+                  <div class="w-full bg-[#f1f5f9] h-1.5 rounded-full mt-2">
+                    <div class="bg-[#004ac6] h-1.5 rounded-full" [style.width]="committee.trustWidth"></div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="w-full py-4 bg-[#f1f5f9] text-[#191c1e] rounded-xl text-sm font-semibold hover:bg-[#004ac6] hover:text-white transition-all flex items-center justify-center gap-2">
+                View Details
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Committees I'm In -->
+      <section>
+        <div class="flex items-center gap-4 mb-8">
+          <span class="material-symbols-outlined text-[#505f76]" style="font-variation-settings:'FILL' 1;">group</span>
+          <h2 class="text-[30px] font-semibold text-[#191c1e] leading-[38px]">Committees I'm In</h2>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          @for (committee of memberCommittees; track committee.name) {
+            <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="text-sm font-semibold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">{{ committee.name }}</h3>
+                  <span class="text-sm text-[#434655]">Member</span>
+                </div>
+                <span class="px-4 py-1 rounded-full text-xs font-semibold border"
+                  [style.background-color]="committee.statusBg"
+                  [style.color]="committee.statusColor"
+                  [style.border-color]="committee.statusBorder">
+                  {{ committee.status }}
+                </span>
+              </div>
+              <div class="space-y-2 py-4 border-y border-[#c3c6d7] mb-4">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-[#434655]">Contribution</span>
+                  <span class="text-sm font-semibold">{{ committee.contribution }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-[#434655]">Payment Date</span>
+                  <span class="text-sm font-semibold">{{ committee.paymentDate }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-[#434655]">Participants</span>
+                  <span class="text-sm font-semibold">{{ committee.participants }}</span>
+                </div>
+              </div>
+              <button class="w-full py-2 text-[#004ac6] text-sm font-semibold hover:bg-[#dbe1ff] rounded-lg transition-all">
+                View Details
+              </button>
+            </div>
+          }
+
+          <!-- Join New Committee Card -->
+          <div class="bg-[#f2f4f6] rounded-xl border-2 border-dashed border-[#c3c6d7] p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] transition-all">
+            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[#004ac6]">add</span>
+            </div>
+            <h3 class="text-sm font-semibold text-[#191c1e]">Join New Committee</h3>
+            <p class="text-sm text-[#434655] mt-1">Explore local and global groups</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="h-12"></div>
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#f7f9fb] border-t border-[#c3c6d7] flex justify-around items-center h-16 z-50">
+    <button class="flex flex-col items-center gap-1 text-[#434655]">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="text-[10px] font-semibold">Home</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-[#434655]">
+      <span class="material-symbols-outlined">search</span>
+      <span class="text-[10px] font-semibold">Browse</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-[#004ac6]">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">groups</span>
+      <span class="text-[10px] font-semibold">My Groups</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-[#434655]">
+      <span class="material-symbols-outlined">person</span>
+      <span class="text-[10px] font-semibold">Profile</span>
+    </button>
+  </nav>
+</div>
