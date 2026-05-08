@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Public Profile | TrustCom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary-container": "#54647a",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "inverse-surface": "#2d3133",
+                        "primary": "#004ac6",
+                        "on-surface-variant": "#434655",
+                        "on-surface": "#191c1e",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdbcd",
+                        "secondary-fixed": "#d3e4fe",
+                        "surface": "#f7f9fb",
+                        "on-primary-container": "#eeefff",
+                        "on-tertiary-container": "#ffede6",
+                        "tertiary-container": "#bc4800",
+                        "background": "#f7f9fb",
+                        "surface-dim": "#d8dadc",
+                        "secondary": "#505f76",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "primary-container": "#2563eb",
+                        "on-background": "#191c1e",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary": "#943700",
+                        "on-primary-fixed": "#00174b",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#0053db",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#360f00",
+                        "error-container": "#ffdad6",
+                        "outline": "#737686",
+                        "secondary-container": "#d0e1fb",
+                        "surface-container": "#eceef0",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-secondary-fixed": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1280px",
+                        "lg": "24px",
+                        "unit": "8px",
+                        "2xl": "48px",
+                        "xs": "4px",
+                        "3xl": "64px",
+                        "gutter": "24px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "h1": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "h1": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "h3": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soft-shadow {
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+        }
+        .deep-shadow {
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md">
+<!-- TopNavBar Shell -->
+<nav class="bg-surface dark:bg-surface-container-lowest border-b border-outline-variant dark:border-outline shadow-sm docked full-width top-0 z-50 flex justify-between items-center w-full px-gutter h-16">
+<div class="flex items-center gap-xl">
+<span class="font-h3 text-h3 font-bold text-primary dark:text-primary-fixed-dim">TrustCom</span>
+<div class="hidden md:flex gap-lg items-center">
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors px-md py-sm rounded-lg" href="#">Explore</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors px-md py-sm rounded-lg" href="#">Committees</a>
+<a class="text-primary dark:text-inverse-primary font-label-md border-b-2 border-primary px-md py-sm" href="#">Browse Profiles</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-sm text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all scale-95 active:opacity-80">notifications</button>
+<div class="flex items-center gap-sm bg-surface-container-low px-sm py-xs rounded-full border border-outline-variant">
+<img alt="User profile" class="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaEmu-aR8xbwkAiatq1CQymkWUXVu_frGQsopqec70I1GlphQz4dG5e5paCR2ezRRSZon5-KB2KoN4gOievMoOKrA_DID4DHNx577dkwKKVp68UD1GtVNtobEanqEas7k6Rv0L0aXhjx8UBrCctPWZu-sZIsssg1aHA87Qz1IHPp0OfHGLKHbTDfwmTrggScPQ0CETQMfZQiQ26wm2AduvXKPxuORlqCKPF0NvrtBiPFg-m6Gml2HdAMb_JXHbD08c-vjIj6jUHh4"/>
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</div>
+</div>
+</nav>
+<main class="max-w-[1280px] mx-auto px-gutter py-xl">
+<!-- Profile Header Section -->
+<section class="bg-surface-container-lowest rounded-[16px] p-2xl soft-shadow mb-xl border border-outline-variant">
+<div class="flex flex-col md:flex-row gap-2xl items-center md:items-start">
+<div class="relative group">
+<div class="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-lg">
+<img alt="Sarah Jenkins" class="w-full h-full object-cover" data-alt="A professional headshot of a smiling middle-aged woman with kind eyes and a confident posture. She is set against a clean, light-colored background with soft, natural morning light illuminating her face. The style is crisp and modern light-mode, maintaining the TrustCom brand aesthetic of professional clarity and approachable authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClLrKX5bZ8Bk8ocweKOwl9_dlPezaw97ZPqcQSQik2KM-HbRiN5-f7X5X1ZwsG6FnJwJoBwu7VL_lll4Vs8tzBQJkM3F6SzW85X1V8Wly2ywvHyVZG1EdHNc8qNdapVfQtA8scAVqwGBBVtWQTOklkx7j2F6xBtUxuvXQ_WbGjWAUFsCU2wCMTZ3T-NU45PUouydLxx3pcrPzvXDwcml-lQCQAklOXARqoh8JYrQFc-ne8nvk1t7TPRzaqFUaTajzcveeHryZ46dk"/>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-white p-sm rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1 text-center md:text-left">
+<div class="flex flex-col md:flex-row md:items-center gap-md mb-sm">
+<h1 class="font-h1 text-h1 text-on-surface">Sarah Jenkins</h1>
+<span class="bg-secondary-container text-on-secondary-container px-md py-xs rounded-full font-label-md w-fit mx-auto md:mx-0">Premium Member</span>
+</div>
+<p class="text-on-surface-variant text-body-lg mb-lg max-w-2xl">Financial advisor and community leader with 10+ years of experience managing collective savings and transparent committee governance.</p>
+<div class="flex flex-wrap gap-xl justify-center md:justify-start">
+<div class="flex flex-col">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Trust Score</span>
+<div class="flex items-center gap-sm">
+<span class="text-h2 font-h2 text-primary">98</span>
+<div class="flex items-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-on-surface ml-xs">4.9/5</span>
+</div>
+</div>
+</div>
+<div class="w-[1px] h-12 bg-outline-variant hidden md:block"></div>
+<div class="flex flex-col">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Completed Committees</span>
+<span class="text-h2 font-h2 text-on-surface">25</span>
+</div>
+<div class="w-[1px] h-12 bg-outline-variant hidden md:block"></div>
+<div class="flex flex-col">
+<span class="text-label-sm text-on-surface-variant uppercase tracking-wider">Success Rate</span>
+<span class="text-h2 font-h2 text-on-surface">100%</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-md w-full md:w-auto">
+<button class="bg-primary text-on-primary px-xl py-md rounded-[12px] font-label-md hover:opacity-90 transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">mail</span>
+                        Message Sarah
+                    </button>
+<button class="bg-surface-container-high text-on-surface px-xl py-md rounded-[12px] font-label-md hover:bg-surface-container-highest transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">group_add</span>
+                        Invite to Committee
+                    </button>
+</div>
+</div>
+</section>
+<!-- Main Content Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-xl">
+<!-- Payment History Column -->
+<div class="md:col-span-1 flex flex-col gap-xl">
+<section class="bg-surface-container-lowest rounded-[16px] p-lg border border-outline-variant soft-shadow">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-h3 text-h3">Payment History</h3>
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<div class="space-y-md">
+<!-- Simulated Payment Timeline -->
+<div class="flex items-start gap-md pb-md border-b border-outline-variant">
+<div class="bg-primary-fixed p-sm rounded-lg">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">May Payout - $2,500</p>
+<p class="text-body-sm text-on-surface-variant">Completed on May 15, 2024</p>
+</div>
+</div>
+<div class="flex items-start gap-md pb-md border-b border-outline-variant">
+<div class="bg-primary-fixed p-sm rounded-lg">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">April Contribution</p>
+<p class="text-body-sm text-on-surface-variant">Completed on April 01, 2024</p>
+</div>
+</div>
+<div class="flex items-start gap-md pb-md border-b border-outline-variant">
+<div class="bg-primary-fixed p-sm rounded-lg">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">March Contribution</p>
+<p class="text-body-sm text-on-surface-variant">Completed on March 01, 2024</p>
+</div>
+</div>
+<div class="pt-sm">
+<div class="flex items-center justify-between mb-xs">
+<span class="text-label-sm text-on-surface-variant">Consistency Score</span>
+<span class="text-label-sm text-primary font-bold">100%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-full"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-primary-container text-on-primary-container rounded-[16px] p-lg border border-primary soft-shadow">
+<h4 class="font-h3 text-h3 mb-sm">Active Member</h4>
+<p class="text-body-md opacity-90 mb-lg">Sarah is currently participating in 3 active committees with a total pooled value of $15,000.</p>
+<div class="flex -space-x-2">
+<img alt="M1" class="w-8 h-8 rounded-full border-2 border-primary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhBzfolsgi3nA6NtUQcpiwmP7bXHOIwF1yZ82wI1vGCE6PC_MfXrtZb8gUVihc5QCWStIAaFdeBDVj0dmClHa4gy6SFRbxVEVK2voolu-zq1aPZzPm8dLTMn6RzyUKhi-6ytLkODoSfHbfU34VFuLIUpAta02krTn2tJrotHdi-3XO2uSNRjNPu96fTIMHfcp5fYkqkhSgDuDM1KnJDy34CerVGLOGGahNleyVBQFkkhjlRVt50JLD8xaCqUcfSeRZOG6tvEmhFoI"/>
+<img alt="M2" class="w-8 h-8 rounded-full border-2 border-primary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUMZh11VCF53-tGIw2C19CS25W1RjYwArZlYy4nCpjFCJaIjeMmthHxeigObCVO8bLNP29L_bTQ3JIlHvtMuKYlR9GJH6skVjbSP7VjYHkYdEolj7yKkcwMzdmctgkxztMffUN8smlJCZ9aWsOEOhvwG1uQZuLS9-Ud-ZotSFF_MnDMZ3PpgCL5iQvwQ01E2b43lu_g2clftsbXGXmk1wSTKDF_akiSgasbzApiqJ1g-XjTtRDLsETlG5yjVZgz7i6rqvbSzN_9DI"/>
+<img alt="M3" class="w-8 h-8 rounded-full border-2 border-primary-container" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5EVomBT1DgG3GhQ8e5_weSGhaw3ouieeW7uLwzIr0UbCNiZWxX8eOMdMXhNhl36F-NXjkIEVt2fF9xKc5LoXS2QJUJoSx41TQ6PO1_SqKN-4YcMzbkecC1ygEB09wfZqft5uWpVpSoJ4_Vk8wRTXbzWRYdA_90Ey9GerZZRHGjN7s6alU8Apb_uoW7NiSW3rz4KTuMTcqcYVMabD9q-wcn7vxWuOGEW9FEQRTi3KGiEh600l7XXp3r9a8DKZBwXgi-R6U-oMWRmw"/>
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold border-2 border-primary-container">+12</div>
+</div>
+</section>
+</div>
+<!-- Reviews and Detailed Feedback Column -->
+<div class="md:col-span-2 space-y-xl">
+<section class="bg-surface-container-lowest rounded-[16px] p-lg border border-outline-variant soft-shadow">
+<div class="flex items-center justify-between mb-xl">
+<h3 class="font-h3 text-h3">Member Reviews</h3>
+<div class="flex items-center gap-sm bg-surface-container px-md py-sm rounded-lg">
+<span class="text-label-md">Filter: Latest</span>
+<span class="material-symbols-outlined text-body-md">expand_more</span>
+</div>
+</div>
+<!-- Reviews List -->
+<div class="space-y-xl">
+<!-- Review 1 -->
+<div class="flex gap-md">
+<img alt="Reviewer" class="w-12 h-12 rounded-full flex-shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN8EcbZ0_dXDy8DnarL5DlKcC_RWpsXdxLMRAfKCgbPrXi_U6mZmkt2XGUT5GBlqKSkiK04_oKmEvzJyGr3rDuTZ7Ivv-lsHtuHE6ImkkzxQ1H_x5hrzW2ELHIAY_of8EESRtXZuE8dqeiUhpZqIdw7mI8MQILUqlnJt0TvQ3JLHzSq_OkjmqA1J-k5tHVCKLBKAjjzNprLV7tw1cBbu3qzA_zXxcN7CkL_EVSEzL9OK1CwyHejAhU6cfy2L_B6jqO404KhX2LYUU"/>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-xs">
+<h5 class="font-label-md text-on-surface">Michael Ross</h5>
+<span class="text-label-sm text-on-surface-variant">2 days ago</span>
+</div>
+<div class="flex items-center text-tertiary mb-sm">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-body-md text-on-surface-variant leading-relaxed">Sarah is an exemplary committee member. She always makes her contributions on the first of the month without reminders. Very communicative during the payout phase!</p>
+<div class="mt-md flex items-center gap-md">
+<span class="text-label-sm text-primary flex items-center gap-xs cursor-pointer"><span class="material-symbols-outlined text-body-sm">thumb_up</span> Helpful (12)</span>
+<span class="text-label-sm text-on-surface-variant cursor-pointer">Reply</span>
+</div>
+</div>
+</div>
+<!-- Review 2 -->
+<div class="flex gap-md">
+<img alt="Reviewer" class="w-12 h-12 rounded-full flex-shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByBs8zK-QCurIPap8b7K3XFHbBpoUIUa1Ys992n9U3nKvrI74GWww-262gpwZ5HYpGFcfMBsqGTLnJ_wTCo2IVJWOowUJR4WX5wGr5G2-hX1l2wUmP1DmZ_MqET_L8ExCFiYS-jnJWm-nHRCraEXW004TNdNXdDz6VDyZ_3-G7Vc5ZCjtqVAp5HbA0Wrwr69NA5n4dtaMaVnID3TI23WBs45V9X-E-zlwkpgeC58-FReVRVsegcDgYh4d2j2h06I9n6ABvdW5kSpY"/>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-xs">
+<h5 class="font-label-md text-on-surface">Elena Rodriguez</h5>
+<span class="text-label-sm text-on-surface-variant">3 weeks ago</span>
+</div>
+<div class="flex items-center text-tertiary mb-sm">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+<p class="text-body-md text-on-surface-variant leading-relaxed">We've worked together on three committees now. Trustworthy and professional. A backbone of our local savings group.</p>
+<div class="mt-md flex items-center gap-md">
+<span class="text-label-sm text-primary flex items-center gap-xs cursor-pointer"><span class="material-symbols-outlined text-body-sm">thumb_up</span> Helpful (8)</span>
+<span class="text-label-sm text-on-surface-variant cursor-pointer">Reply</span>
+</div>
+</div>
+</div>
+<!-- Review 3 -->
+<div class="flex gap-md">
+<img alt="Reviewer" class="w-12 h-12 rounded-full flex-shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIotrChzVqJcl7ihKFhUIW741Fv31wronFHjsS_2vO4JND9WWT9uzLhnwVEWCVl70YCewWPB96c4mV-DVCnTmlmo9LlXg1buFrR6ekI7S_lD-tcrehcMzTs14Mwz34_qubQ1B3NSfy-D35dpSzvn1lHSkHp1BAAY16IwBFat-Kw_lGKbQyVJkUwPPioCBUAGjzVX_4zkbMmeTe7RtpwapfaU_X3snxWpBlgN_rsuMECcfnAzyYoLAHd92aarkhMiAcWHztI2mk_48"/>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-xs">
+<h5 class="font-label-md text-on-surface">David Chen</h5>
+<span class="text-label-sm text-on-surface-variant">1 month ago</span>
+</div>
+<div class="flex items-center text-tertiary mb-sm">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<p class="text-body-md text-on-surface-variant leading-relaxed">Extremely organized. She actually helped set up our meeting schedule and ensured everyone understood the transparent ledgers.</p>
+<div class="mt-md flex items-center gap-md">
+<span class="text-label-sm text-primary flex items-center gap-xs cursor-pointer"><span class="material-symbols-outlined text-body-sm">thumb_up</span> Helpful (15)</span>
+<span class="text-label-sm text-on-surface-variant cursor-pointer">Reply</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-xl py-md border border-outline-variant rounded-[12px] font-label-md text-on-surface hover:bg-surface-container-high transition-all">
+                        View All 42 Reviews
+                    </button>
+</section>
+<!-- Activity Map / Location Context -->
+<section class="bg-surface-container-lowest rounded-[16px] border border-outline-variant soft-shadow overflow-hidden">
+<div class="p-lg">
+<h3 class="font-h3 text-h3 mb-xs">Primary Region</h3>
+<p class="text-body-sm text-on-surface-variant mb-md">Sarah primarily operates in the Greater Metropolitan Area.</p>
+</div>
+<div class="h-64 bg-surface-container-highest relative">
+<img alt="Regional activity map" class="w-full h-full object-cover opacity-50 grayscale" data-location="Seattle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqE-cnJlqssVsYdX_7XNVeVYHKriz0NjvTqvY6gJHc9-KvrvfWn4BH-FxgGIZpRNAPu83sFAQoqdcOuMzWJtExcnRHhgMCY7RqHxzuAt3-qU2_0E0tD4_IRK3J9HnFcjptSgzoWKdUHmZsjm5e4_SmfCLFLYj5eQQM5kjd_fFY06qfQ2XauO8ICCeDCj_nMEkgxpRkBehmdLtXu516rYD4MKmhp7HV2A1pizHqwr9N_GRjcBxP4tbGnojK9z1D1qYkVewNyyzmRvI"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<div class="bg-white px-md py-xs rounded-full shadow-lg border border-outline-variant mt-xs">
+<span class="font-label-md">Seattle, WA</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<footer class="mt-3xl py-2xl border-t border-outline-variant bg-surface-container-low">
+<div class="max-w-[1280px] mx-auto px-gutter grid grid-cols-1 md:grid-cols-4 gap-xl">
+<div class="col-span-1 md:col-span-2">
+<span class="font-h3 text-h3 font-bold text-primary mb-md block">TrustCom</span>
+<p class="text-body-md text-on-surface-variant max-w-sm">The world's most trusted platform for decentralized committee management and transparent financial collaboration.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-md text-on-surface uppercase mb-sm">Platform</span>
+<a class="text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">How it Works</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Trust Score System</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Security</a>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-md text-on-surface uppercase mb-sm">Legal</span>
+<a class="text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</div>
+<div class="max-w-[1280px] mx-auto px-gutter mt-2xl pt-xl border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
+<span class="text-body-sm text-on-surface-variant">© 2024 TrustCom Global Inc. All rights reserved.</span>
+<div class="flex items-center gap-lg">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">public</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">share</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">shield</span>
+</div>
+</div>
+</footer>
+</body></html>

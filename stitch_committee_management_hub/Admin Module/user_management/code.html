@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191b23",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#924700",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-tint": "#005ac2",
+                        "surface-bright": "#f9f9ff",
+                        "tertiary-container": "#b75b00",
+                        "secondary": "#565e74",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-primary-fixed-variant": "#004395",
+                        "tertiary-fixed-dim": "#ffb786",
+                        "surface-variant": "#e1e2ec",
+                        "surface-dim": "#d8d9e3",
+                        "secondary-fixed": "#dae2fd",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e6e7f2",
+                        "inverse-primary": "#adc6ff",
+                        "surface-container": "#ecedf7",
+                        "primary-fixed": "#d8e2ff",
+                        "inverse-on-surface": "#eff0fa",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f2f3fd",
+                        "on-surface": "#191b23",
+                        "on-tertiary-fixed": "#311400",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dae2fd",
+                        "primary-container": "#2170e4",
+                        "surface-container-highest": "#e1e2ec",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "outline": "#727785",
+                        "inverse-surface": "#2e3038",
+                        "on-error": "#ffffff",
+                        "primary": "#0058be",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-primary-container": "#fefcff",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9ff",
+                        "outline-variant": "#c2c6d6",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary-container": "#5c647a",
+                        "on-surface-variant": "#424754",
+                        "tertiary-fixed": "#ffdcc6",
+                        "on-primary-fixed": "#001a42"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "container-padding": "24px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "mono-data": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "h2": ["Inter"],
+                        "h3": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "mono-data": ["13px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "h1": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "h3": ["18px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { background-color: #F8FAFC; }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- SideNavBar Shell -->
+<nav class="bg-surface-container-low dark:bg-surface-container-highest flex flex-col h-full py-xl fixed left-0 top-0 w-[280px] border-r border-outline-variant dark:border-outline z-50">
+<div class="px-lg mb-xl">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-primary" data-icon="security">security</span>
+</div>
+<div>
+<h1 class="font-h2 text-h2 font-semibold text-on-surface dark:text-on-surface">TrustCom</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Precision Portal</p>
+</div>
+</div>
+</div>
+<div class="flex-grow flex flex-col gap-xs">
+<a class="mx-md px-md py-sm flex items-center gap-md text-on-secondary-container dark:text-on-secondary-fixed-dim font-label-md text-label-md hover:bg-surface-container dark:hover:bg-secondary-container transition-colors Active: scale-[0.98] transition-transform duration-100" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Overview
+            </a>
+<a class="mx-md px-md py-sm flex items-center gap-md border-l-2 border-primary bg-surface-container-high dark:bg-surface-container text-primary font-semibold font-label-md text-label-md Active: scale-[0.98] transition-transform duration-100" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+                Users
+            </a>
+<a class="mx-md px-md py-sm flex items-center gap-md text-on-secondary-container dark:text-on-secondary-fixed-dim font-label-md text-label-md hover:bg-surface-container dark:hover:bg-secondary-container transition-colors Active: scale-[0.98] transition-transform duration-100" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+                Committees
+            </a>
+<a class="mx-md px-md py-sm flex items-center gap-md text-on-secondary-container dark:text-on-secondary-fixed-dim font-label-md text-label-md hover:bg-surface-container dark:hover:bg-secondary-container transition-colors Active: scale-[0.98] transition-transform duration-100" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_late">assignment_late</span>
+                Reports
+            </a>
+<a class="mx-md px-md py-sm flex items-center gap-md text-on-secondary-container dark:text-on-secondary-fixed-dim font-label-md text-label-md hover:bg-surface-container dark:hover:bg-secondary-container transition-colors Active: scale-[0.98] transition-transform duration-100" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+                System Logs
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-xs">
+<a class="mx-md px-md py-sm flex items-center gap-md text-on-secondary-container dark:text-on-secondary-fixed-dim font-label-md text-label-md hover:bg-surface-container dark:hover:bg-secondary-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+                Security Settings
+            </a>
+<a class="mx-md px-md py-sm flex items-center gap-md text-on-secondary-container dark:text-on-secondary-fixed-dim font-label-md text-label-md hover:bg-surface-container dark:hover:bg-secondary-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Logout
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-[280px] min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim text-primary dark:text-primary-fixed-dim font-body-md text-body-md flex justify-between items-center w-full px-lg py-sm border-b border-outline-variant dark:border-outline flat no shadows sticky top-0 z-40">
+<div class="flex items-center gap-lg">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="pl-[44px] pr-md py-xs bg-surface-container-low border border-outline-variant rounded-lg w-80 focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Search user database..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-xs rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm">
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional headshot of a senior system administrator in a corporate setting. The lighting is soft and professional, highlighting a confident expression. The background is a blurred high-tech office environment with clean lines and a professional blue and white color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5FEyI4gcVors0wgwslv-usEVyaAgdZXCMo86HOASGzmDBpDWQRhHTVsNf5li4f1BGylnH008YnFs01vrNWhVw9g9rY1onjs88zAjjueuQyQt679uFEbRDeej-N-KRtdAlabyae80wTmVAl_6SGwaScf2545nAKpY4WDPQk_5zTF33X3CW3uXy396E9-hG9YvcLHqevD5tspvmY_7j2jkcw2Ebutxg2qkP4s9OQ_pjlJJcpOJiMGwAfdJqtw7cjdrKeW-YHUxCcDE"/>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Admin Panel</span>
+</div>
+<button class="ml-sm font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Sign Out</button>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-lg space-y-lg">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-h1 text-h1 text-on-surface">User Management</h2>
+<p class="text-on-surface-variant mt-xs">Manage institutional access, trust validation scores, and committee memberships.</p>
+</div>
+<div class="flex gap-md">
+<button class="bg-surface border border-outline-variant text-on-surface px-md py-sm rounded-lg font-label-md text-label-md hover:bg-surface-container-low flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="filter_list">filter_list</span>
+                        Filters
+                    </button>
+<button class="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md text-label-md hover:brightness-90 flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="person_add">person_add</span>
+                        Provision User
+                    </button>
+</div>
+</div>
+<!-- Stats Overview (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md">
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<div class="flex items-center gap-sm text-on-surface-variant mb-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Total Users</span>
+</div>
+<div class="text-h2 font-h2">12,842</div>
+<div class="text-body-sm text-primary flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                        +12% this month
+                    </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<div class="flex items-center gap-sm text-on-surface-variant mb-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-label-md">Avg. Trust Score</span>
+</div>
+<div class="text-h2 font-h2">94.2</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full mt-md">
+<div class="bg-primary h-1.5 rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<div class="flex items-center gap-sm text-on-surface-variant mb-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="warning">warning</span>
+<span class="font-label-md text-label-md">Suspended</span>
+</div>
+<div class="text-h2 font-h2">24</div>
+<div class="text-body-sm text-error flex items-center gap-xs mt-xs">
+                        Requires Review
+                    </div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl">
+<div class="flex items-center gap-sm text-on-surface-variant mb-xs">
+<span class="material-symbols-outlined text-[20px]" data-icon="pending">pending</span>
+<span class="font-label-md text-label-md">Pending</span>
+</div>
+<div class="text-h2 font-h2">156</div>
+<div class="text-body-sm text-on-surface-variant mt-xs">
+                        Verification queue
+                    </div>
+</div>
+</div>
+<!-- Table Section -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b-2 border-outline-variant">
+<th class="px-lg py-md font-semibold text-on-surface font-label-md text-label-md">User Name</th>
+<th class="px-lg py-md font-semibold text-on-surface font-label-md text-label-md">Trust Score</th>
+<th class="px-lg py-md font-semibold text-on-surface font-label-md text-label-md">Status</th>
+<th class="px-lg py-md font-semibold text-on-surface font-label-md text-label-md">Committees</th>
+<th class="px-lg py-md font-semibold text-on-surface font-label-md text-label-md text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<!-- User Row 1 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group border-l-2 border-transparent hover:border-primary">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center font-bold text-on-primary-fixed">JD</div>
+<div>
+<div class="font-semibold text-on-surface">Jameson Dunn</div>
+<div class="text-body-sm text-on-surface-variant font-mono-data">ID: TR-99201</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-xs w-48">
+<div class="flex justify-between text-body-sm font-semibold">
+<span>High Trust</span>
+<span class="text-primary">98%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-primary h-2 rounded-full" style="width: 98%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="px-sm py-xs rounded bg-primary/10 text-primary font-semibold text-body-sm border border-primary/20 flex items-center w-fit gap-xs">
+<span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                        Active
+                                    </span>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="account_balance">account_balance</span>
+<span class="font-mono-data text-body-md">12</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-xs text-on-surface-variant hover:text-primary" title="View Profile">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-tertiary" title="Suspend User">
+<span class="material-symbols-outlined" data-icon="block">block</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error" title="Remove User">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- User Row 2 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group border-l-2 border-transparent hover:border-primary">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container">ES</div>
+<div>
+<div class="font-semibold text-on-surface">Elena Soros</div>
+<div class="text-body-sm text-on-surface-variant font-mono-data">ID: TR-88122</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-xs w-48">
+<div class="flex justify-between text-body-sm font-semibold">
+<span>Under Review</span>
+<span class="text-tertiary">42%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-tertiary h-2 rounded-full" style="width: 42%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="px-sm py-xs rounded bg-tertiary/10 text-tertiary font-semibold text-body-sm border border-tertiary/20 flex items-center w-fit gap-xs">
+<span class="w-1.5 h-1.5 bg-tertiary rounded-full"></span>
+                                        Pending
+                                    </span>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="account_balance">account_balance</span>
+<span class="font-mono-data text-body-md">02</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-xs text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-tertiary">
+<span class="material-symbols-outlined" data-icon="block">block</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- User Row 3 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group border-l-2 border-transparent hover:border-primary">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center font-bold text-on-error-container">MA</div>
+<div>
+<div class="font-semibold text-on-surface">Marcus Aurel</div>
+<div class="text-body-sm text-on-surface-variant font-mono-data">ID: TR-00192</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-xs w-48">
+<div class="flex justify-between text-body-sm font-semibold">
+<span>Compromised</span>
+<span class="text-error">15%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-error h-2 rounded-full" style="width: 15%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="px-sm py-xs rounded bg-error/10 text-error font-semibold text-body-sm border border-error/20 flex items-center w-fit gap-xs">
+<span class="w-1.5 h-1.5 bg-error rounded-full"></span>
+                                        Suspended
+                                    </span>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="account_balance">account_balance</span>
+<span class="font-mono-data text-body-md">05</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-xs text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-xs text-primary hover:text-primary">
+<span class="material-symbols-outlined" data-icon="undo">undo</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- User Row 4 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group border-l-2 border-transparent hover:border-primary">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<img alt="User Avatar" class="w-10 h-10 rounded-full border border-outline-variant" data-alt="Close up portrait of a young professional woman with a clean and clear complexion, looking directly at the camera with a confident smile. She is set against a brightly lit, minimalist office background with soft neutral tones, embodying the brand's security and institutional trust aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7BFupzBDSSxWwJ82djdp84XCHSZxFuTdzAbDnXwiVrvWq8q0MIagHuz01en4ZmeL0iQLXD3EHqQ4-UQqVcDvY1iQViKYc6g5R72Qmkm2R1ZNks4XSyJE1njiqu8dlxiFisoJHxT0FWxbUag71tq49l329HruF8gwU8BPB1P2U4X7x4J5CktEU245XDDi4Bicu_VZWcVfoJCWrschYMI5E1F_rfSJcCo1Vosb6aCFNF-JlKf2kKZjnFP1Y5DzAg_YG78Kv-EYI05Q"/>
+<div>
+<div class="font-semibold text-on-surface">Sarah Jenkins</div>
+<div class="text-body-sm text-on-surface-variant font-mono-data">ID: TR-77291</div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-col gap-xs w-48">
+<div class="flex justify-between text-body-sm font-semibold">
+<span>Full Integrity</span>
+<span class="text-primary">100%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full">
+<div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="px-sm py-xs rounded bg-primary/10 text-primary font-semibold text-body-sm border border-primary/20 flex items-center w-fit gap-xs">
+<span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                                        Active
+                                    </span>
+</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="account_balance">account_balance</span>
+<span class="font-mono-data text-body-md">24</span>
+</div>
+</td>
+<td class="px-lg py-md text-right">
+<div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-xs text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-tertiary">
+<span class="material-symbols-outlined" data-icon="block">block</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-lg py-md bg-surface-container-low flex justify-between items-center border-t border-outline-variant">
+<span class="text-body-sm text-on-surface-variant">Showing <span class="font-semibold text-on-surface">1-10</span> of 12,842 users</span>
+<div class="flex gap-sm">
+<button class="p-xs border border-outline-variant rounded hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex items-center px-sm gap-sm">
+<span class="text-body-sm font-semibold text-primary">1</span>
+<span class="text-body-sm text-on-surface-variant">2</span>
+<span class="text-body-sm text-on-surface-variant">3</span>
+<span class="text-body-sm text-on-surface-variant">...</span>
+<span class="text-body-sm text-on-surface-variant">1,284</span>
+</div>
+<button class="p-xs border border-outline-variant rounded hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Branding -->
+<footer class="mt-auto px-lg py-md border-t border-outline-variant flex justify-between items-center bg-white/50 backdrop-blur-sm">
+<p class="text-body-sm text-on-surface-variant">© 2024 TrustCom Global Infrastructure. Authorized Personnel Only.</p>
+<div class="flex gap-lg">
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#">Policy Documentation</a>
+<a class="text-body-sm text-on-surface-variant hover:text-primary" href="#">Network Status</a>
+</div>
+</footer>
+</main>
+</body></html>

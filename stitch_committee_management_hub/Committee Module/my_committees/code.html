@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .custom-shadow-soft {
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+        }
+        .custom-shadow-deep {
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        }
+        .agenda-timeline-line {
+            position: relative;
+        }
+        .agenda-timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 24px;
+            bottom: 0;
+            width: 2px;
+            background-color: #e2e8f0;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#d0e1fb",
+                        "on-background": "#191c1e",
+                        "outline": "#737686",
+                        "surface-dim": "#d8dadc",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "outline-variant": "#c3c6d7",
+                        "secondary": "#505f76",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#ffdbcd",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary": "#943700",
+                        "on-secondary-container": "#54647a",
+                        "primary": "#004ac6",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-tertiary-container": "#ffede6",
+                        "on-surface": "#191c1e",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "surface-container-low": "#f2f4f6",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#eceef0",
+                        "surface": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#bc4800",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-primary-fixed": "#00174b",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-primary-container": "#eeefff",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-tint": "#0053db",
+                        "surface-bright": "#f7f9fb",
+                        "error-container": "#ffdad6",
+                        "background": "#f7f9fb",
+                        "primary-container": "#2563eb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "3xl": "64px",
+                        "unit": "8px",
+                        "lg": "24px",
+                        "gutter": "24px",
+                        "sm": "8px",
+                        "2xl": "48px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "h3": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "h2": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "h1": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "h3": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="bg-surface dark:bg-surface-container-lowest docked full-width top-0 z-50 border-b border-outline-variant dark:border-outline shadow-sm flex justify-between items-center w-full px-gutter h-16 sticky">
+<div class="flex items-center gap-xl">
+<span class="font-h3 text-h3 font-bold text-primary dark:text-primary-fixed-dim">TrustCom</span>
+<nav class="hidden md:flex gap-md h-full items-center">
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors px-md h-full flex items-center" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors px-md h-full flex items-center" href="#">Browse</a>
+<a class="text-primary dark:text-inverse-primary font-label-md border-b-2 border-primary h-full flex items-center" href="#">My Committees</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors px-md h-full flex items-center" href="#">Payments</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-primary p-xs hover:bg-surface-container-high rounded-full transition-all">notifications</button>
+<div class="flex items-center gap-sm">
+<img alt="User profile" class="w-8 h-8 rounded-full border-2 border-white shadow-sm" data-alt="A professional corporate portrait of a mid-40s male executive with a confident smile, set against a blurred modern office background with soft daylight. The image has a clean, high-end aesthetic with natural skin tones and sharp focus, fitting for a premium fintech profile image." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0BQK718yv8SnDk6N7hjHYNBHmjoKKVeiO_r03cgVPtdWA_QZ8WXiU5yc6ho0Xfbi5lwO-JHIWY61HF4N60ehyCco4bntSg4AvUxORx3ZT5PZ0_b-NRHDwoHz39BqnGOlVfhVhYkfb_kdkMONv_gXN9U_oDhLfUHktqzeCIx3zyIHG5KSphcKOQDrkk76mqsbUOHSxamKd2PYVeyqlXlE5geHJDsdqtHdUJrcCPHYaYes9nAeaPcPkI54lEBhsuJ-NgiP40Kyi49o"/>
+<button class="material-symbols-outlined text-on-surface-variant">account_circle</button>
+</div>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-surface-container-low dark:bg-surface-dim border-r border-outline-variant dark:border-outline shadow-sm hidden md:flex flex-col gap-sm p-md">
+<div class="mb-lg px-md">
+<h2 class="font-label-md text-on-surface font-bold">Committee Portal</h2>
+<p class="text-body-sm text-on-surface-variant">Trust Score: 95</p>
+</div>
+<nav class="flex flex-col gap-xs flex-grow">
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-md">Browse</span>
+</a>
+<a class="flex items-center gap-md bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-lg px-md py-sm font-bold translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-md">My Committees</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md">Payments</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md">Profile</span>
+</a>
+</nav>
+<button class="bg-primary text-on-primary rounded-xl px-md py-md font-label-md flex items-center justify-center gap-sm mb-lg hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+                Create Committee
+            </button>
+<div class="mt-auto flex flex-col gap-xs">
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 p-gutter max-w-container-max mx-auto">
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-2xl">
+<div>
+<h1 class="font-h1 text-h1 text-on-surface mb-xs">My Committees</h1>
+<p class="text-body-md text-on-surface-variant">Manage your created groups and current memberships.</p>
+</div>
+<div class="flex bg-surface-container-high p-xs rounded-xl self-start">
+<button class="px-xl py-sm bg-white text-on-surface rounded-lg font-label-md custom-shadow-soft">Active</button>
+<button class="px-xl py-sm text-on-surface-variant font-label-md hover:text-on-surface transition-colors">Past</button>
+</div>
+</header>
+<!-- Committees I Lead Section -->
+<section class="mb-3xl">
+<div class="flex items-center gap-md mb-xl">
+<span class="material-symbols-outlined text-primary" data-weight="fill">stars</span>
+<h2 class="font-h2 text-h2 text-on-surface">Committees I Lead</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+<!-- Card 1 -->
+<div class="bg-white rounded-xl border border-outline-variant p-lg custom-shadow-soft hover:custom-shadow-deep transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-h3 text-h3 text-on-surface group-hover:text-primary transition-colors">Tech Founders Circle</h3>
+<span class="text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">verified_user</span> Admin
+                                </span>
+</div>
+<span class="bg-green-50 text-green-700 px-md py-xs rounded-full text-label-sm border border-green-200">Active</span>
+</div>
+<div class="grid grid-cols-2 gap-md py-md border-y border-outline-variant mb-md">
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Contribution</p>
+<p class="font-label-md text-on-surface">$500.00 <span class="text-body-sm font-normal">/mo</span></p>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Next Payment</p>
+<p class="font-label-md text-on-surface">Oct 15, 2023</p>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Participants</p>
+<div class="flex -space-x-2 mt-xs">
+<img alt="Member" class="inline-block h-6 w-6 rounded-full ring-2 ring-white" data-alt="Close up portrait of a young professional woman with a bright smile, wearing glasses and a formal blazer, outdoor lighting with a soft park background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCOsdsYLaAjBZxqLzYtv1nhwhYUc1scMclR-XB8MGNPfCVb8e51BLMAgRogMLQDMapU-Wwvliz2LKqLICwUzuW_VYeyBocViC9nPHXxt4FErpqzeQTvbMhSG2bVxTgP1lhAjRo95Zn_-YFdET6w5ZykRMyprJtKtC_vMoal7KlNF3VpsVsNJ04q-AtDwlroB2sNLI4VO11cGngHDNJ3XTzxPQmCb1hJ2-EOShhRi3u5149pJvf_CE7VKFAP0o-WLgIYoMM49GJV-A"/>
+<img alt="Member" class="inline-block h-6 w-6 rounded-full ring-2 ring-white" data-alt="A smiling middle-aged woman with short hair and casual attire, set against a minimalist white studio background with soft directional light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxs5NGdevMgmxsRnKufKSqaoHVWf7xAJntQ_kev_oGTRM6KUhi6ulXcUweJaTJfaqrD6LX6N4YFk7f3tLCLGguClpkircfzG9wyljKfGwqBZttXbUlpeQgIsseNOtnpjdEK0Ygq1Z5NzCvit6RQEIkCY84jDcXW01syoCDMJgdhIi11iahH8y6CtSfJKSNMVNkyLNnkdCbHyqfP7d0FWl9GsSwMVqDPjDNNB__X0mOrocM8N0XsjEGNNg0y6KAltIkEMcraezITFg"/>
+<img alt="Member" class="inline-block h-6 w-6 rounded-full ring-2 ring-white" data-alt="A portrait of a young man with a slight beard, wearing a denim shirt, looking directly into the camera with a friendly expression, natural outdoor light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATs0SYz41JvOiuTx1idyBgZGdqI-s875N3QhdlRmbjzNA495IZA_mpf-zUFt9FOQWU_t6H7K2YyCcKDRG3sjN18i2LvicbhhCdpDRehmsZg9b5GxjI2sAJ-vGnhQgE1xpUVtNTX7QZbKbBnoHIGayuskepp3uxL31Ye4TFDSu4YeVZMmiP_tYFHjqEnQBYqpD380Q_fV4msdNFx0CVPuUAx5cD-A0Onckhbad1wM4ctu4jn8Nzdm_-Z0IggNcVCE9hRUIFhkOL2Vo"/>
+<div class="flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 ring-2 ring-white">+8</div>
+</div>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Trust Score</p>
+<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 98%"></div>
+</div>
+</div>
+</div>
+<button class="w-full py-md bg-slate-100 text-on-surface rounded-xl font-label-md hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-sm">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-white rounded-xl border border-outline-variant p-lg custom-shadow-soft hover:custom-shadow-deep transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-h3 text-h3 text-on-surface group-hover:text-primary transition-colors">Real Estate Syndicate</h3>
+<span class="text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">verified_user</span> Admin
+                                </span>
+</div>
+<span class="bg-blue-50 text-blue-700 px-md py-xs rounded-full text-label-sm border border-blue-200">Recruiting</span>
+</div>
+<div class="grid grid-cols-2 gap-md py-md border-y border-outline-variant mb-md">
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Contribution</p>
+<p class="font-label-md text-on-surface">$2,500.00 <span class="text-body-sm font-normal">/mo</span></p>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Next Payment</p>
+<p class="font-label-md text-on-surface">TBD</p>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Participants</p>
+<div class="flex -space-x-2 mt-xs">
+<img alt="Member" class="inline-block h-6 w-6 rounded-full ring-2 ring-white" data-alt="A sophisticated woman with long dark hair, wearing a high-neck sweater, photographed in a warm-toned indoor setting with cinematic side lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOK00AlVrS7VqTX_1ybs0Ftuo04TFER-6tyxbsI2KWyb3oT0IWlFwjfwmSk0VQbQqDSfZw51lzuATzcMS3ZKiIeqLQcB1elVM1wafx4NHFcBgXcd6nqyQVxXYbdT_HPrgoGpcYHjTME-q6fTc4mjqAXtRuoD9fdv_VBlIObG_3iwchKhy-UFyAHen-ifcUE1R5uTw7hRQu0dzZ7DkoIUJGmzAUrr60I_gz0KTzsgbqTOoA3u63TqDLP7ssriPVvKSDeRLZUHuypls"/>
+<div class="flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 ring-2 ring-white">3/12</div>
+</div>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Status</p>
+<p class="font-label-md text-on-surface">9 slots open</p>
+</div>
+</div>
+<button class="w-full py-md bg-slate-100 text-on-surface rounded-xl font-label-md hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-sm">
+                            View Details
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Committees I'm In Section -->
+<section>
+<div class="flex items-center gap-md mb-xl">
+<span class="material-symbols-outlined text-secondary" data-weight="fill">group</span>
+<h2 class="font-h2 text-h2 text-on-surface">Committees I'm In</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-lg">
+<!-- Card 3 -->
+<div class="bg-white rounded-xl border border-outline-variant p-lg custom-shadow-soft hover:custom-shadow-deep transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-label-md text-on-surface group-hover:text-primary transition-colors">Education Fund 2024</h3>
+<span class="text-body-sm text-on-surface-variant">Member</span>
+</div>
+<span class="bg-green-50 text-green-700 px-md py-xs rounded-full text-label-sm border border-green-200">Active</span>
+</div>
+<div class="space-y-sm py-md border-y border-outline-variant mb-md">
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Contribution</span>
+<span class="font-label-md">$200.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Payment Date</span>
+<span class="font-label-md">Oct 05</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Participants</span>
+<span class="font-label-md">24 Members</span>
+</div>
+</div>
+<button class="w-full py-sm text-primary font-label-md hover:bg-primary-fixed rounded-lg transition-all">
+                            View Details
+                        </button>
+</div>
+<!-- Card 4 -->
+<div class="bg-white rounded-xl border border-outline-variant p-lg custom-shadow-soft hover:custom-shadow-deep transition-all group">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-label-md text-on-surface group-hover:text-primary transition-colors">Neighborhood Co-op</h3>
+<span class="text-body-sm text-on-surface-variant">Member</span>
+</div>
+<span class="bg-green-50 text-green-700 px-md py-xs rounded-full text-label-sm border border-green-200">Active</span>
+</div>
+<div class="space-y-sm py-md border-y border-outline-variant mb-md">
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Contribution</span>
+<span class="font-label-md">$50.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Payment Date</span>
+<span class="font-label-md">Oct 01</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Participants</span>
+<span class="font-label-md">15 Members</span>
+</div>
+</div>
+<button class="w-full py-sm text-primary font-label-md hover:bg-primary-fixed rounded-lg transition-all">
+                            View Details
+                        </button>
+</div>
+<!-- Card 5 (Different Visual Style for Variety) -->
+<div class="bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant p-lg flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary transition-all">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-md custom-shadow-soft group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary">add</span>
+</div>
+<h3 class="font-label-md text-on-surface">Join New Committee</h3>
+<p class="text-body-sm text-on-surface-variant mt-xs">Explore local and global groups</p>
+</div>
+</div>
+</section>
+<!-- Bottom Margin for Floating Elements -->
+<div class="h-2xl"></div>
+</main>
+</div>
+<!-- Floating Action Button - Mobile Only (Hidden as per mandate for detailed views) -->
+<!-- Navigation Shell logic: BottomNavBar on mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant flex justify-around items-center h-16 z-50">
+<button class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-label-sm">Home</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-label-sm">Browse</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-primary">
+<span class="material-symbols-outlined" data-weight="fill">groups</span>
+<span class="text-[10px] font-label-sm">My Groups</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label-sm">Profile</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TrustCom Admin - Committee Monitoring</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#191b23",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#924700",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-tint": "#005ac2",
+                    "surface-bright": "#f9f9ff",
+                    "tertiary-container": "#b75b00",
+                    "secondary": "#565e74",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "on-primary-fixed-variant": "#004395",
+                    "tertiary-fixed-dim": "#ffb786",
+                    "surface-variant": "#e1e2ec",
+                    "surface-dim": "#d8d9e3",
+                    "secondary-fixed": "#dae2fd",
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#e6e7f2",
+                    "inverse-primary": "#adc6ff",
+                    "surface-container": "#ecedf7",
+                    "primary-fixed": "#d8e2ff",
+                    "inverse-on-surface": "#eff0fa",
+                    "on-tertiary-fixed-variant": "#723600",
+                    "on-secondary": "#ffffff",
+                    "surface-container-low": "#f2f3fd",
+                    "on-surface": "#191b23",
+                    "on-tertiary-fixed": "#311400",
+                    "surface": "#f9f9ff",
+                    "secondary-container": "#dae2fd",
+                    "primary-container": "#2170e4",
+                    "surface-container-highest": "#e1e2ec",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed-dim": "#adc6ff",
+                    "outline": "#727785",
+                    "inverse-surface": "#2e3038",
+                    "on-error": "#ffffff",
+                    "primary": "#0058be",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-primary-container": "#fefcff",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "background": "#f9f9ff",
+                    "outline-variant": "#c2c6d6",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-secondary-container": "#5c647a",
+                    "on-surface-variant": "#424754",
+                    "tertiary-fixed": "#ffdcc6",
+                    "on-primary-fixed": "#001a42"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "container-padding": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-md": ["Inter"],
+                    "mono-data": ["JetBrains Mono"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "h1": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "h2": ["Inter"],
+                    "h3": ["Inter"]
+            },
+            "fontSize": {
+                    "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "mono-data": ["13px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "h1": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "400"}],
+                    "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "h3": ["18px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #f9f9ff;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-background antialiased">
+<!-- SideNavBar Anchor -->
+<aside class="flex flex-col h-full py-xl fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant">
+<div class="px-lg mb-xl">
+<div class="flex items-center gap-md">
+<div class="w-xl h-xl bg-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-on-primary" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h1 class="font-h2 text-h2 font-semibold text-on-surface">TrustCom</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Precision Portal</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-sm">
+<ul class="space-y-xs">
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-secondary-container hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md">Overview</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-secondary-container hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md">Users</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg border-l-2 border-primary bg-surface-container-high text-primary font-semibold transition-transform duration-100 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+<span class="font-label-md">Committees</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-secondary-container hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_late">assignment_late</span>
+<span class="font-label-md">Reports</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-secondary-container hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="font-label-md">System Logs</span>
+</a>
+</li>
+</ul>
+</nav>
+<div class="mt-auto px-sm pt-md border-t border-outline-variant">
+<ul class="space-y-xs">
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-secondary-container hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-md">Security Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-secondary-container hover:bg-surface-container transition-colors text-error" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md">Logout</span>
+</a>
+</li>
+</ul>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<div class="ml-[280px] min-h-screen">
+<!-- TopAppBar Anchor -->
+<header class="flex justify-between items-center w-full px-lg py-sm border-b border-outline-variant bg-surface">
+<div class="flex items-center bg-surface-container-low px-md py-xs rounded-full border border-outline-variant w-96">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full ml-sm" placeholder="Search committees, IDs, or admins..." type="text"/>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-md">
+<button class="p-xs rounded-full hover:bg-surface-container-low transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface"></span>
+</button>
+<button class="p-xs rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="h-sm w-[1px] bg-outline-variant"></div>
+<div class="flex items-center gap-md">
+<div class="text-right">
+<p class="font-label-md text-on-surface">Chief Administrator</p>
+<button class="text-primary font-body-sm hover:underline">Sign Out</button>
+</div>
+<img alt="Admin Avatar" class="w-xl h-xl rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a corporate administrator in a modern office environment. The person has a confident expression and is dressed in a dark blue business suit. The lighting is soft and high-definition, reflecting a secure and institutional professional atmosphere with a blurred tech background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-tSRIHIf3i_zM_Nu3sfQtKMisk8jlelrfX6w3VSF2vD03xgLHLchkOfXCeNrPhUfblv2Es7NkQpZfNlzbSTYIpVwNtLXjIFhFmQdhOQOq1NjCf7QIoWMHbizDDh7TqtZKoLuO8ZhXx9-fR0eQb74K_8bORzUrJml7gicUSs8dgDThXwGZ-plFL6kAvsd7irwQHIqTqVg75UAxAuUYZ8rOoVdXXHch0IqtV5sXOu4WgCu9NlIODcKv18UeHfixPohbfvWiLMjHQPU"/>
+</div>
+</div>
+</header>
+<!-- Main Dashboard Canvas -->
+<main class="p-lg">
+<div class="mb-lg flex justify-between items-end">
+<div>
+<h2 class="font-h1 text-h1 text-on-surface">Committee Monitoring</h2>
+<p class="text-on-surface-variant font-body-md">Oversee all active institutional committees and their financial disbursement progress.</p>
+</div>
+<div class="flex gap-md">
+<button class="flex items-center gap-sm px-md py-sm bg-white border border-outline-variant rounded-lg text-on-surface font-label-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                        Filters
+                    </button>
+<button class="flex items-center gap-sm px-md py-sm bg-primary text-on-primary rounded-lg font-label-md hover:opacity-90 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                        New Committee
+                    </button>
+</div>
+</div>
+<!-- Stats Overview - Bento Layout -->
+<div class="grid grid-cols-12 gap-gutter mb-xl">
+<div class="col-span-12 md:col-span-4 bg-white border border-outline-variant rounded-xl p-lg flex items-center gap-lg">
+<div class="w-14 h-14 bg-primary-container/10 text-primary flex items-center justify-center rounded-xl">
+<span class="material-symbols-outlined text-[32px]" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Total Capital Managed</p>
+<p class="font-h2 text-h2">$1,240,500.00</p>
+</div>
+</div>
+<div class="col-span-12 md:col-span-3 bg-white border border-outline-variant rounded-xl p-lg flex items-center gap-lg">
+<div class="w-14 h-14 bg-tertiary-container/10 text-tertiary flex items-center justify-center rounded-xl">
+<span class="material-symbols-outlined text-[32px]" data-icon="group_work" style="font-variation-settings: 'FILL' 1;">group_work</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Active Committees</p>
+<p class="font-h2 text-h2">42</p>
+</div>
+</div>
+<div class="col-span-12 md:col-span-5 bg-white border border-outline-variant rounded-xl p-lg flex items-center justify-between">
+<div class="flex items-center gap-lg">
+<div class="w-14 h-14 bg-secondary-container/10 text-secondary flex items-center justify-center rounded-xl">
+<span class="material-symbols-outlined text-[32px]" data-icon="trending_up">trending_up</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-md">Avg. Payment Progress</p>
+<p class="font-h2 text-h2">78%</p>
+</div>
+</div>
+<div class="w-32 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 78%"></div>
+</div>
+</div>
+</div>
+<!-- Monitoring Table Container -->
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low/30">
+<h3 class="font-h3 text-h3 text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="list_alt">list_alt</span>
+                        Active Portfolios
+                    </h3>
+<div class="flex items-center gap-sm">
+<span class="text-body-sm text-on-surface-variant">Showing 10 of 42 committees</span>
+<div class="flex border border-outline-variant rounded-lg overflow-hidden">
+<button class="p-xs bg-surface-container-high border-r border-outline-variant"><span class="material-symbols-outlined text-body-md" data-icon="chevron_left">chevron_left</span></button>
+<button class="p-xs bg-white"><span class="material-symbols-outlined text-body-md" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+</div>
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-surface-bright text-on-surface border-b-2 border-outline-variant">
+<th class="text-left py-md px-lg font-semibold font-label-md">Committee Name</th>
+<th class="text-left py-md px-lg font-semibold font-label-md">Administrator</th>
+<th class="text-left py-md px-lg font-semibold font-label-md">Members</th>
+<th class="text-left py-md px-lg font-semibold font-label-md w-1/4">Payment Progress</th>
+<th class="text-left py-md px-lg font-semibold font-label-md">Status</th>
+<th class="py-md px-lg"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-md px-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-8 bg-primary rounded-full group-hover:scale-110 transition-transform"></div>
+<div>
+<p class="font-semibold text-on-surface">Alpha Institutional Savings</p>
+<p class="text-body-sm text-outline font-mono-data">#COM-2024-081</p>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center gap-sm">
+<img alt="Admin" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="Close-up of a professional male executive with short hair, wearing a high-quality grey business suit against a minimalist light blue office backdrop. The image style is sharp and professional with neutral tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDABMg5ITW89Vi0q5hhp3g7oBEmfVZ_yc53JsmEeByGJ3pnxPu8XWA2FMjLVdq3shIUIiWMdCoOFX1fDs2LXyF9D72RMyWQaLVAelcb0lcXnMHukVzmqTMT-MQ--irYwMGAMZclGAxHcW4nBmwxfsQIXJleM9jFCLKone0-pB3x2oJvZOZllPcI2sB52zu8BKDM4XVE11yX-kkQAO4y5ZO_mIxqxB47YC6Bfxed1e4NqujJL9HNgNaSOu67QaK1YNTMhR8Gv6RDhIY"/>
+<span class="font-body-md">Robert Chen</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center">
+<span class="font-mono-data text-on-surface">12 / 12</span>
+<span class="ml-xs material-symbols-outlined text-primary text-[16px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm mb-xs">
+<span class="font-mono-data">$45,000 / $50,000</span>
+<span class="font-semibold text-primary">90%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 90%"></div>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<span class="px-md py-xs rounded-full bg-primary/10 text-primary text-body-sm font-semibold border border-primary/20">Active</span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-md px-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-8 bg-tertiary rounded-full group-hover:scale-110 transition-transform"></div>
+<div>
+<p class="font-semibold text-on-surface">Global Staff Pension Fund</p>
+<p class="text-body-sm text-outline font-mono-data">#COM-2024-114</p>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center gap-sm">
+<img alt="Admin" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional woman with glasses, smiling warmly, in a corporate office setting with bright sunlight streaming in. She is wearing a white blouse, reflecting a clean and modern professional aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS2oX5S4GZU2O3cijFbY8m-OAwnNNN_KDZPFIVtJTniqVSDcvKqrTOpkEC3VElNi86cmEBwIkpNC7JkdRvMIV4Djyzl5ObmtvN5yv3WhIIa76-o5I23mWirZH9ZEh77EaoTou5CHrhvnzKeXuldKf2I6xjZw2JMEQ-9X0eM9Jbmm5N-cyhaEOIa2JF8SHf2g_BFBGwAOly301BPojfP-kGS18KLxbTeuPkzJUS5H1WxeYjijNVyhEqESdORxPjoOFVIRx8oUI6go0"/>
+<span class="font-body-md">Elena Rodriguez</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center">
+<span class="font-mono-data text-on-surface">24 / 24</span>
+<span class="ml-xs material-symbols-outlined text-primary text-[16px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm mb-xs">
+<span class="font-mono-data">$112,000 / $240,000</span>
+<span class="font-semibold text-tertiary">46%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary" style="width: 46%"></div>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<span class="px-md py-xs rounded-full bg-tertiary/10 text-tertiary text-body-sm font-semibold border border-tertiary/20">Collecting</span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-md px-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-8 bg-secondary rounded-full group-hover:scale-110 transition-transform"></div>
+<div>
+<p class="font-semibold text-on-surface">Omega Infrastructure Pool</p>
+<p class="text-body-sm text-outline font-mono-data">#COM-2023-992</p>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center gap-sm">
+<img alt="Admin" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A focused male administrator in his 40s with a short beard, working at a computer in a modern high-tech office. The lighting is cool-toned, creating a precise and technological corporate atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYETx_Co-ygZel8dZBEJvcnuG3Aamt9c_4zCJMs_Cq93yFs8kONebYVZU0In4uPvtlEsnTnYjdF7cD4IKrMJT2H9PXwJaSAz0oWvlfJi5pOSaWFxXANjRUGbbeWl93ZPVBWz-xD1eZPvzcekaodsDAOCDcmNgCyps10IYU5fbLtk8cSKFYbOvhr5mAIys-v05GajN7YeM9Hw6g4BZmQ0ImzNndGjwgJxi8FUIMNbjLWsHG30wgEWkWCaig5B-jBuwlhqiNpkhcfQY"/>
+<span class="font-body-md">Marcus Thorne</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center">
+<span class="font-mono-data text-on-surface">08 / 08</span>
+<span class="ml-xs material-symbols-outlined text-primary text-[16px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm mb-xs">
+<span class="font-mono-data">$1.2M / $1.2M</span>
+<span class="font-semibold text-secondary">100%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<span class="px-md py-xs rounded-full bg-secondary-container text-on-secondary-container text-body-sm font-semibold border border-outline-variant">Completed</span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="py-md px-lg">
+<div class="flex items-center gap-md">
+<div class="w-2 h-8 bg-error rounded-full group-hover:scale-110 transition-transform"></div>
+<div>
+<p class="font-semibold text-on-surface">Emergency Relief Circle</p>
+<p class="text-body-sm text-outline font-mono-data">#COM-2024-201</p>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center gap-sm">
+<img alt="Admin" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A portrait of a senior female executive with silver hair, exuding authority and experience. She is wearing a grey professional suit in a bright, modern corporate corridor. The lighting is crisp and detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkjDJENYhX_FlpniurAi9UV2BQ7lEOUPiuBBlBwohEWDwhQGLxj5X-G88v9mn-sBKNcrAsVwxZbgYoeoqRVdnbWARS-0TBuEPzHGjR9YcTZMNIHjxnYrCEnNVypgxuMUhbHED1uqOaIZIhZtNqbKNTUUvWLOHxXaTJ4C6rgDN8utXfeYWgtwYPLnhFRkr1L7acQuzvrsC27E-z5zeAoxCAmN9tJNVEecoIwG0wymXQG9p61Q90WuBchb5x7cLBmuyLzQ_7761cvJc"/>
+<span class="font-body-md">Sarah Jenkins</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex items-center">
+<span class="font-mono-data text-on-surface">05 / 10</span>
+<span class="ml-xs material-symbols-outlined text-outline text-[16px]" data-icon="pending">pending</span>
+</div>
+</td>
+<td class="py-md px-lg">
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm mb-xs">
+<span class="font-mono-data">$5,000 / $25,000</span>
+<span class="font-semibold text-error">20%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-error" style="width: 20%"></div>
+</div>
+</div>
+</td>
+<td class="py-md px-lg">
+<span class="px-md py-xs rounded-full bg-error-container text-on-error-container text-body-sm font-semibold border border-error/20">At Risk</span>
+</td>
+<td class="py-md px-lg text-right">
+<button class="p-xs text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-lg bg-surface-container-low border-t border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-md">
+<p class="text-body-sm text-on-surface-variant">Security Protocol: <span class="text-primary font-semibold">Active Monitoring Enabled</span></p>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+<span class="text-body-sm font-mono-data text-outline">LIVE FEED</span>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-sm bg-white border border-outline-variant rounded-lg text-on-surface font-label-md hover:bg-surface-container-high transition-colors">Export CSV</button>
+<button class="px-md py-sm bg-white border border-outline-variant rounded-lg text-on-surface font-label-md hover:bg-surface-container-high transition-colors">Print Audit</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

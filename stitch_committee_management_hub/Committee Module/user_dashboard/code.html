@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#dbe1ff",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#7d2d00",
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary-container": "#54647a",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "inverse-surface": "#2d3133",
+                    "primary": "#004ac6",
+                    "on-surface-variant": "#434655",
+                    "on-surface": "#191c1e",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed": "#ffdbcd",
+                    "secondary-fixed": "#d3e4fe",
+                    "surface": "#f7f9fb",
+                    "on-primary-container": "#eeefff",
+                    "on-tertiary-container": "#ffede6",
+                    "tertiary-container": "#bc4800",
+                    "background": "#f7f9fb",
+                    "surface-dim": "#d8dadc",
+                    "secondary": "#505f76",
+                    "outline-variant": "#c3c6d7",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-bright": "#f7f9fb",
+                    "primary-container": "#2563eb",
+                    "on-background": "#191c1e",
+                    "inverse-on-surface": "#eff1f3",
+                    "tertiary": "#943700",
+                    "on-primary-fixed": "#00174b",
+                    "tertiary-fixed-dim": "#ffb596",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#b4c5ff",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "#0053db",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "surface-container-low": "#f2f4f6",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed": "#360f00",
+                    "error-container": "#ffdad6",
+                    "outline": "#737686",
+                    "secondary-container": "#d0e1fb",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e6e8ea",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-secondary-fixed": "#0b1c30"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "unit": "8px",
+                    "2xl": "48px",
+                    "xs": "4px",
+                    "3xl": "64px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "h2": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "h1": ["Inter"],
+                    "h3": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "h2": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "h1": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "h3": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-surface-container-low border-r border-outline-variant shadow-sm z-50 flex flex-col gap-sm p-md">
+<div class="mb-xl px-md pt-md">
+<h1 class="font-h3 text-h3 font-bold text-primary">TrustCom</h1>
+<p class="text-on-surface-variant font-label-sm mt-xs">Committee Portal</p>
+</div>
+<div class="flex flex-col gap-xs flex-grow">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg px-md py-sm font-bold transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-label-md">Browse</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-md">My Committees</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md">Payments</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md">Profile</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-xs pt-xl border-t border-outline-variant">
+<button class="mb-md mx-md bg-primary text-on-primary font-label-md py-md rounded-xl shadow-sm hover:bg-primary-container transition-colors">
+                Create Committee
+            </button>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 right-0 left-64 h-16 bg-surface border-b border-outline-variant shadow-sm z-40 flex justify-between items-center px-gutter">
+<div class="flex items-center bg-surface-container-high px-md py-sm rounded-full w-96">
+<span class="material-symbols-outlined text-on-surface-variant mr-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-full placeholder:text-on-surface-variant" placeholder="Search committees, members, or documents..." type="text"/>
+</div>
+<div class="flex items-center gap-md">
+<button class="relative p-sm rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-sm bg-surface-container-low px-sm py-xs rounded-full border border-outline-variant">
+<img alt="User profile" class="w-8 h-8 rounded-full bg-primary-fixed" data-alt="A professional headshot avatar of a corporate manager with a friendly expression, styled in a clean vector illustration with soft blue background colors to match the modern SaaS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeaXDpgnj8T2CTk-eGwaC_r9BFkjoI3J5nPjfaae0nxtS5Ko-oQcGR9bFNHMbH-3Uu4zQ4wdJ6Kaw2BE_LI8lZ1GO5hysMK4kloH-Kzh7Fly-QL2Lf-6Km0PrGF8ZQlIukSUdftWDw1U9ZItnnl3iTl2YLnyxrlKXQlFTYBb0qTp9v0n5f9LbgFJ2s4yjWhEtXNeJxL0Fr9Wtx22ppUTIxdIynQb9EudtXXRCiYswcnJhjsKw31J_Imdbo-S2aGuXt7lsTw2xBEvE"/>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-16 min-h-screen">
+<div class="max-w-container-max mx-auto p-gutter grid grid-cols-12 gap-lg">
+<!-- Welcome Header -->
+<header class="col-span-12 mb-md">
+<h2 class="font-h1 text-h1 text-on-surface">Good Morning, Alex</h2>
+<p class="text-body-lg text-on-surface-variant">Here is what's happening with your committees today.</p>
+</header>
+<!-- Left Column: Trust Score & Stats -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-lg">
+<!-- Bento Grid Top: Trust Score & Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Trust Score Widget -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden h-[320px]">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+<h3 class="font-label-md text-on-surface-variant mb-xl uppercase tracking-wider">Your Trust Score</h3>
+<div class="relative w-40 h-40 flex items-center justify-center">
+<!-- Circular Progress Indicator -->
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-container-high" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="22" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-[48px] font-bold text-on-surface leading-none">95</span>
+<span class="text-label-sm text-on-surface-variant uppercase">Excellent</span>
+</div>
+</div>
+<p class="mt-xl text-body-sm text-on-surface-variant max-w-[200px]">You are in the top 5% of reliable committee leads.</p>
+</div>
+<!-- Quick Stats Cards -->
+<div class="flex flex-col gap-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex items-center justify-between hover:border-primary transition-all group">
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Active Committees</p>
+<p class="text-h2 font-h2 text-on-surface">4</p>
+</div>
+<div class="p-md bg-primary-fixed rounded-xl group-hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-on-primary-fixed group-hover:text-on-primary" data-icon="groups">groups</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex items-center justify-between hover:border-primary transition-all group">
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Completed</p>
+<p class="text-h2 font-h2 text-on-surface">12</p>
+</div>
+<div class="p-md bg-secondary-fixed rounded-xl group-hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-on-secondary-fixed group-hover:text-on-primary" data-icon="verified">verified</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex items-center justify-between hover:border-primary transition-all group">
+<div>
+<p class="text-label-sm text-on-surface-variant mb-xs">Pending Payments</p>
+<p class="text-h2 font-h2 text-primary">$250.00</p>
+</div>
+<div class="p-md bg-tertiary-fixed rounded-xl group-hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-on-tertiary-fixed group-hover:text-on-primary" data-icon="payments">payments</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Committees Section -->
+<section>
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-h3 text-h3 text-on-surface">Active Committees</h3>
+<button class="text-primary font-label-md hover:underline">View All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Committee Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="bg-primary/10 p-sm rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="corporate_fare">corporate_fare</span>
+</div>
+<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded-full text-label-sm">Active</span>
+</div>
+<div>
+<h4 class="font-label-md text-on-surface">Q3 Strategic Planning</h4>
+<p class="text-body-sm text-on-surface-variant">8 members • Next meeting: Tomorrow</p>
+</div>
+<div class="mt-sm pt-md border-t border-outline-variant flex -space-x-2">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Circular portrait of a smiling professional teammate in a minimalist vector style, featuring vibrant blues and soft neutral tones for a consistent UI character design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZP82MxGG0GHCo7_-mNuQC2M6J9e9oj0pglBLq77G5UAPz92p-4Za1rurLXWJn1MV_B3WjTTEe5GoBUQbT79RjLR3fO-DW2vPZKreT955BM0RNVgBt-CKFh0Ef1Z4S6IigP33jNuUXhhmUm8cv9g5XBFytAQKHHR7IOhtN6iI7wtf9mDu7hHbLLYBVOI_bL5oimgVWaJ1_0bx2UOk9CKpoV2K2HcSm4eDpst7zbEgaskFOEecvzZJqyXa-SZswnUsBesyDoLtbKvQ"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Circular portrait of a focused professional colleague with glasses, rendered in a clean, modern illustration style with soft ambient lighting and trust blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYJ-p-RyJOxCIF0gu_L_6fBhyFoOn1gSuY0attUP7amT3Vu45Y1tCRxNagQaQOpUke9Ic_Ba_DeP_hwSOt5aGdO2t2xXl-Y-u4GTJJws_H7FQB6vQED6uQWAWnlyXSDuESjxd7Ot8MAyshCIdrazqO7d27M1w5NcG35hxqQL5-ym-xdnBbJ55D5tfMFLgK9v-PHWTS3Y5owctQr1NwLaTGoh9BiEReyPtNt_RmXMXm4c121FUpKhBlwZ4t42f2ScG3OhIoYcEzY1A"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container-highest flex items-center justify-center text-label-sm text-on-surface-variant">+5</div>
+</div>
+</div>
+<!-- Committee Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="bg-secondary/10 p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="account_balance">account_balance</span>
+</div>
+<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded-full text-label-sm">Active</span>
+</div>
+<div>
+<h4 class="font-label-md text-on-surface">Annual Audit Group</h4>
+<p class="text-body-sm text-on-surface-variant">12 members • Documents pending</p>
+</div>
+<div class="mt-sm pt-md border-t border-outline-variant flex -space-x-2">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Vibrant vector illustration of a diverse professional team member with a calm expression, using a palette of slate greys and bright whites for a polished corporate look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcRmf9XrzGZpRMMT6xxhZeo_YNMDGDmoIB_pObPLHqr0NcF6ClEbzfvAsT5fCykz1kBnYBx9IUckbzbxYY2c7rqbIr9h0dn7zZnspux_CnE4HBhQgaaRKLAogas-aApxXQ8fp7KkYmM_vSAsOzH0CHh-XDnftlWSmfZJp3eLbO4dAhngM_UQ_LuIdpfG5lW5cCUx6UxFnfbn7B0Pxgeq6aeUcW4fnoFq37bBvLKsRb9AkqKdd4dLrHl3mt7JuWUDfncpEmF6T0rR8"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white" data-alt="Illustration of a modern professional with short hair and a confident smile, designed to integrate seamlessly into a premium SaaS dashboard UI with soft lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBto1mzbqiiSMHBs7lm3aN_1X9wPN8OxWj_PDl-sroByvH1qkt1CptKxTg9YJwLc5tNh5o9I4r8CKg8v3UirvCN_ahzgIOpUX-xIPapID1A66yQ-0Ijm5sRrbwf5ojbXW_8VxL2EpHD8gKqh3c0QQBoGhpkH1y7SRI4aH6ZZuQf-n9n6KS3lZGljqFNPVrE796HGHVkRjLb-lRUAo042zHvC8qysTUZj1z2EyMeY6VSwUHu2OS3YvGF5fZr_OaPPKsgCLAAFNyRQ3s"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container-highest flex items-center justify-center text-label-sm text-on-surface-variant">+9</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Suggested Committees -->
+<section>
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-h3 text-h3 text-on-surface">Suggested for You</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-all">
+<div class="h-32 bg-slate-200" data-alt="A clean, bright corporate office meeting room with glass walls and modern furniture. The lighting is natural and airy, emphasizing a workspace built for high-level decision making and collaboration." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB9QbmJvUwsmME2kL7n_-hTA5AM-5vHREfOAPsh2gGyaqg47FZL7HyrP0mA2OWPXUfMOUR0Pz9_ao8X3MPhiJ22lXeWD_skrkECjDqpY_Ndth55h5G3b8xY6SLXeUPhdZFS4j9Yo_qunQ44cWptmOaBcie8lk48SIjbc6P8zNwtZLkl18cUf2UD-6V64foUPOhbGUBFhRw0RU4yjAQtRRHNjw1X9r6LTMPFUsa8WBmQER5NlyfHgfo55LnbPy0C42KwLCXvaJwa3Lc')"></div>
+<div class="p-md">
+<h4 class="font-label-md text-on-surface truncate">Tech Advisory Board</h4>
+<p class="text-body-sm text-on-surface-variant mt-xs">Focused on AI Ethics</p>
+<button class="mt-md w-full border border-primary text-primary py-xs rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors">Join Request</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-all">
+<div class="h-32 bg-slate-200" data-alt="A wide architectural shot of a modern glass skyscraper reflecting a clear blue sky. The visual style is crisp and corporate, conveying a sense of stability, growth, and professional management." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAVswDVPlh3zaG7kz2O4hzA_3DxB0nlGVfk3qfBJQHI6zQMEYKMAw-d2TrGfRc7SF1TmDvS0yiwlYEuOzUqTMRmrpy_6NrqzELt3odilvF-X8YVvN4OFLD0yINPlLSX7rttqzqJP-lAkWguI9EbbNsy8n6fVfq_I1MlRPClJRZUMVDmBMILMuDDGyb7z46aZeDj8sNmnirtsFtRCM2nAeVSIvE_jr8c3uaJzLUMkH5mp6qWNZDULwKBTybmbg4Mh50vKXFKxjIuXyM')"></div>
+<div class="p-md">
+<h4 class="font-label-md text-on-surface truncate">Urban Dev Council</h4>
+<p class="text-body-sm text-on-surface-variant mt-xs">Sustainability Initiatives</p>
+<button class="mt-md w-full border border-primary text-primary py-xs rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors">Join Request</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] overflow-hidden shadow-sm hover:shadow-md transition-all">
+<div class="h-32 bg-slate-200" data-alt="A close-up of a person's hands working on a sleek laptop and a tablet in a bright, minimalist coworking space. The image focuses on high-tech productivity and modern administrative tasks with soft blue lighting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBflLmcM2JSjjGtWbTrLHIs2pm84LtnOay-lrtU3KQKnXgfgRHXLz-g9j1Ro-z4aWqAg4x2ijJ__l8-Qc3ndT64IpfBWyeZjGHxU9cvBi0J095U-OJPTPWrbvlCyp_wfvmbVP-1PKWBFBfQi-aqZIQnxx5no2qZrErzgjQTW-3c7RFFNQujbHy-FhtS8t-wztD1ysho3jdZrXZGNnJ1FHoKJyO8AB9HZOkS0xJlhb0t4gGiMAzAoPJSmAq4kONrkvPcl-DTZ_3H_gk')"></div>
+<div class="p-md">
+<h4 class="font-label-md text-on-surface truncate">Budget Committee</h4>
+<p class="text-body-sm text-on-surface-variant mt-xs">Fiscal Year 2024</p>
+<button class="mt-md w-full border border-primary text-primary py-xs rounded-lg font-label-sm hover:bg-primary hover:text-on-primary transition-colors">Join Request</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Notifications & Activity -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-lg">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-lg shadow-sm flex-grow">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-h3 text-h3 text-on-surface">Activity</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+<div class="space-y-md">
+<!-- Notification Item 1 -->
+<div class="flex gap-md p-md rounded-xl bg-surface-container-low border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="person_add">person_add</span>
+</div>
+<div class="flex flex-col gap-xs">
+<p class="text-body-sm text-on-surface"><strong>Sarah Miller</strong> joined your committee <strong>Q3 Strategic Planning</strong>.</p>
+<p class="text-label-sm text-on-surface-variant">2 minutes ago</p>
+</div>
+</div>
+<!-- Notification Item 2 -->
+<div class="flex gap-md p-md rounded-xl bg-white border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary text-[20px]" data-icon="payments">payments</span>
+</div>
+<div class="flex flex-col gap-xs">
+<p class="text-body-sm text-on-surface">Payment of <strong>$150.00</strong> confirmed for Board Membership.</p>
+<p class="text-label-sm text-on-surface-variant">1 hour ago</p>
+</div>
+</div>
+<!-- Notification Item 3 -->
+<div class="flex gap-md p-md rounded-xl bg-white border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="description">description</span>
+</div>
+<div class="flex flex-col gap-xs">
+<p class="text-body-sm text-on-surface">New minutes uploaded for <strong>Annual Audit Group</strong>.</p>
+<p class="text-label-sm text-on-surface-variant">Yesterday at 4:30 PM</p>
+</div>
+</div>
+<!-- Notification Item 4 -->
+<div class="flex gap-md p-md rounded-xl bg-white border border-transparent hover:border-outline-variant transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-error text-[20px]" data-icon="error">error</span>
+</div>
+<div class="flex flex-col gap-xs">
+<p class="text-body-sm text-on-surface">Trust Score alert: Your verification is expiring in <strong>3 days</strong>.</p>
+<p class="text-label-sm text-on-surface-variant">2 days ago</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg py-md border border-outline text-on-surface-variant rounded-xl font-label-md hover:bg-surface-container-high transition-colors">
+                        Clear Notifications
+                    </button>
+</div>
+<!-- Small Promo/CTA Card -->
+<div class="bg-primary-container p-lg rounded-[16px] text-on-primary-container relative overflow-hidden shadow-sm">
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]" data-icon="verified_user">verified_user</span>
+</div>
+<h4 class="font-h3 text-h3 mb-sm">Pro Verification</h4>
+<p class="text-body-sm mb-md opacity-90">Boost your trust score to 100 by completing advanced identity verification.</p>
+<button class="bg-white text-primary px-md py-sm rounded-lg font-label-md shadow-lg hover:scale-105 transition-transform">Get Started</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

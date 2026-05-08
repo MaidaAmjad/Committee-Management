@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | TrustCom Committee Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#dbe1ff",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#7d2d00",
+                      "surface-variant": "#e0e3e5",
+                      "on-secondary-container": "#54647a",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "inverse-surface": "#2d3133",
+                      "primary": "#004ac6",
+                      "on-surface-variant": "#434655",
+                      "on-surface": "#191c1e",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed": "#ffdbcd",
+                      "secondary-fixed": "#d3e4fe",
+                      "surface": "#f7f9fb",
+                      "on-primary-container": "#eeefff",
+                      "on-tertiary-container": "#ffede6",
+                      "tertiary-container": "#bc4800",
+                      "background": "#f7f9fb",
+                      "surface-dim": "#d8dadc",
+                      "secondary": "#505f76",
+                      "outline-variant": "#c3c6d7",
+                      "on-primary": "#ffffff",
+                      "surface-container-highest": "#e0e3e5",
+                      "surface-bright": "#f7f9fb",
+                      "primary-container": "#2563eb",
+                      "on-background": "#191c1e",
+                      "inverse-on-surface": "#eff1f3",
+                      "tertiary": "#943700",
+                      "on-primary-fixed": "#00174b",
+                      "tertiary-fixed-dim": "#ffb596",
+                      "on-error": "#ffffff",
+                      "inverse-primary": "#b4c5ff",
+                      "on-error-container": "#93000a",
+                      "surface-tint": "#0053db",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "surface-container-low": "#f2f4f6",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed": "#360f00",
+                      "error-container": "#ffdad6",
+                      "outline": "#737686",
+                      "secondary-container": "#d0e1fb",
+                      "surface-container": "#eceef0",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-secondary": "#ffffff",
+                      "surface-container-high": "#e6e8ea",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "on-secondary-fixed": "#0b1c30"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-max": "1280px",
+                      "lg": "24px",
+                      "unit": "8px",
+                      "2xl": "48px",
+                      "xs": "4px",
+                      "3xl": "64px",
+                      "gutter": "24px",
+                      "sm": "8px",
+                      "xl": "32px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "h2": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "h1": ["Inter"],
+                      "h3": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "h2": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "h1": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "h3": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-mesh-gradient {
+            background-color: #f7f9fb;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 74, 198, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 74, 198, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(211, 228, 254, 0.4) 0px, transparent 50%);
+        }
+        .login-card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+        }
+        .input-focus-ring:focus {
+            outline: none;
+            border-color: #004ac6;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-mesh-gradient min-h-screen flex items-center justify-center font-body-md text-on-surface p-gutter">
+<main class="w-full max-w-[480px]">
+<!-- Branding Header -->
+<div class="text-center mb-xl">
+<div class="inline-flex items-center gap-sm mb-md">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<span class="font-h3 text-h3 font-bold text-primary tracking-tight">TrustCom</span>
+</div>
+<h1 class="font-h2 text-h2 text-on-surface mb-xs">Welcome back</h1>
+<p class="font-body-md text-on-surface-variant">Secure access to your committee portal.</p>
+</div>
+<!-- Login Card -->
+<div class="bg-surface-container-lowest login-card-shadow border border-outline-variant rounded-[16px] p-xl mb-lg">
+<form class="flex flex-col gap-md">
+<!-- Email Field -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-md text-on-surface-variant px-xs" for="email">Email address</label>
+<input class="w-full h-12 px-md border border-outline-variant rounded-xl font-body-md text-on-surface placeholder:text-outline input-focus-ring transition-all" id="email" placeholder="name@organization.com" type="email"/>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center px-xs">
+<label class="font-label-md text-on-surface-variant" for="password">Password</label>
+<a class="font-label-sm text-primary hover:underline" href="#">Forgot password?</a>
+</div>
+<div class="relative">
+<input class="w-full h-12 px-md border border-outline-variant rounded-xl font-body-md text-on-surface placeholder:text-outline input-focus-ring transition-all" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface-variant transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember Me -->
+<div class="flex items-center gap-sm px-xs mb-xs">
+<input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary-container transition-all" id="remember" type="checkbox"/>
+<label class="font-body-sm text-on-surface-variant select-none" for="remember">Remember this device</label>
+</div>
+<!-- Sign In Button -->
+<button class="w-full h-12 bg-primary text-on-primary font-label-md rounded-xl hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-sm shadow-sm" type="submit">
+                    Sign In
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</form>
+<!-- Divider -->
+<div class="relative my-xl">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center text-label-sm uppercase tracking-wider">
+<span class="bg-surface-container-lowest px-md text-outline">Or continue with</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="grid grid-cols-2 gap-md">
+<button class="flex items-center justify-center gap-sm h-12 border border-outline-variant rounded-xl font-label-md text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-high transition-all">
+<img alt="Google" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFkS9nG76ZClOB9o0meVfqsisHK29CUPFRuJp3m3TUs5-tinUoyLZTmUk9db_hLYtMC-39Fx1PQbbni1ZmP0MMZvRZvkMUc74cV69D6giV8dRp5O4a-yyHV5DRaAIz7lrdf-CjyBUr3YFAzU7Q2b_sJ_Aa8ep1vkX5XfE03xJZxOnzxcqo1vQTPpA72dIj1Lp6DJOJ5xpTn_IC6A5cAr6_wzn1Fq30uZmNTHxP05-lrSCX81XeQjIHNkK4197150Ru7hv4DxpZbro"/>
+                    Google
+                </button>
+<button class="flex items-center justify-center gap-sm h-12 border border-outline-variant rounded-xl font-label-md text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-high transition-all">
+<img alt="LinkedIn" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkF7rg3HtPmOvumAtkS-FlmeUBMcyGkKUUEfqlaVGo2dAzvOF6Rs_TttIqDxsQrifTVt0mdkpvz2xMBYjxDwZmewb9u-8sPH0ONzdzykoGwnppqC-WeITmRmzJd96UtTI8q19GKTBc4R_8kkcipMKDBr54xAxoy_yG3SgUD7mQ2mH8tRZQmYHu_ulchejpcscGnD6XPjNtdOOWwHZy_Dy7PUOexhFAMSz81Y24QTxUh4WdpFjv75PNJQa-HWGdFRA85Xg9HRrUqek"/>
+                    LinkedIn
+                </button>
+</div>
+</div>
+<!-- Toggle Footer -->
+<div class="text-center">
+<p class="font-body-sm text-on-surface-variant">
+                Don't have an account? 
+                <a class="text-primary font-label-md hover:underline ml-xs" href="#">Create an Account</a>
+</p>
+</div>
+<!-- Trust Badges / Privacy -->
+<div class="mt-2xl flex flex-col items-center gap-md">
+<div class="flex items-center gap-xl">
+<div class="flex items-center gap-xs text-outline opacity-60">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+<span class="font-label-sm uppercase tracking-widest">ISO 27001 Certified</span>
+</div>
+<div class="flex items-center gap-xs text-outline opacity-60">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="font-label-sm uppercase tracking-widest">AES-256 Encrypted</span>
+</div>
+</div>
+<div class="flex gap-md">
+<a class="font-label-sm text-outline hover:text-on-surface-variant transition-colors" href="#">Privacy Policy</a>
+<span class="text-outline-variant">•</span>
+<a class="font-label-sm text-outline hover:text-on-surface-variant transition-colors" href="#">Terms of Service</a>
+<span class="text-outline-variant">•</span>
+<a class="font-label-sm text-outline hover:text-on-surface-variant transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</main>
+<!-- Background Decorative Elements -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] bg-secondary-fixed rounded-full blur-[100px] opacity-20"></div>
+<div class="absolute bottom-[10%] left-[5%] w-[40vw] h-[40vw] bg-primary-fixed rounded-full blur-[120px] opacity-20"></div>
+</div>
+</body></html>
