@@ -1,0 +1,281 @@
+<div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
+  <app-sidebar></app-sidebar>
+
+  <div class="flex flex-col flex-1 md:ml-64">
+    <app-topnav [offsetLeft]="false"></app-topnav>
+
+    <main class="flex-1 p-6 max-w-[860px] mx-auto w-full">
+
+      <!-- Page Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-1">
+          <a routerLink="/dashboard"
+            class="text-sm text-[#434655] hover:text-[#004ac6] transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Dashboard
+          </a>
+          <span class="text-[#c3c6d7]">/</span>
+          <span class="text-sm text-[#004ac6] font-semibold">Create Committee</span>
+        </div>
+        <h1 class="text-[32px] font-bold text-[#191c1e] leading-tight mt-3">Create a New Committee</h1>
+        <p class="text-base text-[#434655] mt-1">Set up your savings circle and invite members to join.</p>
+      </div>
+
+      <!-- Success Banner -->
+      @if (success) {
+        <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-2xl px-6 py-4 mb-6 shadow-sm">
+          <span class="material-symbols-outlined text-[#28a745]" style="font-variation-settings:'FILL' 1;">check_circle</span>
+          <div>
+            <p class="font-semibold">Committee created successfully!</p>
+            <p class="text-sm opacity-80">Redirecting to My Committees...</p>
+          </div>
+        </div>
+      }
+
+      <!-- Form Card -->
+      <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm overflow-hidden">
+
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-[#004ac6] to-[#2563eb] px-8 py-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-white">groups</span>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-white">Committee Details</h2>
+              <p class="text-sm text-white/70">Fill in the information below to create your committee</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Body -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-8 flex flex-col gap-6" novalidate>
+
+          <!-- Committee Name -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold text-[#191c1e]" for="name">
+              Committee Name <span class="text-[#ba1a1a]">*</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">badge</span>
+              <input
+                id="name"
+                type="text"
+                formControlName="name"
+                placeholder="e.g. Lagos Property Circle"
+                class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                [class.border-[#ba1a1a]]="fieldError('name')"
+                [class.bg-[#fff8f8]]="fieldError('name')"
+                [class.border-[#c3c6d7]]="!fieldError('name')"
+                [class.focus:border-[#004ac6]]="!fieldError('name')"
+              />
+            </div>
+            @if (fieldError('name')) {
+              <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ getError('name') }}
+              </p>
+            }
+            <p class="text-xs text-[#737686]">{{ f['name'].value?.length || 0 }}/80 characters</p>
+          </div>
+
+          <!-- Two-column row: Amount + Max Members -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+            <!-- Monthly Contribution -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold text-[#191c1e]" for="monthlyAmount">
+                Monthly Contribution <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-sm font-bold">$</span>
+                <input
+                  id="monthlyAmount"
+                  type="number"
+                  formControlName="monthlyAmount"
+                  placeholder="0.00"
+                  min="1"
+                  class="w-full h-12 pl-8 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                  [class.border-[#ba1a1a]]="fieldError('monthlyAmount')"
+                  [class.bg-[#fff8f8]]="fieldError('monthlyAmount')"
+                  [class.border-[#c3c6d7]]="!fieldError('monthlyAmount')"
+                />
+              </div>
+              @if (fieldError('monthlyAmount')) {
+                <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
+                  {{ getError('monthlyAmount') }}
+                </p>
+              }
+            </div>
+
+            <!-- Maximum Members -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold text-[#191c1e]" for="maxMembers">
+                Maximum Members <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">group</span>
+                <input
+                  id="maxMembers"
+                  type="number"
+                  formControlName="maxMembers"
+                  placeholder="e.g. 10"
+                  min="2"
+                  max="100"
+                  class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                  [class.border-[#ba1a1a]]="fieldError('maxMembers')"
+                  [class.bg-[#fff8f8]]="fieldError('maxMembers')"
+                  [class.border-[#c3c6d7]]="!fieldError('maxMembers')"
+                />
+              </div>
+              @if (fieldError('maxMembers')) {
+                <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
+                  {{ getError('maxMembers') }}
+                </p>
+              }
+              <p class="text-xs text-[#737686]">Minimum 2 members required</p>
+            </div>
+          </div>
+
+          <!-- Duration -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold text-[#191c1e]">
+              Committee Duration <span class="text-[#ba1a1a]">*</span>
+            </label>
+            <div class="grid grid-cols-3 sm:grid-cols-7 gap-2">
+              @for (months of durationOptions; track months) {
+                <button
+                  type="button"
+                  (click)="form.get('durationMonths')?.setValue(months)"
+                  class="h-12 rounded-xl text-sm font-semibold border transition-all"
+                  [class.bg-[#004ac6]]="f['durationMonths'].value === months"
+                  [class.text-white]="f['durationMonths'].value === months"
+                  [class.border-[#004ac6]]="f['durationMonths'].value === months"
+                  [class.shadow-md]="f['durationMonths'].value === months"
+                  [class.bg-white]="f['durationMonths'].value !== months"
+                  [class.text-[#434655]]="f['durationMonths'].value !== months"
+                  [class.border-[#c3c6d7]]="f['durationMonths'].value !== months"
+                  [class.hover:border-[#004ac6]]="f['durationMonths'].value !== months"
+                  [class.hover:text-[#004ac6]]="f['durationMonths'].value !== months"
+                >
+                  {{ months }}mo
+                </button>
+              }
+            </div>
+            @if (fieldError('durationMonths')) {
+              <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ getError('durationMonths') }}
+              </p>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold text-[#191c1e]" for="description">
+              Committee Description <span class="text-[#ba1a1a]">*</span>
+            </label>
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="4"
+              placeholder="Describe the purpose of this committee, goals, and any rules members should know..."
+              class="w-full px-4 py-3 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all resize-none"
+              [class.border-[#ba1a1a]]="fieldError('description')"
+              [class.bg-[#fff8f8]]="fieldError('description')"
+              [class.border-[#c3c6d7]]="!fieldError('description')"
+            ></textarea>
+            @if (fieldError('description')) {
+              <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ getError('description') }}
+              </p>
+            }
+            <p class="text-xs text-[#737686]">{{ f['description'].value?.length || 0 }}/500 characters</p>
+          </div>
+
+          <!-- Summary Preview -->
+          @if (form.valid) {
+            <div class="bg-[#f2f4f6] rounded-2xl p-5 border border-[#c3c6d7]">
+              <p class="text-xs font-semibold text-[#434655] uppercase tracking-wider mb-3">Summary Preview</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-xs text-[#737686]">Monthly</span>
+                  <span class="text-sm font-bold text-[#004ac6]">${{ f['monthlyAmount'].value }}</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-xs text-[#737686]">Members</span>
+                  <span class="text-sm font-bold text-[#191c1e]">Up to {{ f['maxMembers'].value }}</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-xs text-[#737686]">Duration</span>
+                  <span class="text-sm font-bold text-[#191c1e]">{{ f['durationMonths'].value }} months</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-xs text-[#737686]">Total Pool</span>
+                  <span class="text-sm font-bold text-[#28a745]">
+                    ${{ f['monthlyAmount'].value * f['maxMembers'].value * f['durationMonths'].value | number }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="submit"
+              [disabled]="success"
+              class="flex-1 h-12 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <span class="material-symbols-outlined text-[18px]">add_circle</span>
+              Create Committee
+            </button>
+            <button
+              type="button"
+              (click)="onCancel()"
+              class="sm:w-36 h-12 bg-white border border-[#c3c6d7] text-[#434655] text-sm font-semibold rounded-xl hover:bg-[#f2f4f6] transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Info Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-5 shadow-sm flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[#dbe1ff] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[#004ac6] text-[18px]">shield</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#191c1e]">Escrow Protected</p>
+            <p class="text-xs text-[#737686] mt-0.5">All funds are held securely until payout.</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-5 shadow-sm flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[#d0e1fb] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[#2563eb] text-[18px]">verified_user</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#191c1e]">Verified Members</p>
+            <p class="text-xs text-[#737686] mt-0.5">Only trusted members can join your circle.</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-5 shadow-sm flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[#ffdbcd] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[#943700] text-[18px]">payments</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#191c1e]">Auto Payments</p>
+            <p class="text-xs text-[#737686] mt-0.5">Automated monthly collection and payouts.</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>

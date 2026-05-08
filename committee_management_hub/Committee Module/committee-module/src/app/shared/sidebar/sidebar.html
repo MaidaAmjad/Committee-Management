@@ -1,43 +1,51 @@
 <aside class="fixed left-0 top-0 h-screen w-64 bg-[#f2f4f6] border-r border-[#c3c6d7] shadow-sm z-40 hidden md:flex flex-col p-4 gap-2">
-  <!-- Brand -->
-  <div class="px-4 py-6">
+
+  <!-- Brand + User -->
+  <div class="px-4 py-5">
     <span class="text-2xl font-bold text-[#004ac6]">TrustCom</span>
-    <div class="mt-1">
-      <p class="text-sm font-semibold text-[#434655]">{{ userName }}</p>
-      <p class="text-xs font-semibold text-[#505f76]">Trust Score: {{ trustScore }}</p>
+    <div class="flex items-center gap-3 mt-3">
+      <div class="w-9 h-9 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        {{ initials() }}
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-[#191c1e] truncate">{{ displayName() }}</p>
+        <p class="text-xs text-[#505f76]">Trust Score: {{ trustScore }}</p>
+      </div>
     </div>
   </div>
 
   <!-- Nav Links -->
-  <nav class="flex flex-col gap-2 flex-grow">
+  <nav class="flex flex-col gap-1 flex-grow">
     @for (item of navItems; track item.route) {
       <a
         [routerLink]="item.route"
-        routerLinkActive="bg-[#d0e1fb] text-[#54647a] font-bold"
+        routerLinkActive="bg-[#d0e1fb] !text-[#004ac6] font-bold"
         [routerLinkActiveOptions]="{ exact: true }"
-        class="flex items-center gap-4 text-[#434655] px-4 py-2 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-lg transition-all"
+        class="flex items-center gap-3 text-[#434655] px-4 py-2.5 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-xl transition-all text-sm font-semibold"
       >
-        <span class="material-symbols-outlined">{{ item.icon }}</span>
-        <span class="text-sm font-semibold">{{ item.label }}</span>
+        <span class="material-symbols-outlined text-[20px]">{{ item.icon }}</span>
+        {{ item.label }}
       </a>
     }
   </nav>
 
   <!-- Create Committee Button -->
-  <button class="bg-[#004ac6] text-white rounded-xl px-4 py-4 text-sm font-semibold shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 mt-4">
-    <span class="material-symbols-outlined">add</span>
+  <button
+    (click)="goToCreateCommittee()"
+    class="bg-[#004ac6] text-white rounded-xl px-4 py-3 text-sm font-semibold shadow-sm hover:bg-[#2563eb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2">
+    <span class="material-symbols-outlined text-[20px]">add</span>
     Create Committee
   </button>
 
   <!-- Bottom Links -->
-  <div class="mt-auto border-t border-[#c3c6d7] pt-4 flex flex-col gap-2">
-    <a href="#" class="flex items-center gap-4 text-[#434655] px-4 py-2 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-lg transition-all">
-      <span class="material-symbols-outlined">settings</span>
-      <span class="text-sm font-semibold">Settings</span>
+  <div class="border-t border-[#c3c6d7] pt-3 flex flex-col gap-1">
+    <a href="#" class="flex items-center gap-3 text-[#434655] px-4 py-2.5 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-xl transition-all text-sm font-semibold">
+      <span class="material-symbols-outlined text-[20px]">settings</span>
+      Settings
     </a>
-    <a href="#" class="flex items-center gap-4 text-[#434655] px-4 py-2 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-lg transition-all">
-      <span class="material-symbols-outlined">help</span>
-      <span class="text-sm font-semibold">Help</span>
+    <a href="#" class="flex items-center gap-3 text-[#434655] px-4 py-2.5 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-xl transition-all text-sm font-semibold">
+      <span class="material-symbols-outlined text-[20px]">help</span>
+      Help
     </a>
   </div>
 </aside>

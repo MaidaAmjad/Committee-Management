@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -19,7 +20,11 @@ export class SignupComponent {
   showPassword = false;
   showConfirmPassword = false;
 
-  constructor(private router: Router) {}
+  loading = false;
+  errorMessage = '';
+  successMessage = '';
+
+  constructor(private auth: AuthService, private router: Router) {}
 
   get passwordMismatch(): boolean {
     return this.confirmPassword.length > 0 && this.password !== this.confirmPassword;
@@ -35,16 +40,27 @@ export class SignupComponent {
     );
   }
 
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
-  }
+  togglePassword(): void { this.showPassword = !this.showPassword; }
+  toggleConfirmPassword(): void { this.showConfirmPassword = !this.showConfirmPassword; }
 
-  toggleConfirmPassword(): void {
-    this.showConfirmPassword = !this.showConfirmPassword;
-  }
-
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (!this.isFormValid) return;
-    this.router.navigate(['/dashboard']);
+
+    this.loading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const { error } = await this.auth.signUp(this.email, this.password, this.fullName);
+
+    this.loading = false;
+
+    if (error) {
+      this.errorMessage = error.message;
+      return;
+    }
+
+    // Check if email confirmation is required
+    this.successMessage = 'Account created! Please check your email inbox and click the confirmation link, then come back to sign in.';
+    setTimeout(() => this.router.navigate(['/login']), 3500);
   }
 }

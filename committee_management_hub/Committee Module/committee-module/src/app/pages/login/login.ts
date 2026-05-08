@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -16,14 +17,32 @@ export class LoginComponent {
   rememberMe = false;
   showPassword = false;
 
-  constructor(private router: Router) {}
+  loading = false;
+  errorMessage = '';
 
-  onSubmit(): void {
+  constructor(private auth: AuthService, private router: Router) {}
+
+  togglePassword(): void { this.showPassword = !this.showPassword; }
+
+  async onSubmit(): Promise<void> {
     if (!this.email || !this.password) return;
-    this.router.navigate(['/dashboard']);
-  }
 
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
+    this.loading = true;
+    this.errorMessage = '';
+
+    const { error } = await this.auth.signIn(this.email, this.password);
+
+    this.loading = false;
+
+    if (error) {
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        this.errorMessage = 'Your email is not confirmed yet. Please check your inbox and click the confirmation link.';
+      } else {
+        this.errorMessage = error.message;
+      }
+      return;
+    }
+
+    this.router.navigate(['/dashboard']);
   }
 }
