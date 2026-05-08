@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -16,8 +16,11 @@ export class LoginComponent {
   rememberMe = false;
   showPassword = false;
 
+  constructor(private router: Router) {}
+
   onSubmit(): void {
-    console.log('Login submitted', { email: this.email, rememberMe: this.rememberMe });
+    if (!this.email || !this.password) return;
+    this.router.navigate(['/dashboard']);
   }
 
   togglePassword(): void {
