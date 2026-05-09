@@ -1,0 +1,178 @@
+<div class="flex flex-col gap-4">
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-8">
+      <div class="flex items-center justify-center">
+        <svg class="animate-spin h-8 w-8 text-[#004ac6]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+      </div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error() && !loading()) {
+    <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
+      <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-xl px-4 py-3">
+        <span class="material-symbols-outlined">error</span>
+        <p class="text-sm font-semibold">{{ error() }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Current Winner Announcement -->
+  @if (!loading() && !error() && currentWinner()) {
+    <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm overflow-hidden">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-[#f59e0b] to-[#fbbf24] px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-[28px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Current Winner</h3>
+            <p class="text-xs text-white/80">Cycle {{ currentWinner()!.cycle_number }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6">
+        <div class="flex flex-col gap-4">
+
+          <!-- Winner Info -->
+          <div class="flex items-center gap-4 p-4 bg-gradient-to-r from-[#fef3c7] to-[#fde68a] rounded-xl border border-[#fbbf24]">
+            <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm">
+              <span class="material-symbols-outlined text-[#f59e0b] text-[32px]" style="font-variation-settings:'FILL' 1;">person</span>
+            </div>
+            <div class="flex-1">
+              <p class="text-xs text-[#92400e] font-semibold uppercase tracking-wide mb-0.5">Winner</p>
+              <p class="text-lg font-bold text-[#191c1e]">{{ currentWinner()!.member_name }}</p>
+              <p class="text-xs text-[#737686]">{{ currentWinner()!.member_email }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-[#92400e] font-semibold uppercase tracking-wide mb-0.5">Cycle</p>
+              <p class="text-2xl font-bold text-[#f59e0b]">#{{ currentWinner()!.cycle_number }}</p>
+            </div>
+          </div>
+
+          <!-- Selection Details -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            
+            <!-- Selection Method -->
+            <div class="flex items-center gap-3 p-3 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7]">
+              <div class="w-10 h-10 bg-[#004ac6]/10 rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-[#004ac6]">{{ getMethodIcon(currentWinner()!.selection_method) }}</span>
+              </div>
+              <div>
+                <p class="text-xs text-[#737686]">Selection Method</p>
+                <p class="text-sm font-bold text-[#191c1e]">{{ getMethodDisplay(currentWinner()!.selection_method) }}</p>
+              </div>
+            </div>
+
+            <!-- Selected Date -->
+            <div class="flex items-center gap-3 p-3 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7]">
+              <div class="w-10 h-10 bg-[#16a34a]/10 rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-[#16a34a]">schedule</span>
+              </div>
+              <div>
+                <p class="text-xs text-[#737686]">Selected On</p>
+                <p class="text-sm font-bold text-[#191c1e]">{{ formatDate(currentWinner()!.selected_at) }}</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Congratulations Message -->
+          <div class="flex items-start gap-3 p-4 bg-[#f0fdf4] border border-[#86efac] rounded-xl">
+            <span class="material-symbols-outlined text-[#16a34a] text-[20px]" style="font-variation-settings:'FILL' 1;">celebration</span>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-[#191c1e] mb-1">Congratulations!</p>
+              <p class="text-xs text-[#737686]">
+                {{ currentWinner()!.member_name }} has been selected as the winner for Cycle {{ currentWinner()!.cycle_number }}. 
+                Payment details are now visible to all committee members.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- No Winner Yet -->
+  @if (!loading() && !error() && !currentWinner()) {
+    <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-8">
+      <div class="flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 bg-[#f7f9fb] rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[#737686] text-[32px]">emoji_events</span>
+        </div>
+        <p class="text-sm font-semibold text-[#191c1e] mb-1">No Winner Selected Yet</p>
+        <p class="text-xs text-[#737686]">The committee admin will select the first winner soon.</p>
+      </div>
+    </div>
+  }
+
+  <!-- Winner History -->
+  @if (!loading() && showHistory && allWinners().length > 0) {
+    <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm overflow-hidden">
+      
+      <!-- Header -->
+      <div class="bg-[#f7f9fb] px-6 py-4 border-b border-[#c3c6d7]">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#004ac6]">history</span>
+          <h3 class="text-sm font-bold text-[#191c1e]">Winner History</h3>
+          <span class="ml-auto text-xs font-semibold text-[#737686]">{{ allWinners().length }} cycle(s)</span>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <div class="divide-y divide-[#c3c6d7]">
+        @for (winner of allWinners(); track winner.id) {
+          <div class="flex items-center gap-4 p-4 hover:bg-[#f7f9fb] transition-all">
+            
+            <!-- Cycle Badge -->
+            <div class="flex-shrink-0 w-12 h-12 bg-[#004ac6]/10 rounded-xl flex items-center justify-center">
+              <span class="text-sm font-bold text-[#004ac6]">#{{ winner.cycle_number }}</span>
+            </div>
+
+            <!-- Winner Info -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-[#191c1e] truncate">{{ winner.member_name }}</p>
+              <p class="text-xs text-[#737686] truncate">{{ winner.member_email }}</p>
+            </div>
+
+            <!-- Method Badge -->
+            <div class="flex-shrink-0">
+              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                [class.bg-[#fef3c7]]="winner.selection_method === 'random'"
+                [class.bg-[#dbeafe]]="winner.selection_method === 'manual'">
+                <span class="material-symbols-outlined text-[14px]"
+                  [class.text-[#f59e0b]]="winner.selection_method === 'random'"
+                  [class.text-[#0284c7]]="winner.selection_method === 'manual'">
+                  {{ getMethodIcon(winner.selection_method) }}
+                </span>
+                <span class="text-xs font-semibold"
+                  [class.text-[#92400e]]="winner.selection_method === 'random'"
+                  [class.text-[#075985]]="winner.selection_method === 'manual'">
+                  {{ winner.selection_method === 'random' ? 'Random' : 'Manual' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Date -->
+            <div class="hidden sm:block flex-shrink-0 text-right">
+              <p class="text-xs text-[#737686]">{{ formatDate(winner.selected_at) }}</p>
+            </div>
+
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+</div>

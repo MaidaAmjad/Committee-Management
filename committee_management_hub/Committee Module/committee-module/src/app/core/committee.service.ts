@@ -11,6 +11,7 @@ export interface CommitteeFormData {
   paymentDeadlineDate: string;  // ISO date string e.g. "2026-06-10"
   gracePeriodDays: number;
   paymentCycleDays: number;     // e.g. 30 for monthly, 10 for 10-day cycle
+  distributionMethod: 'random' | 'manual'; // Winner selection method
 }
 
 export interface Committee {
@@ -26,6 +27,10 @@ export interface Committee {
   payment_deadline_date: string | null;
   grace_period_days: number;
   payment_cycle_days: number;
+  distribution_method: 'random' | 'manual'; // Winner selection method
+  member_count?: number;
+  slots_used?: number; // Total slots used (including 0.5 for shared members)
+  has_partial_slot?: boolean; // True if there's a 0.5 slot available
 }
 
 export interface CommitteeMember {
@@ -36,6 +41,8 @@ export interface CommitteeMember {
   full_name: string;
   email: string;
   status: 'pending' | 'approved' | 'rejected';
+  slot_type?: 'full' | 'shared'; // Type of slot occupied
+  shared_group_id?: string | null; // Reference to shared group if slot_type is 'shared'
 }
 
 @Injectable({ providedIn: 'root' })
@@ -65,6 +72,7 @@ export class CommitteeService {
       payment_deadline_date:  data.paymentDeadlineDate || null,
       grace_period_days:      data.gracePeriodDays ?? 3,
       payment_cycle_days:     data.paymentCycleDays ?? 30,
+      distribution_method:    data.distributionMethod || 'random',
     }).select('id').single();
 
     if (error) return { error: error.message };
@@ -76,6 +84,7 @@ export class CommitteeService {
       full_name:    user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'Admin',
       email:        user.email,
       status:       'approved',
+      slot_type:    'full', // Creator always occupies a full slot
     });
 
     if (memberError) {
@@ -103,13 +112,64 @@ export class CommitteeService {
 
   /** Fetch ALL committees from all users (Browse page) */
   async getAllCommittees(): Promise<{ data: Committee[]; error: string | null }> {
-    const { data, error } = await this.supabase
+    // Fetch committees
+    const { data: committees, error: committeesError } = await this.supabase
       .from('committees')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) return { data: [], error: error.message };
-    return { data: data as Committee[], error: null };
+    if (committeesError) return { data: [], error: committeesError.message };
+    if (!committees || committees.length === 0) return { data: [], error: null };
+
+    // Fetch all approved members with their slot types
+    const { data: members, error: membersError } = await this.supabase
+      .from('committee_members')
+      .select('committee_id, slot_type')
+      .eq('status', 'approved');
+
+    if (membersError) {
+      console.warn('Failed to fetch members:', membersError.message);
+      return { data: committees as Committee[], error: null };
+    }
+
+    // Calculate slot usage per committee
+    const slotUsageMap: Record<string, { count: number; slotsUsed: number; hasPartialSlot: boolean }> = {};
+    
+    members?.forEach(m => {
+      if (!slotUsageMap[m.committee_id]) {
+        slotUsageMap[m.committee_id] = { count: 0, slotsUsed: 0, hasPartialSlot: false };
+      }
+      
+      // Default to 'full' if slot_type is not set (backward compatibility)
+      const slotType = m.slot_type || 'full';
+      slotUsageMap[m.committee_id].count++;
+      
+      if (slotType === 'shared') {
+        slotUsageMap[m.committee_id].slotsUsed += 0.5;
+      } else {
+        slotUsageMap[m.committee_id].slotsUsed += 1;
+      }
+    });
+
+    // Check for partial slots (0.5 remaining)
+    Object.keys(slotUsageMap).forEach(committeeId => {
+      const usage = slotUsageMap[committeeId];
+      const fractionalPart = usage.slotsUsed % 1;
+      usage.hasPartialSlot = fractionalPart === 0.5;
+    });
+
+    // Attach slot usage to each committee
+    const enriched = committees.map(c => {
+      const usage = slotUsageMap[c.id] || { count: 0, slotsUsed: 0, hasPartialSlot: false };
+      return {
+        ...c,
+        member_count: usage.count,
+        slots_used: usage.slotsUsed,
+        has_partial_slot: usage.hasPartialSlot
+      };
+    }) as Committee[];
+
+    return { data: enriched, error: null };
   }
 
   /** Fetch a single committee by id */
@@ -135,6 +195,26 @@ export class CommitteeService {
       full_name:    user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User',
       email:        user.email,
       status:       'pending',
+      slot_type:    'full', // Full member
+    });
+
+    if (error) return { error: error.message };
+    return { error: null };
+  }
+
+  /** Join a committee as a shared group member — creates a PENDING request with slot_type = 'shared' */
+  async joinCommitteeAsShared(committeeId: string): Promise<{ error: string | null }> {
+    const user = this.auth.user();
+    if (!user) return { error: 'Not authenticated' };
+
+    const { error } = await this.supabase.from('committee_members').insert({
+      committee_id:    committeeId,
+      user_id:         user.id,
+      full_name:       user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User',
+      email:           user.email,
+      status:          'pending',
+      slot_type:       'shared', // Shared member (occupies 0.5 slot)
+      // Note: shared_group_id will be added after database migration
     });
 
     if (error) return { error: error.message };

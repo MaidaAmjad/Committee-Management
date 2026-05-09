@@ -161,14 +161,21 @@ export class PaymentMethodService {
   }
 
   /** Mark payment setup as complete in profiles */
-  async markSetupComplete(): Promise<void> {
+  async markSetupComplete(): Promise<{ error: string | null }> {
     const user = this.auth.user();
-    if (!user) return;
+    if (!user) return { error: 'Not authenticated' };
 
-    await this.supabase
+    const { error } = await this.supabase
       .from('profiles')
       .update({ payment_setup_complete: true })
       .eq('id', user.id);
+
+    if (error) {
+      console.error('Failed to mark setup complete:', error);
+      return { error: error.message };
+    }
+
+    return { error: null };
   }
 
   /** Check if user has completed payment setup */
@@ -176,6 +183,17 @@ export class PaymentMethodService {
     const user = this.auth.user();
     if (!user) return false;
 
+    // Check if user has at least one payment method
+    const { data: methods } = await this.supabase
+      .from('payment_methods')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    // If they have at least one payment method, setup is complete
+    if (methods && methods.length > 0) return true;
+
+    // Fallback: check profiles table
     const { data } = await this.supabase
       .from('profiles')
       .select('payment_setup_complete')

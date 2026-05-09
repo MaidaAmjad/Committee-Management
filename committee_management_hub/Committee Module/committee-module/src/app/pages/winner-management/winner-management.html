@@ -1,0 +1,204 @@
+<div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
+  <app-sidebar></app-sidebar>
+
+  <div class="flex flex-col flex-1 md:ml-64">
+    <app-topnav></app-topnav>
+
+    <main class="flex-1 p-6 max-w-[1200px] mx-auto w-full">
+
+      <!-- Page Header -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-1">
+          <a routerLink="/my-committees"
+            class="text-sm text-[#434655] hover:text-[#004ac6] transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            My Committees
+          </a>
+          <span class="text-[#c3c6d7]">/</span>
+          <span class="text-sm text-[#004ac6] font-semibold">Winner Management</span>
+        </div>
+        <h1 class="text-[32px] font-bold text-[#191c1e] leading-tight mt-3">Winner Management</h1>
+        @if (committee()) {
+          <p class="text-base text-[#434655] mt-1">{{ committee()!.name }}</p>
+        }
+      </div>
+
+      <!-- Loading State -->
+      @if (loading()) {
+        <div class="flex items-center justify-center py-16">
+          <svg class="animate-spin h-12 w-12 text-[#004ac6]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+        </div>
+      }
+
+      <!-- Error State -->
+      @if (error() && !loading()) {
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-8">
+          <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-xl px-4 py-3">
+            <span class="material-symbols-outlined">error</span>
+            <p class="text-sm font-semibold">{{ error() }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- Main Content -->
+      @if (!loading() && !error() && committee()) {
+        <div class="flex flex-col gap-6">
+
+          <!-- Committee Info Card -->
+          <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              
+              <!-- Committee Details -->
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-[#004ac6] to-[#2563eb] rounded-xl flex items-center justify-center">
+                  <span class="material-symbols-outlined text-white text-[28px]">groups</span>
+                </div>
+                <div>
+                  <h2 class="text-lg font-bold text-[#191c1e]">{{ committee()!.name }}</h2>
+                  <p class="text-sm text-[#737686]">{{ committee()!.description }}</p>
+                </div>
+              </div>
+
+              <!-- Distribution Method Badge -->
+              <div class="flex items-center gap-2 px-4 py-2 bg-[#fff7ed] border border-[#fed7aa] rounded-xl">
+                <span class="material-symbols-outlined text-[#ea580c]">{{ getDistributionMethodIcon() }}</span>
+                <div>
+                  <p class="text-xs text-[#92400e] font-semibold uppercase tracking-wide">Distribution Method</p>
+                  <p class="text-sm font-bold text-[#191c1e]">{{ getDistributionMethodDisplay() }}</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Committee Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#c3c6d7]">
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-[#737686]">Monthly Amount</span>
+                <span class="text-lg font-bold text-[#004ac6]">${{ committee()!.monthly_amount }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-[#737686]">Max Members</span>
+                <span class="text-lg font-bold text-[#191c1e]">{{ committee()!.max_members }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-[#737686]">Duration</span>
+                <span class="text-lg font-bold text-[#191c1e]">{{ committee()!.duration_months }} months</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-xs text-[#737686]">Status</span>
+                <span class="text-sm font-bold px-2 py-1 rounded-lg inline-block"
+                  [class.bg-[#d4edda]]="committee()!.status === 'Active'"
+                  [class.text-[#155724]]="committee()!.status === 'Active'"
+                  [class.bg-[#fff3cd]]="committee()!.status === 'Recruiting'"
+                  [class.text-[#856404]]="committee()!.status === 'Recruiting'">
+                  {{ committee()!.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Column Layout -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Left Column: Winner Selection -->
+            <div class="flex flex-col gap-6">
+              
+              <!-- Winner Selection Component -->
+              @if (!currentWinner()) {
+                <app-winner-selection
+                  [committeeId]="committee()!.id"
+                  [distributionMethod]="committee()!.distribution_method"
+                  [committeeName]="committee()!.name"
+                  (winnerSelected)="onWinnerSelected($event)"
+                />
+              }
+
+              <!-- Current Winner Announcement -->
+              <app-committee-announcement
+                [committeeId]="committee()!.id"
+                [showHistory]="true"
+              />
+
+            </div>
+
+            <!-- Right Column: Payment Details -->
+            <div class="flex flex-col gap-6">
+              
+              <!-- Winner Payment Details -->
+              @if (currentWinner()) {
+                <app-winner-payment-details
+                  [userId]="currentWinner()!.member_id"
+                  [winnerName]="currentWinner()!.member_name"
+                  [cycleNumber]="currentWinner()!.cycle_number"
+                />
+              } @else {
+                <!-- Placeholder when no winner -->
+                <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-8">
+                  <div class="flex flex-col items-center justify-center text-center">
+                    <div class="w-16 h-16 bg-[#f7f9fb] rounded-full flex items-center justify-center mb-3">
+                      <span class="material-symbols-outlined text-[#737686] text-[32px]">account_balance_wallet</span>
+                    </div>
+                    <p class="text-sm font-semibold text-[#191c1e] mb-1">No Winner Selected</p>
+                    <p class="text-xs text-[#737686]">Select a winner to view their payment details.</p>
+                  </div>
+                </div>
+              }
+
+              <!-- Instructions Card -->
+              <div class="bg-gradient-to-br from-[#f0f9ff] to-[#e0f2fe] rounded-2xl border border-[#bae6fd] p-6">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 bg-[#0284c7]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[#0284c7]">lightbulb</span>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-[#191c1e] mb-2">How It Works</h3>
+                    <ul class="text-xs text-[#737686] space-y-2">
+                      @if (committee()!.distribution_method === 'random') {
+                        <li class="flex items-start gap-2">
+                          <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                          <span>Click "Select Random Winner" to automatically choose an eligible member</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                          <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                          <span>System ensures fair selection from members who haven't won yet</span>
+                        </li>
+                      } @else {
+                        <li class="flex items-start gap-2">
+                          <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                          <span>Choose a member from the dropdown of eligible members</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                          <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                          <span>Only members who haven't won yet will appear in the list</span>
+                        </li>
+                      }
+                      <li class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                        <span>All committee members will be automatically notified</span>
+                      </li>
+                      <li class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                        <span>Winner's payment details will be visible to all members</span>
+                      </li>
+                      <li class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-[14px] text-[#0284c7] mt-0.5">check_circle</span>
+                        <span>Members can send payments using the displayed payment methods</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      }
+
+    </main>
+  </div>
+</div>

@@ -192,9 +192,15 @@
                       </span>
                     </div>
                     <div class="w-full h-1.5 bg-[#e6e8ea] rounded-full overflow-hidden">
-                      <div class="bg-[#004ac6] h-full rounded-full" style="width: 0%"></div>
+                      <div class="bg-[#004ac6] h-full rounded-full" 
+                        [style.width.%]="c.max_members > 0 ? ((c.slots_used || 0) / c.max_members * 100) : 0"></div>
                     </div>
-                    <p class="text-[10px] text-[#737686] mt-1">0 / {{ c.max_members }} members joined</p>
+                    <p class="text-[10px] text-[#737686] mt-1">
+                      {{ c.slots_used || 0 }} / {{ c.max_members }} slots used
+                      @if (c.has_partial_slot) {
+                        <span class="text-[#c2410c] font-semibold">(0.5 slot available)</span>
+                      }
+                    </p>
                   </div>
 
                   <!-- Total pool -->
@@ -218,87 +224,115 @@
                       </button>
                     </div>
                   } @else {
-                    <div class="flex gap-2">
-                      <!-- View Details always visible -->
-                      <button (click)="viewDetails(c)"
-                        class="flex-1 py-2.5 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px]">info</span>Details
-                      </button>
-
-                      <!-- Status-aware join button -->
-                      @switch (getRequestState(c).status) {
-                        @case ('pending') {
+                    <!-- Non-owner action area -->
+                    @switch (getRequestState(c).status) {
+                      @case ('pending') {
+                        <div class="flex gap-2">
+                          <button (click)="viewDetails(c)"
+                            class="py-2.5 px-4 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">info</span>Details
+                          </button>
                           <div class="flex-1 py-2.5 bg-[#fef9c3] border border-[#fde68a] text-[#854d0e] rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 cursor-default">
                             <span class="material-symbols-outlined text-[16px]">schedule</span>Pending
                           </div>
-                        }
-                        @case ('approved') {
+                        </div>
+                      }
+                      @case ('approved') {
+                        <div class="flex gap-2">
+                          <button (click)="viewDetails(c)"
+                            class="py-2.5 px-4 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">info</span>Details
+                          </button>
                           <div class="flex-1 py-2.5 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 cursor-default">
                             <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1;">check_circle</span>Approved
                           </div>
-                        }
-                        @case ('rejected') {
+                        </div>
+                      }
+                      @case ('rejected') {
+                        <div class="flex gap-2">
+                          <button (click)="viewDetails(c)"
+                            class="py-2.5 px-4 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">info</span>Details
+                          </button>
                           <div class="flex-1 py-2.5 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 cursor-default">
                             <span class="material-symbols-outlined text-[16px]">cancel</span>Rejected
                           </div>
-                        }
-                        @default {
-                          <div class="flex flex-col gap-2 w-full">
-
-                            <!-- Shared Group toggle row -->
-                            <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-xl bg-[#f2f4f6] hover:bg-[#e6e8ea] transition-colors"
-                              (click)="$event.stopPropagation()">
-                              <!-- Toggle switch -->
-                              <div class="relative flex-shrink-0">
-                                <input type="checkbox" class="sr-only"
-                                  [checked]="isSharedToggleOn(c)"
-                                  (change)="toggleSharedGroup(c)" />
-                                <div class="w-9 h-5 rounded-full transition-colors duration-200"
-                                  [class.bg-[#004ac6]]="isSharedToggleOn(c)"
-                                  [class.bg-[#c3c6d7]]="!isSharedToggleOn(c)">
-                                  <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
-                                    [class.translate-x-4]="isSharedToggleOn(c)"></div>
-                                </div>
-                              </div>
-                              <div class="flex-1 min-w-0">
-                                <p class="text-[11px] font-semibold text-[#191c1e] leading-tight">Join as Shared Group</p>
-                                <p class="text-[10px] text-[#737686] leading-tight">Pay {{ c.monthly_amount / 2 | number }} PKR with a partner</p>
-                              </div>
-                              <span class="material-symbols-outlined text-[18px] flex-shrink-0 transition-colors"
-                                [class.text-[#004ac6]]="isSharedToggleOn(c)"
-                                [class.text-[#c3c6d7]]="!isSharedToggleOn(c)">group_work</span>
-                            </label>
-
-                            <!-- Action buttons row -->
-                            <div class="flex gap-2">
-                              <button (click)="viewDetails(c)"
-                                class="py-2.5 px-3 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1">
-                                <span class="material-symbols-outlined text-[16px]">info</span>
-                              </button>
-                              <button
-                                (click)="joinCommittee(c, $event)"
-                                [disabled]="joiningId() === c.id"
-                                class="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60"
-                                [class.bg-[#004ac6]]="!isSharedToggleOn(c)"
-                                [class.bg-[#505f76]]="isSharedToggleOn(c)">
-                                @if (joiningId() === c.id) {
-                                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                                  </svg>
-                                } @else {
-                                  <span class="material-symbols-outlined text-[16px]">
-                                    {{ isSharedToggleOn(c) ? 'group_work' : 'group_add' }}
-                                  </span>
-                                  {{ isSharedToggleOn(c) ? 'Join as Shared' : 'Join' }}
-                                }
-                              </button>
+                        </div>
+                      }
+                      @default {
+                        <!-- Warning for partial slot -->
+                        @if (canOnlyJoinAsShared(c)) {
+                          <div class="bg-[#fff7ed] border border-[#c2410c] rounded-xl px-3 py-2 mb-2">
+                            <div class="flex items-start gap-2">
+                              <span class="material-symbols-outlined text-[#c2410c] text-[16px] flex-shrink-0 mt-0.5">info</span>
+                              <p class="text-[10px] text-[#7c2d12] leading-tight">
+                                <strong>Only 0.5 slot remains.</strong> You must join as a Shared Group to fill this slot.
+                              </p>
                             </div>
-
                           </div>
                         }
+
+                        <!-- Row 1: Join as Shared Group toggle -->
+                        <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-xl bg-[#f2f4f6] hover:bg-[#e6e8ea] transition-colors mb-2"
+                          [class.opacity-50]="isFullJoinDisabled(c) && !isSharedToggleOn(c)"
+                          (click)="$event.stopPropagation()">
+                          <div class="relative flex-shrink-0">
+                            <input type="checkbox" class="sr-only"
+                              [checked]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
+                              [disabled]="canOnlyJoinAsShared(c)"
+                              (change)="toggleSharedGroup(c)" />
+                            <div class="w-9 h-5 rounded-full transition-colors duration-200"
+                              [class.bg-[#004ac6]]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
+                              [class.bg-[#c3c6d7]]="!isSharedToggleOn(c) && !canOnlyJoinAsShared(c)">
+                              <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
+                                [class.translate-x-4]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"></div>
+                            </div>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-semibold text-[#191c1e] leading-tight">
+                              Join as Shared Group
+                              @if (canOnlyJoinAsShared(c)) {
+                                <span class="text-[#c2410c]">(Required)</span>
+                              }
+                            </p>
+                            <p class="text-[10px] text-[#737686] leading-tight">Pay {{ c.monthly_amount / 2 | number }} PKR with a partner</p>
+                          </div>
+                          <span class="material-symbols-outlined text-[18px] flex-shrink-0 transition-colors"
+                            [class.text-[#004ac6]]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
+                            [class.text-[#c3c6d7]]="!isSharedToggleOn(c) && !canOnlyJoinAsShared(c)">group_work</span>
+                        </label>
+
+                        <!-- Row 2: Details + Join -->
+                        <div class="flex gap-2">
+                          <button (click)="viewDetails(c)"
+                            class="py-2.5 px-4 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1.5 flex-shrink-0">
+                            <span class="material-symbols-outlined text-[16px]">info</span>Details
+                          </button>
+                          <button
+                            (click)="joinCommittee(c, $event)"
+                            [disabled]="joiningId() === c.id || getSlotsLeft(c) === 0"
+                            class="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60"
+                            [class.bg-[#004ac6]]="!isSharedToggleOn(c) && !canOnlyJoinAsShared(c)"
+                            [class.bg-[#505f76]]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
+                            [class.cursor-not-allowed]="getSlotsLeft(c) === 0">
+                            @if (joiningId() === c.id) {
+                              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                              </svg>
+                            } @else if (getSlotsLeft(c) === 0) {
+                              <span class="material-symbols-outlined text-[16px]">block</span>
+                              Full
+                            } @else {
+                              <span class="material-symbols-outlined text-[16px]">
+                                {{ isSharedToggleOn(c) || canOnlyJoinAsShared(c) ? 'group_work' : 'group_add' }}
+                              </span>
+                              {{ isSharedToggleOn(c) || canOnlyJoinAsShared(c) ? 'Join as Shared' : 'Join' }}
+                            }
+                          </button>
+                        </div>
                       }
-                    </div>
+                    }
                   }
                 </div>
               </div>

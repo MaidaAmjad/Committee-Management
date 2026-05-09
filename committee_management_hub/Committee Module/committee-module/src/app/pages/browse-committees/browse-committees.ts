@@ -126,24 +126,66 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
   async joinCommittee(c: Committee, event: Event): Promise<void> {
     event.stopPropagation();
 
+    // Check if committee is full
+    const slotsLeft = this.getSlotsLeft(c);
+    if (slotsLeft === 0) {
+      this.errorMsg.set('This committee is full. No slots available.');
+      return;
+    }
+
+    // If only 0.5 slot remains, force shared group joining
+    if (slotsLeft === 0.5 && !this.isSharedToggleOn(c)) {
+      this.errorMsg.set('Only 0.5 slot remains. You must join as a Shared Group.');
+      // Auto-enable shared toggle
+      this.toggleSharedGroup(c);
+      return;
+    }
+
+    // If trying to join as full member but less than 1 slot available
+    if (!this.isSharedToggleOn(c) && slotsLeft < 1) {
+      this.errorMsg.set('Not enough slots for a full member. Please join as a Shared Group.');
+      return;
+    }
+
     if (this.isSharedToggleOn(c)) {
-      // Create a shared group for this committee slot
-      const { data, error } = await this.sharedGroupService.createSharedGroup(
+      this.joiningId.set(c.id);
+
+      // 1. Create the shared group (in-memory, for the Shared Groups tab)
+      const { error: sgError } = await this.sharedGroupService.createSharedGroup(
         c.id,
         c.name,
         c.monthly_amount
       );
-      if (error) { this.errorMsg.set(error); return; }
+      if (sgError) { 
+        this.joiningId.set(null); 
+        this.errorMsg.set(sgError); 
+        return; 
+      }
+
+      // 2. Submit a join request with slot_type = 'shared'
+      const { error: joinError } = await this.committeeService.joinCommitteeAsShared(c.id);
+      this.joiningId.set(null);
+      if (joinError) { 
+        this.errorMsg.set(joinError); 
+        return; 
+      }
+
+      // Mark card as pending
+      this.requestStates.update(s => ({ ...s, [c.id]: { requested: true, status: 'pending' } }));
+
       // Navigate to the shared groups page to invite a partner
       this.router.navigate(['/shared-groups']);
       return;
     }
 
-    // Normal join flow
+    // Normal join flow (full member)
     this.joiningId.set(c.id);
     const { error } = await this.committeeService.joinCommittee(c.id);
     this.joiningId.set(null);
-    if (error) { this.errorMsg.set(error); return; }
+    if (error) { 
+      this.errorMsg.set(error); 
+      return; 
+    }
     this.requestStates.update(s => ({ ...s, [c.id]: { requested: true, status: 'pending' } }));
   }
 
@@ -151,18 +193,47 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
     this.router.navigate(['/committee', c.id]);
   }
 
-  getSlotsLeft(c: Committee): number { return c.max_members; }
+  getSlotsLeft(c: Committee): number { 
+    const slotsUsed = c.slots_used ?? 0;
+    return Math.max(0, c.max_members - slotsUsed);
+  }
 
   getSlotLabel(c: Committee): string {
     const s = this.getSlotsLeft(c);
-    return s <= 2 ? `${s} SLOTS LEFT` : `${s} SLOTS OPEN`;
+    
+    // Handle fractional slots
+    if (s === 0) return 'NO SLOTS';
+    if (s === 0.5) return '0.5 SLOT LEFT';
+    if (s === 1) return '1 SLOT LEFT';
+    if (s === 1.5) return '1.5 SLOTS LEFT';
+    if (s <= 2) return `${s} SLOTS LEFT`;
+    
+    return `${s} SLOTS OPEN`;
   }
 
   getSlotStyle(c: Committee): { bg: string; color: string } {
     const s = this.getSlotsLeft(c);
-    if (s <= 2) return { bg: '#ffdbcd', color: '#7d2d00' };
-    if (s <= 5) return { bg: '#fef9c3', color: '#854d0e' };
-    return { bg: '#d0e1fb', color: '#54647a' };
+    if (s === 0) return { bg: '#ffdad6', color: '#ba1a1a' }; // Red for full
+    if (s === 0.5) return { bg: '#ffdbcd', color: '#7d2d00' }; // Orange for half slot
+    if (s <= 2) return { bg: '#ffdbcd', color: '#7d2d00' }; // Orange for limited
+    if (s <= 5) return { bg: '#fef9c3', color: '#854d0e' }; // Yellow for moderate
+    return { bg: '#d0e1fb', color: '#54647a' }; // Blue for plenty
+  }
+
+  /**
+   * Check if only shared joining is allowed (when 0.5 slot remains)
+   */
+  canOnlyJoinAsShared(c: Committee): boolean {
+    const slotsLeft = this.getSlotsLeft(c);
+    return slotsLeft === 0.5;
+  }
+
+  /**
+   * Check if full joining is disabled
+   */
+  isFullJoinDisabled(c: Committee): boolean {
+    const slotsLeft = this.getSlotsLeft(c);
+    return slotsLeft < 1; // Disable if less than 1 full slot available
   }
 
   getStatusBadge(c: Committee): { bg: string; color: string } {

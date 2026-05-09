@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
+import { SupabaseService } from './supabase.service';
 
 // ── Domain types ─────────────────────────────────────────────────────────────
 
@@ -74,69 +75,17 @@ export interface SharedGroupCard {
 
 @Injectable({ providedIn: 'root' })
 export class SharedGroupService {
+  private supabase;
 
-  constructor(private auth: AuthService) {}
+  constructor(
+    private auth: AuthService,
+    private supabaseService: SupabaseService
+  ) {
+    this.supabase = this.supabaseService.client;
+  }
 
-  // ── In-memory mock store ──────────────────────────────────────────────────
-  // Seeded with two groups covering all status variants so the UI can be
-  // developed and tested without a live backend.
-
-  private mockGroups: SharedGroup[] = [
-    {
-      id: 'sg-001',
-      committee_id: 'c-001',
-      committee_name: 'Easy Month Committee',
-      monthly_amount: 2000,
-      individual_contribution: 1000,
-      status: 'Active',
-      slot_payment_status: 'Partially Paid',
-      group_leader: {
-        user_id: 'mock-leader-id',
-        full_name: 'Maida Amjad',
-        email: 'maidaamjad32@gmail.com',
-        trust_score: 95,
-        payment_status: 'Accepted',
-        proof: {
-          id: 'proof-001',
-          uploader_id: 'mock-leader-id',
-          file_name: 'payment_may.png',
-          file_type: 'image',
-          file_url: '',
-          month_year: '2026-05',
-          status: 'Accepted',
-          created_at: new Date().toISOString(),
-        },
-      },
-      group_member: {
-        user_id: 'mock-member-id',
-        full_name: 'Aliza Naeem',
-        email: 'alizanaeem37@gmail.com',
-        trust_score: 88,
-        payment_status: 'Unpaid',
-      },
-      pending_invitee_email: null,
-      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 'sg-002',
-      committee_id: 'c-002',
-      committee_name: 'Debt Committee',
-      monthly_amount: 4000,
-      individual_contribution: 2000,
-      status: 'Pending Member',
-      slot_payment_status: 'Unpaid',
-      group_leader: {
-        user_id: 'mock-leader-id',
-        full_name: 'Maida Amjad',
-        email: 'maidaamjad32@gmail.com',
-        trust_score: 95,
-        payment_status: 'Unpaid',
-      },
-      group_member: null,
-      pending_invitee_email: 'amna@example.com',
-      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
+  // ── In-memory store (starts empty — populated by createSharedGroup) ─────────
+  private mockGroups: SharedGroup[] = [];
 
   // ── Pure calculation functions ────────────────────────────────────────────
 
@@ -176,23 +125,103 @@ export class SharedGroupService {
 
   /**
    * Returns all shared groups where the current user is either the leader or member.
-   * Uses mock data; replace with Supabase query for backend integration.
+   * Fetches real committee members from the database and enriches mock groups.
    */
   async getMySharedGroups(): Promise<{ data: SharedGroup[]; error: string | null }> {
     const user = this.auth.user();
     if (!user) return { data: [], error: 'Not authenticated' };
 
-    // In mock mode, return all groups where the current user matches leader or member.
-    // For demo purposes we return all mock groups so the UI is always populated.
+    console.log('Fetching shared groups for user:', user.id);
+    console.log('Mock groups available:', this.mockGroups.length);
+
+    // Get mock groups for this user
     const myGroups = this.mockGroups.filter(
-      g =>
-        g.group_leader.user_id === user.id ||
-        g.group_member?.user_id === user.id ||
-        // fallback: show all mock groups so the UI is visible during development
-        g.group_leader.user_id === 'mock-leader-id'
+      g => g.group_leader.user_id === user.id || g.group_member?.user_id === user.id
     );
 
-    return { data: [...myGroups], error: null };
+    console.log('My groups after filter:', myGroups.length);
+
+    // If no mock groups, return empty (user hasn't created any shared groups yet)
+    if (myGroups.length === 0) {
+      return { data: [], error: null };
+    }
+
+    // Enrich each group with real committee members
+    const enrichedGroups: SharedGroup[] = [];
+
+    for (const group of myGroups) {
+      console.log('Processing group:', group.committee_name, 'Committee ID:', group.committee_id);
+
+      // Fetch all shared members for this committee (try both with and without slot_type filter)
+      let { data: members, error } = await this.supabase
+        .from('committee_members')
+        .select('*')
+        .eq('committee_id', group.committee_id)
+        .eq('slot_type', 'shared')
+        .eq('status', 'approved');
+
+      // If no members found with slot_type filter, try without it (backward compatibility)
+      if (!members || members.length === 0) {
+        console.log('No members with slot_type=shared, trying without filter...');
+        const result = await this.supabase
+          .from('committee_members')
+          .select('*')
+          .eq('committee_id', group.committee_id)
+          .eq('status', 'approved');
+        
+        members = result.data;
+        error = result.error;
+      }
+
+      if (error) {
+        console.warn('Failed to fetch shared members:', error);
+        // Still show the group even if query fails
+        enrichedGroups.push(group);
+        continue;
+      }
+
+      console.log('Found members:', members?.length || 0, members);
+
+      // If there are 2 shared members, update the group
+      if (members && members.length === 2) {
+        const leader = members.find(m => m.user_id === group.group_leader.user_id);
+        const member = members.find(m => m.user_id !== group.group_leader.user_id);
+
+        console.log('Leader found:', !!leader, 'Member found:', !!member);
+
+        if (member) {
+          // Update the group with the second member
+          const updatedGroup: SharedGroup = {
+            ...group,
+            status: 'Active',
+            group_member: {
+              user_id: member.user_id,
+              full_name: member.full_name,
+              email: member.email,
+              trust_score: 90,
+              payment_status: 'Unpaid',
+            },
+            pending_invitee_email: null,
+          };
+          enrichedGroups.push(updatedGroup);
+        } else {
+          enrichedGroups.push(group);
+        }
+      } else if (members && members.length === 1) {
+        // Only one member (the leader), keep as "Pending Member"
+        console.log('Only one member, keeping as Pending');
+        enrichedGroups.push(group);
+      } else if (members && members.length === 0) {
+        // No approved shared members yet, keep original group
+        console.log('No approved members yet');
+        enrichedGroups.push(group);
+      } else {
+        enrichedGroups.push(group);
+      }
+    }
+
+    console.log('Returning enriched groups:', enrichedGroups.length);
+    return { data: enrichedGroups, error: null };
   }
 
   // ── Mutation methods ──────────────────────────────────────────────────────

@@ -19,7 +19,7 @@ export interface AdminCommittee extends Committee {
   creator_name: string;
   member_count: number;
   total_pool: number;
-  payment_progress: number; // 0–100
+  payment_progress: number;
 }
 
 export interface AdminStats {
@@ -52,20 +52,45 @@ export class AdminService {
     this.supabase = this.supabaseService.client;
   }
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
+  // ── Private helpers ───────────────────────────────────────────────────────
 
   /**
-   * Computes platform-wide summary statistics from real DB data.
-   * Runs all counts in parallel for performance.
+   * Wraps a Supabase error message with a helpful RLS hint when the error
+   * looks like a permission denial. RLS blocks often return empty errors.
    */
+  private rlsError(table: string, op: string, msg: string): string {
+    const isRls =
+      msg.includes('permission denied') ||
+      msg.includes('violates row-level security') ||
+      msg.includes('new row violates') ||
+      msg === '';
+    if (isRls) {
+      return `RLS blocked ${op} on "${table}". Run the admin SQL migration shown in the setup banner above.`;
+    }
+    return msg;
+  }
+
+  /**
+   * Verifies a DELETE actually removed a row by re-querying the table.
+   * Supabase with RLS silently returns no error but deletes 0 rows.
+   * Returns an error string if the row still exists after deletion.
+   */
+  private async verifyDeleted(table: string, id: string): Promise<string | null> {
+    const { data } = await this.supabase
+      .from(table)
+      .select('id')
+      .eq('id', id)
+      .maybeSingle();
+    if (data) {
+      return `Delete was blocked by RLS on "${table}". Run the admin SQL migration shown in the setup banner to grant delete permissions.`;
+    }
+    return null;
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+
   async getStats(): Promise<{ data: AdminStats; error: string | null }> {
-    const [
-      usersRes,
-      activeRes,
-      completedRes,
-      pendingRes,
-      committeesRes,
-    ] = await Promise.all([
+    const [usersRes, activeRes, completedRes, pendingRes, committeesRes] = await Promise.all([
       this.supabase.from('profiles').select('*', { count: 'exact', head: true }),
       this.supabase.from('committees').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
       this.supabase.from('committees').select('*', { count: 'exact', head: true }).eq('status', 'Completed'),
@@ -79,29 +104,22 @@ export class AdminService {
       0
     );
 
-    const data: AdminStats = {
-      totalUsers:          usersRes.count ?? 0,
-      activeCommittees:    activeRes.count ?? 0,
-      completedCommittees: completedRes.count ?? 0,
-      totalCapital,
-      pendingRequests:     pendingRes.count ?? 0,
-      suspendedUsers:      0, // requires is_suspended column — shown as 0 if not present
+    return {
+      data: {
+        totalUsers:          usersRes.count ?? 0,
+        activeCommittees:    activeRes.count ?? 0,
+        completedCommittees: completedRes.count ?? 0,
+        totalCapital,
+        pendingRequests:     pendingRes.count ?? 0,
+        suspendedUsers:      0,
+      },
+      error: null,
     };
-
-    return { data, error: null };
   }
 
   // ── Users ─────────────────────────────────────────────────────────────────
 
-  /**
-   * Returns all platform users from the `profiles` table, enriched with
-   * their committee membership count and payment setup status.
-   * Works with the actual schema: id, full_name, email, created_at,
-   * payment_setup_complete. trust_score and is_suspended are optional columns
-   * — the query degrades gracefully if they don't exist.
-   */
   async getAllUsers(): Promise<{ data: AdminUser[]; error: string | null }> {
-    // Fetch all profiles — select only columns we know exist
     const { data: profiles, error: profileErr } = await this.supabase
       .from('profiles')
       .select('id, full_name, email, created_at, payment_setup_complete')
@@ -110,7 +128,6 @@ export class AdminService {
     if (profileErr) return { data: [], error: profileErr.message };
     if (!profiles?.length) return { data: [], error: null };
 
-    // Fetch all approved membership counts in one query
     const { data: memberships } = await this.supabase
       .from('committee_members')
       .select('user_id')
@@ -135,11 +152,6 @@ export class AdminService {
     return { data: users, error: null };
   }
 
-  /**
-   * Suspends a user. Attempts to set `is_suspended = true` in profiles.
-   * If the column doesn't exist yet, the error is surfaced to the caller.
-   * To add this column: ALTER TABLE profiles ADD COLUMN is_suspended boolean DEFAULT false;
-   */
   async suspendUser(userId: string): Promise<{ error: string | null }> {
     const { error } = await this.supabase
       .from('profiles')
@@ -147,17 +159,14 @@ export class AdminService {
       .eq('id', userId);
 
     if (error) {
-      if (error.message.includes('column') || error.code === '42703') {
-        return { error: 'The "is_suspended" column does not exist in the profiles table yet. Run: ALTER TABLE profiles ADD COLUMN is_suspended boolean DEFAULT false;' };
+      if (error.message.includes('column') || (error as any).code === '42703') {
+        return { error: 'Run the admin SQL migration to add the "is_suspended" column.' };
       }
-      return { error: error.message };
+      return { error: this.rlsError('profiles', 'UPDATE', error.message) };
     }
     return { error: null };
   }
 
-  /**
-   * Reinstates a suspended user by setting `is_suspended = false`.
-   */
   async reinstateUser(userId: string): Promise<{ error: string | null }> {
     const { error } = await this.supabase
       .from('profiles')
@@ -165,43 +174,45 @@ export class AdminService {
       .eq('id', userId);
 
     if (error) {
-      if (error.message.includes('column') || error.code === '42703') {
-        return { error: 'The "is_suspended" column does not exist in the profiles table yet.' };
+      if (error.message.includes('column') || (error as any).code === '42703') {
+        return { error: 'Run the admin SQL migration to add the "is_suspended" column.' };
       }
-      return { error: error.message };
+      return { error: this.rlsError('profiles', 'UPDATE', error.message) };
     }
     return { error: null };
   }
 
   /**
-   * Deletes a user's profile row and all their committee memberships.
+   * Deletes a user's profile and all their committee memberships.
+   * Verifies the deletion actually happened — RLS silently blocks without error.
    */
   async deleteUser(userId: string): Promise<{ error: string | null }> {
+    // Remove memberships first
     const { error: memErr } = await this.supabase
       .from('committee_members')
       .delete()
       .eq('user_id', userId);
 
-    if (memErr) return { error: this.rlsHint('committee_members', 'DELETE', memErr.message) };
+    if (memErr) return { error: this.rlsError('committee_members', 'DELETE', memErr.message) };
 
+    // Delete profile
     const { error } = await this.supabase
       .from('profiles')
       .delete()
       .eq('id', userId);
 
-    if (error) return { error: this.rlsHint('profiles', 'DELETE', error.message) };
+    if (error) return { error: this.rlsError('profiles', 'DELETE', error.message) };
+
+    // Verify the row is actually gone (RLS silent block check)
+    const verifyErr = await this.verifyDeleted('profiles', userId);
+    if (verifyErr) return { error: verifyErr };
+
     return { error: null };
   }
 
   // ── Committees ────────────────────────────────────────────────────────────
 
-  /**
-   * Returns all committees enriched with creator name and approved member count.
-   * Uses a join-style approach: fetch committees, then resolve creator names
-   * from profiles and member counts from committee_members.
-   */
   async getAllCommittees(): Promise<{ data: AdminCommittee[]; error: string | null }> {
-    // Fetch all committees
     const { data: committees, error: cErr } = await this.supabase
       .from('committees')
       .select('*')
@@ -210,7 +221,6 @@ export class AdminService {
     if (cErr) return { data: [], error: cErr.message };
     if (!committees?.length) return { data: [], error: null };
 
-    // Fetch all approved member counts in one query
     const { data: memberships } = await this.supabase
       .from('committee_members')
       .select('committee_id')
@@ -221,7 +231,6 @@ export class AdminService {
       memberCountMap[m.committee_id] = (memberCountMap[m.committee_id] ?? 0) + 1;
     });
 
-    // Collect unique creator IDs and fetch their names from profiles
     const creatorIds = [...new Set(committees.map((c: any) => c.created_by))];
     const { data: creators } = await this.supabase
       .from('profiles')
@@ -236,9 +245,7 @@ export class AdminService {
     const enriched: AdminCommittee[] = committees.map((c: any) => {
       const memberCount = memberCountMap[c.id] ?? 0;
       const totalPool   = (c.monthly_amount ?? 0) * (c.max_members ?? 0) * (c.duration_months ?? 0);
-      // payment_progress: ratio of approved members to max_members (as a rough proxy)
       const progress    = c.max_members > 0 ? Math.round((memberCount / c.max_members) * 100) : 0;
-
       return {
         ...c,
         creator_name:     creatorMap[c.created_by] ?? 'Unknown',
@@ -251,48 +258,55 @@ export class AdminService {
     return { data: enriched, error: null };
   }
 
-  /**
-   * Force-closes a committee by setting its status to 'Completed'.
-   */
   async closeCommittee(committeeId: string): Promise<{ error: string | null }> {
     const { error } = await this.supabase
       .from('committees')
       .update({ status: 'Completed' })
       .eq('id', committeeId);
 
-    if (error) return { error: this.rlsHint('committees', 'UPDATE', error.message) };
+    if (error) return { error: this.rlsError('committees', 'UPDATE', error.message) };
+
+    // Verify the update actually applied
+    const { data } = await this.supabase
+      .from('committees')
+      .select('status')
+      .eq('id', committeeId)
+      .maybeSingle();
+
+    if (data && data.status !== 'Completed') {
+      return { error: 'Update was blocked by RLS on "committees". Run the admin SQL migration shown in the setup banner.' };
+    }
     return { error: null };
   }
 
   /**
-   * Permanently deletes a committee and all its member records.
-   * Requires the DELETE RLS policy to be set on the committees table.
+   * Permanently deletes a committee and all its members.
+   * Verifies deletion actually happened — RLS silently blocks without error.
    */
   async deleteCommittee(committeeId: string): Promise<{ error: string | null }> {
-    // Delete members first (foreign key constraint)
+    // Delete members first (foreign key)
     const { error: membersErr } = await this.supabase
       .from('committee_members')
       .delete()
       .eq('committee_id', committeeId);
 
-    if (membersErr) {
-      return { error: this.rlsHint('committee_members', 'DELETE', membersErr.message) };
-    }
+    if (membersErr) return { error: this.rlsError('committee_members', 'DELETE', membersErr.message) };
 
+    // Delete committee
     const { error } = await this.supabase
       .from('committees')
       .delete()
       .eq('id', committeeId);
 
-    if (error) {
-      return { error: this.rlsHint('committees', 'DELETE', error.message) };
-    }
+    if (error) return { error: this.rlsError('committees', 'DELETE', error.message) };
+
+    // Verify the row is actually gone
+    const verifyErr = await this.verifyDeleted('committees', committeeId);
+    if (verifyErr) return { error: verifyErr };
+
     return { error: null };
   }
 
-  /**
-   * Returns all members of a specific committee (all statuses).
-   */
   async getCommitteeMembers(committeeId: string): Promise<{ data: CommitteeMember[]; error: string | null }> {
     const { data, error } = await this.supabase
       .from('committee_members')
@@ -304,9 +318,6 @@ export class AdminService {
     return { data: (data ?? []) as CommitteeMember[], error: null };
   }
 
-  /**
-   * Removes a specific member from a committee by deleting their row.
-   */
   async removeMember(committeeId: string, memberId: string): Promise<{ error: string | null }> {
     const { error } = await this.supabase
       .from('committee_members')
@@ -314,17 +325,16 @@ export class AdminService {
       .eq('id', memberId)
       .eq('committee_id', committeeId);
 
-    if (error) return { error: this.rlsHint('committee_members', 'DELETE', error.message) };
+    if (error) return { error: this.rlsError('committee_members', 'DELETE', error.message) };
+
+    const verifyErr = await this.verifyDeleted('committee_members', memberId);
+    if (verifyErr) return { error: verifyErr };
+
     return { error: null };
   }
 
   // ── Reports ───────────────────────────────────────────────────────────────
 
-  /**
-   * Returns all reports from the `reports` table, ordered newest first.
-   * If the table doesn't exist, returns a special sentinel so the UI
-   * can show a "create table" prompt instead of a generic error.
-   */
   async getReports(): Promise<{ data: AdminReport[]; error: string | null; tableNotFound?: boolean }> {
     const { data, error } = await this.supabase
       .from('reports')
@@ -332,16 +342,12 @@ export class AdminService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      // PostgREST error code for "relation does not exist" is PGRST200 or message contains schema cache
       const isNotFound =
         error.message.includes('does not exist') ||
         error.message.includes('schema cache') ||
         (error as any).code === 'PGRST200' ||
         (error as any).code === '42P01';
-
-      if (isNotFound) {
-        return { data: [], error: null, tableNotFound: true };
-      }
+      if (isNotFound) return { data: [], error: null, tableNotFound: true };
       return { data: [], error: error.message };
     }
 
@@ -359,28 +365,16 @@ export class AdminService {
     return { data: reports, error: null, tableNotFound: false };
   }
 
-  /**
-   * Marks a report as resolved.
-   */
   async resolveReport(reportId: string): Promise<{ error: string | null }> {
     const { error } = await this.supabase
-      .from('reports')
-      .update({ status: 'resolved' })
-      .eq('id', reportId);
-
+      .from('reports').update({ status: 'resolved' }).eq('id', reportId);
     if (error) return { error: error.message };
     return { error: null };
   }
 
-  /**
-   * Marks a report as ignored/dismissed.
-   */
   async ignoreReport(reportId: string): Promise<{ error: string | null }> {
     const { error } = await this.supabase
-      .from('reports')
-      .update({ status: 'ignored' })
-      .eq('id', reportId);
-
+      .from('reports').update({ status: 'ignored' }).eq('id', reportId);
     if (error) return { error: error.message };
     return { error: null };
   }
@@ -427,6 +421,3 @@ export class AdminService {
     return `$${amount.toLocaleString()}`;
   }
 }
-
-// NOTE: rlsHint is defined inline in each method above.
-// The formatCurrency dollar sign was added in the method bodies.

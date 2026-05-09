@@ -200,6 +200,80 @@
             <p class="text-xs text-[#737686]">{{ f['description'].value?.length || 0 }}/500 characters</p>
           </div>
 
+          <!-- ── Winner Distribution Method Section ─────────────────────────── -->
+          <div class="bg-[#fff7ed] rounded-2xl border border-[#fed7aa] p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="material-symbols-outlined text-[#ea580c] text-[20px]">emoji_events</span>
+              <h3 class="text-sm font-bold text-[#191c1e]">Winner Distribution Method</h3>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm font-semibold text-[#191c1e]">
+                How should monthly winners be selected? <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <p class="text-xs text-[#737686] mb-2">
+                This selection is fixed for the entire committee cycle and cannot be changed later.
+              </p>
+
+              <div class="flex flex-col gap-3">
+                <!-- Random Selection Option -->
+                <label class="flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-white"
+                  [class.border-[#ea580c]]="f['distributionMethod'].value === 'random'"
+                  [class.bg-white]="f['distributionMethod'].value === 'random'"
+                  [class.border-[#c3c6d7]]="f['distributionMethod'].value !== 'random'"
+                  [class.bg-[#fafafa]]="f['distributionMethod'].value !== 'random'">
+                  <input
+                    type="radio"
+                    formControlName="distributionMethod"
+                    value="random"
+                    class="mt-0.5 w-4 h-4 text-[#ea580c] focus:ring-[#ea580c]"
+                  />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="material-symbols-outlined text-[#ea580c] text-[20px]">shuffle</span>
+                      <span class="text-sm font-bold text-[#191c1e]">Random Selection</span>
+                    </div>
+                    <p class="text-xs text-[#737686]">
+                      System automatically generates a random eligible member number every cycle. 
+                      Fair and unbiased selection process.
+                    </p>
+                  </div>
+                </label>
+
+                <!-- Manual Selection Option -->
+                <label class="flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-white"
+                  [class.border-[#ea580c]]="f['distributionMethod'].value === 'manual'"
+                  [class.bg-white]="f['distributionMethod'].value === 'manual'"
+                  [class.border-[#c3c6d7]]="f['distributionMethod'].value !== 'manual'"
+                  [class.bg-[#fafafa]]="f['distributionMethod'].value !== 'manual'">
+                  <input
+                    type="radio"
+                    formControlName="distributionMethod"
+                    value="manual"
+                    class="mt-0.5 w-4 h-4 text-[#ea580c] focus:ring-[#ea580c]"
+                  />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="material-symbols-outlined text-[#ea580c] text-[20px]">touch_app</span>
+                      <span class="text-sm font-bold text-[#191c1e]">Manual Selection</span>
+                    </div>
+                    <p class="text-xs text-[#737686]">
+                      Committee admin manually selects which member receives the committee each month. 
+                      Provides flexibility and control.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              @if (fieldError('distributionMethod')) {
+                <p class="text-xs text-[#ba1a1a] flex items-center gap-1 mt-2">
+                  <span class="material-symbols-outlined text-[14px]">error</span>
+                  {{ getError('distributionMethod') }}
+                </p>
+              }
+            </div>
+          </div>
+
           <!-- ── Payment Settings Section ─────────────────────────── -->
           <div class="bg-[#f7f9ff] rounded-2xl border border-[#dbe1ff] p-5">
             <div class="flex items-center gap-2 mb-4">

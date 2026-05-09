@@ -6,11 +6,24 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee, CommitteeMember } from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
+import { WinnerSelectionComponent } from '../../shared/winner-selection/winner-selection';
+import { WinnerPaymentDetailsComponent } from '../../shared/winner-payment-details/winner-payment-details';
+import { CommitteeAnnouncementComponent } from '../../shared/committee-announcement/committee-announcement';
+import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
 
 @Component({
   selector: 'app-committee-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterLink, 
+    SidebarComponent, 
+    TopnavComponent,
+    WinnerSelectionComponent,
+    WinnerPaymentDetailsComponent,
+    CommitteeAnnouncementComponent
+  ],
   templateUrl: './committee-detail.html',
   styleUrl: './committee-detail.scss'
 })
@@ -25,6 +38,10 @@ export class CommitteeDetailComponent implements OnInit {
   errorMsg      = signal('');
   successMsg    = signal('');
 
+  // Winner selection
+  currentWinner = signal<WinnerSelection | null>(null);
+  showWinnerSelection = signal(false);
+
   // Broadcast
   broadcastText    = '';
   sendingBroadcast = signal(false);
@@ -33,6 +50,7 @@ export class CommitteeDetailComponent implements OnInit {
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
   isOwner       = computed(() => this.committee()?.created_by === this.currentUserId());
+  isMember      = computed(() => this.requestStatus() === 'approved');
 
   // Only count approved members for slots
   approvedMembers = computed(() => this.members().filter(m => m.status === 'approved'));
@@ -53,6 +71,7 @@ export class CommitteeDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private committeeService: CommitteeService,
+    private winnerService: WinnerSelectionService,
     public auth: AuthService
   ) {}
 
@@ -82,6 +101,17 @@ export class CommitteeDetailComponent implements OnInit {
     this.broadcasts.set(broadcastsRes.data);
     // Set the real status: null if no request, otherwise 'pending'/'approved'/'rejected'
     this.requestStatus.set(reqState.requested ? reqState.status : null);
+
+    // Load current winner
+    await this.loadCurrentWinner();
+  }
+
+  async loadCurrentWinner(): Promise<void> {
+    const c = this.committee();
+    if (!c) return;
+
+    const { data } = await this.winnerService.getCurrentWinner(c.id);
+    this.currentWinner.set(data);
   }
 
   async join(): Promise<void> {
@@ -148,5 +178,41 @@ export class CommitteeDetailComponent implements OnInit {
     const c = this.committee();
     if (!c || c.max_members === 0) return '0%';
     return `${Math.min(100, (this.approvedMembers().length / c.max_members) * 100)}%`;
+  }
+
+  /**
+   * Handle winner selection
+   */
+  async onWinnerSelected(winner: WinnerSelection): Promise<void> {
+    this.currentWinner.set(winner);
+    this.showWinnerSelection.set(false);
+    this.successMsg.set(`Winner selected: ${winner.member_name}`);
+    setTimeout(() => this.successMsg.set(''), 4000);
+    
+    // Refresh broadcasts to show announcement
+    const c = this.committee();
+    if (c) {
+      const { data } = await this.committeeService.getBroadcasts(c.id);
+      this.broadcasts.set(data);
+    }
+  }
+
+  /**
+   * Get distribution method display text
+   */
+  getDistributionMethodDisplay(): string {
+    const method = this.committee()?.distribution_method;
+    return method === 'random' ? 'Random Selection' : 'Manual Selection';
+  }
+
+  /**
+   * Get winner's user ID for payment details
+   */
+  getWinnerUserId(): string | null {
+    const winner = this.currentWinner();
+    if (!winner) return null;
+    
+    const member = this.members().find(m => m.id === winner.member_id);
+    return member?.user_id || null;
   }
 }

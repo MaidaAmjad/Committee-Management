@@ -1,0 +1,162 @@
+<div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm overflow-hidden">
+  
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-[#ea580c] to-[#f97316] px-6 py-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-white">emoji_events</span>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-white">Select Winner</h3>
+        <p class="text-xs text-white/80">
+          @if (distributionMethod === 'random') {
+            Random selection method
+          } @else {
+            Manual selection method
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="p-6">
+
+    <!-- Success Message -->
+    @if (success()) {
+      <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-xl px-4 py-3 mb-4">
+        <span class="material-symbols-outlined text-[#28a745]" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        <div>
+          <p class="text-sm font-semibold">Winner selected successfully!</p>
+          <p class="text-xs opacity-80">Announcement sent to all members.</p>
+        </div>
+      </div>
+    }
+
+    <!-- Error Message -->
+    @if (error()) {
+      <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-xl px-4 py-3 mb-4">
+        <span class="material-symbols-outlined">error</span>
+        <p class="text-sm font-semibold">{{ error() }}</p>
+      </div>
+    }
+
+    <!-- No Eligible Members -->
+    @if (eligibleMembers().length === 0 && !loading()) {
+      <div class="flex flex-col items-center justify-center py-8 text-center">
+        <div class="w-16 h-16 bg-[#f2f4f6] rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[#737686] text-[32px]">group_off</span>
+        </div>
+        <p class="text-sm font-semibold text-[#191c1e] mb-1">No Eligible Members</p>
+        <p class="text-xs text-[#737686]">All members have already been selected as winners.</p>
+      </div>
+    }
+
+    <!-- Random Selection Method -->
+    @if (distributionMethod === 'random' && eligibleMembers().length > 0) {
+      <div class="flex flex-col gap-4">
+        
+        <!-- Info Box -->
+        <div class="bg-[#fff7ed] border border-[#fed7aa] rounded-xl p-4">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-[#ea580c] text-[20px]">info</span>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-[#191c1e] mb-1">Random Selection</p>
+              <p class="text-xs text-[#737686]">
+                Click the button below to randomly select a winner from {{ eligibleMembers().length }} eligible member(s).
+                The system will automatically notify all committee members.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Eligible Members Count -->
+        <div class="flex items-center justify-between p-4 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7]">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#004ac6]">group</span>
+            <span class="text-sm font-semibold text-[#191c1e]">Eligible Members</span>
+          </div>
+          <span class="text-lg font-bold text-[#004ac6]">{{ eligibleMembers().length }}</span>
+        </div>
+
+        <!-- Select Button -->
+        <button
+          (click)="selectRandomWinner()"
+          [disabled]="loading() || success()"
+          class="w-full h-12 bg-[#ea580c] text-white text-sm font-semibold rounded-xl hover:bg-[#f97316] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          @if (loading()) {
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            Selecting...
+          } @else {
+            <span class="material-symbols-outlined">shuffle</span>
+            Select Random Winner
+          }
+        </button>
+      </div>
+    }
+
+    <!-- Manual Selection Method -->
+    @if (distributionMethod === 'manual' && eligibleMembers().length > 0) {
+      <div class="flex flex-col gap-4">
+        
+        <!-- Info Box -->
+        <div class="bg-[#f0f9ff] border border-[#bae6fd] rounded-xl p-4">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-[#0284c7] text-[20px]">info</span>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-[#191c1e] mb-1">Manual Selection</p>
+              <p class="text-xs text-[#737686]">
+                Choose a member from the dropdown below. Only eligible members who haven't won yet are shown.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Member Selection Dropdown -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold text-[#191c1e]" for="memberSelect">
+            Select Member <span class="text-[#ba1a1a]">*</span>
+          </label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">person</span>
+            <select
+              id="memberSelect"
+              [(ngModel)]="selectedMemberId"
+              class="w-full h-12 pl-11 pr-10 border border-[#c3c6d7] rounded-xl text-sm text-[#191c1e] outline-none transition-all focus:border-[#004ac6] appearance-none bg-white"
+            >
+              <option value="">-- Choose a member --</option>
+              @for (member of eligibleMembers(); track member.id) {
+                <option [value]="member.id">{{ getMemberDisplay(member) }}</option>
+              }
+            </select>
+            <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-[#737686] pointer-events-none">expand_more</span>
+          </div>
+          <p class="text-xs text-[#737686]">{{ eligibleMembers().length }} eligible member(s) available</p>
+        </div>
+
+        <!-- Select Button -->
+        <button
+          (click)="selectManualWinner()"
+          [disabled]="!selectedMemberId || loading() || success()"
+          class="w-full h-12 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          @if (loading()) {
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            Selecting...
+          } @else {
+            <span class="material-symbols-outlined">check_circle</span>
+            Confirm Selection
+          }
+        </button>
+      </div>
+    }
+
+  </div>
+</div>

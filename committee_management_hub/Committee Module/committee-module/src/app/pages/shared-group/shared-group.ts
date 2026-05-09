@@ -1,6 +1,8 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import {
@@ -25,15 +27,15 @@ import { InviteMemberModalComponent } from './invite-member-modal';
   templateUrl: './shared-group.html',
   styleUrl: './shared-group.scss',
 })
-export class SharedGroupComponent implements OnInit {
-  // ── State signals ─────────────────────────────────────────────────────────
+export class SharedGroupComponent implements OnInit, OnDestroy {
   cards       = signal<SharedGroupCard[]>([]);
   loading     = signal(true);
   errorMsg    = signal('');
-  /** ID of the group whose invite modal is currently open, or null. */
   activeModal = signal<string | null>(null);
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
+
+  private routerSub?: Subscription;
 
   constructor(
     private sharedGroupService: SharedGroupService,
@@ -44,6 +46,15 @@ export class SharedGroupComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
     await this.loadGroups();
+
+    // Reload every time the user navigates back to /shared-groups
+    this.routerSub = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd && e.urlAfterRedirects.startsWith('/shared-groups'))
+    ).subscribe(() => this.loadGroups());
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
   }
 
   // ── Data loading ──────────────────────────────────────────────────────────

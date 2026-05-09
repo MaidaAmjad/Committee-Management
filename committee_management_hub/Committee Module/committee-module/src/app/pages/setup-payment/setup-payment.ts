@@ -155,8 +155,29 @@ export class SetupPaymentComponent implements OnInit {
       this.errorMsg.set('Please add at least one payment method to continue.');
       return;
     }
-    await this.paymentMethodService.markSetupComplete();
-    this.router.navigate(['/dashboard']);
+    
+    this.saving.set(true);
+    this.errorMsg.set('');
+    
+    try {
+      console.log('Marking payment setup as complete...');
+      const result = await this.paymentMethodService.markSetupComplete();
+      
+      if (result.error) {
+        console.error('Error marking setup complete:', result.error);
+        this.errorMsg.set(`Setup failed: ${result.error}`);
+        this.saving.set(false);
+        return;
+      }
+      
+      console.log('Payment setup marked complete, navigating to dashboard...');
+      await this.router.navigate(['/dashboard']);
+      console.log('Navigation completed');
+    } catch (error) {
+      console.error('Error completing setup:', error);
+      this.errorMsg.set('Failed to complete setup. Please try again.');
+      this.saving.set(false);
+    }
   }
 
   getMethodInfo(type: MethodType) {
