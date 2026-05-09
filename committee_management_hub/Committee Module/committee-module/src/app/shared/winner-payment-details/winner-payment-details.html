@@ -50,94 +50,65 @@
       <div class="flex flex-col gap-4">
 
         <!-- Primary Method Badge -->
-        @if (paymentDetails()?.primary_method) {
-          <div class="flex items-center gap-2 p-3 bg-[#f0fdf4] border border-[#86efac] rounded-xl">
-            <span class="material-symbols-outlined text-[#16a34a]" style="font-variation-settings:'FILL' 1;">verified</span>
-            <div class="flex-1">
-              <p class="text-xs text-[#737686]">Primary Payment Method</p>
-              <p class="text-sm font-bold text-[#16a34a]">{{ getPrimaryMethodName() }}</p>
-            </div>
-            <span class="material-symbols-outlined text-[#16a34a]">{{ getPrimaryMethodIcon() }}</span>
-          </div>
+        @if (paymentDetails()?.methods && paymentDetails()!.methods.length > 0) {
+          @for (method of paymentDetails()!.methods; track method.account_number) {
+            @if (method.is_primary) {
+              <div class="flex items-center gap-2 p-3 bg-[#f0fdf4] border border-[#86efac] rounded-xl">
+                <span class="material-symbols-outlined text-[#16a34a]" style="font-variation-settings:'FILL' 1;">verified</span>
+                <div class="flex-1">
+                  <p class="text-xs text-[#737686]">Primary Payment Method</p>
+                  <p class="text-sm font-bold text-[#16a34a]">{{ getPrimaryMethodName(method) }}</p>
+                </div>
+                <span class="material-symbols-outlined text-[#16a34a]">{{ getPrimaryMethodIcon(method) }}</span>
+              </div>
+            }
+          }
         }
 
         <!-- Payment Methods List -->
         <div class="flex flex-col gap-3">
 
-          <!-- JazzCash -->
-          @if (paymentDetails()?.jazzcash_number) {
-            <div class="flex items-center gap-3 p-4 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7] hover:border-[#004ac6] transition-all group">
-              <div class="w-10 h-10 bg-[#004ac6]/10 rounded-lg flex items-center justify-center">
-                <span class="material-symbols-outlined text-[#004ac6]">phone_android</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-xs text-[#737686] mb-0.5">JazzCash Number</p>
-                <p class="text-sm font-bold text-[#191c1e] font-mono">{{ paymentDetails()?.jazzcash_number }}</p>
-              </div>
-              <button
-                (click)="copyToClipboard(paymentDetails()!.jazzcash_number!, 'JazzCash number')"
-                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#004ac6]/10 transition-all opacity-0 group-hover:opacity-100"
-                title="Copy to clipboard"
-              >
-                <span class="material-symbols-outlined text-[#004ac6] text-[18px]">content_copy</span>
-              </button>
-            </div>
-          }
-
-          <!-- Easypaisa -->
-          @if (paymentDetails()?.easypaisa_number) {
-            <div class="flex items-center gap-3 p-4 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7] hover:border-[#16a34a] transition-all group">
-              <div class="w-10 h-10 bg-[#16a34a]/10 rounded-lg flex items-center justify-center">
-                <span class="material-symbols-outlined text-[#16a34a]">phone_android</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-xs text-[#737686] mb-0.5">Easypaisa Number</p>
-                <p class="text-sm font-bold text-[#191c1e] font-mono">{{ paymentDetails()?.easypaisa_number }}</p>
-              </div>
-              <button
-                (click)="copyToClipboard(paymentDetails()!.easypaisa_number!, 'Easypaisa number')"
-                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#16a34a]/10 transition-all opacity-0 group-hover:opacity-100"
-                title="Copy to clipboard"
-              >
-                <span class="material-symbols-outlined text-[#16a34a] text-[18px]">content_copy</span>
-              </button>
-            </div>
-          }
-
-          <!-- Bank Account -->
-          @if (paymentDetails()?.bank_account_number) {
-            <div class="flex flex-col gap-2 p-4 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7]">
+          @for (method of paymentDetails()?.methods; track method.account_number) {
+            <div class="flex flex-col gap-2 p-4 bg-[#f7f9fb] rounded-xl border border-[#c3c6d7] hover:border-[#004ac6] transition-all">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-[#ea580c]/10 rounded-lg flex items-center justify-center">
-                  <span class="material-symbols-outlined text-[#ea580c]">account_balance</span>
+                <div class="w-10 h-10 bg-[#004ac6]/10 rounded-lg flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[#004ac6]">{{ getPrimaryMethodIcon(method) }}</span>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-[#737686]">Bank Transfer</p>
-                  <p class="text-sm font-bold text-[#191c1e]">{{ paymentDetails()?.bank_name || 'Bank Account' }}</p>
+                  <p class="text-xs text-[#737686]">{{ getMethodLabel(method.method_type) }}</p>
+                  <p class="text-sm font-bold text-[#191c1e]">
+                    {{ method.account_title }}
+                    @if (method.is_primary) {
+                      <span class="ml-2 px-2 py-0.5 bg-[#16a34a] text-white rounded text-[9px] font-semibold">PRIMARY</span>
+                    }
+                  </p>
                 </div>
+                <button
+                  (click)="copyToClipboard(method.account_number, getMethodLabel(method.method_type))"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#004ac6]/10 transition-all"
+                  title="Copy to clipboard"
+                >
+                  <span class="material-symbols-outlined text-[#004ac6] text-[18px]">content_copy</span>
+                </button>
               </div>
               
-              <div class="pl-[52px] flex flex-col gap-2">
-                <!-- Account Number -->
-                <div class="flex items-center justify-between group">
-                  <div>
-                    <p class="text-xs text-[#737686]">Account Number</p>
-                    <p class="text-sm font-bold text-[#191c1e] font-mono">{{ paymentDetails()?.bank_account_number }}</p>
-                  </div>
-                  <button
-                    (click)="copyToClipboard(paymentDetails()!.bank_account_number!, 'Account number')"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#ea580c]/10 transition-all opacity-0 group-hover:opacity-100"
-                    title="Copy to clipboard"
-                  >
-                    <span class="material-symbols-outlined text-[#ea580c] text-[18px]">content_copy</span>
-                  </button>
+              <div class="pl-[52px] flex flex-col gap-1">
+                <div>
+                  <p class="text-xs text-[#737686]">Account Number</p>
+                  <p class="text-sm font-bold text-[#191c1e] font-mono">{{ method.account_number }}</p>
                 </div>
 
-                <!-- Account Title -->
-                @if (paymentDetails()?.account_title) {
+                @if (method.method_type === 'bank' && method.bank_name) {
                   <div>
-                    <p class="text-xs text-[#737686]">Account Title</p>
-                    <p class="text-sm font-semibold text-[#191c1e]">{{ paymentDetails()?.account_title }}</p>
+                    <p class="text-xs text-[#737686]">Bank Name</p>
+                    <p class="text-sm font-semibold text-[#191c1e]">{{ method.bank_name }}</p>
+                  </div>
+                }
+
+                @if (method.method_type === 'bank' && method.iban) {
+                  <div>
+                    <p class="text-xs text-[#737686]">IBAN</p>
+                    <p class="text-xs font-mono text-[#191c1e]">{{ method.iban }}</p>
                   </div>
                 }
               </div>

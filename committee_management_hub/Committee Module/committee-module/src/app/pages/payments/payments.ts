@@ -5,6 +5,22 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { PaymentService, PaymentCommittee, PaymentProof } from '../../core/payment.service';
 import { AuthService } from '../../core/auth.service';
+import { CommitteeCycleService } from '../../core/committee-cycle.service';
+import { WinnerSelectionService } from '../../core/winner-selection.service';
+import { CommitteeService } from '../../core/committee.service';
+
+/** Winner payment details */
+export interface WinnerPaymentInfo {
+  winner_name: string;
+  methods?: Array<{
+    method_type: 'jazzcash' | 'easypaisa' | 'bank';
+    account_number: string;
+    account_title: string;
+    bank_name?: string;
+    iban?: string;
+    is_primary: boolean;
+  }>;
+}
 
 /** Enriched committee card with runtime state */
 export interface PaymentCard {
@@ -20,6 +36,8 @@ export interface PaymentCard {
   showProofsPanel: boolean;
   proofs: PaymentProof[];
   loadingProofs: boolean;
+  winnerPaymentInfo: WinnerPaymentInfo | null;
+  showWinnerDetails: boolean;
 }
 
 @Component({
@@ -38,7 +56,10 @@ export class PaymentsComponent implements OnInit {
 
   constructor(
     private paymentService: PaymentService,
-    private auth: AuthService
+    private auth: AuthService,
+    private cycleService: CommitteeCycleService,
+    private winnerService: WinnerSelectionService,
+    private committeeService: CommitteeService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -56,6 +77,47 @@ export class PaymentsComponent implements OnInit {
     const cardList: PaymentCard[] = await Promise.all(
       data.map(async (c) => {
         const myProof = await this.paymentService.getMyProof(c.id, monthYear);
+        
+        // Get current winner from winner_selections table
+        const { data: winnerSelection } = await this.winnerService.getCurrentWinner(c.id);
+        
+        // Get winner's payment details if winner exists
+        let winnerPaymentInfo: WinnerPaymentInfo | null = null;
+        if (winnerSelection) {
+          console.log('🏆 Winner found:', winnerSelection.member_name, 'Member ID:', winnerSelection.member_id);
+          
+          // Find the member to get their user_id
+          const { data: members } = await this.committeeService.getCommitteeMembers(c.id);
+          const winnerMember = members?.find(m => m.id === winnerSelection.member_id);
+          
+          console.log('👤 Winner member record:', winnerMember);
+          
+          if (winnerMember) {
+            console.log('🔍 Fetching payment details for user_id:', winnerMember.user_id);
+            const { data: paymentDetails, error: paymentError } = await this.winnerService.getWinnerPaymentDetails(winnerMember.user_id);
+            
+            console.log('💳 Payment details response:', { data: paymentDetails, error: paymentError });
+            
+            if (paymentDetails) {
+              console.log('✅ Payment details found:', paymentDetails);
+              winnerPaymentInfo = {
+                winner_name: winnerSelection.member_name,
+                methods: paymentDetails.methods
+              };
+            } else {
+              console.warn('⚠️ Winner exists but no payment details found for user_id:', winnerMember.user_id);
+              // Winner exists but no payment details
+              winnerPaymentInfo = {
+                winner_name: winnerSelection.member_name
+              };
+            }
+          } else {
+            console.error('❌ Winner member not found in committee members! Winner member_id:', winnerSelection.member_id);
+          }
+        } else {
+          console.log('ℹ️ No winner selected yet for committee:', c.name);
+        }
+        
         // Use real deadline if set, otherwise fall back to due_day
         const countdownResult = c.payment_deadline_date
           ? this.paymentService.getCountdownFromDeadline(
@@ -88,6 +150,8 @@ export class PaymentsComponent implements OnInit {
           showProofsPanel: false,
           proofs: [],
           loadingProofs: false,
+          winnerPaymentInfo: winnerPaymentInfo,
+          showWinnerDetails: false,
         };
       })
     );
@@ -253,5 +317,44 @@ export class PaymentsComponent implements OnInit {
       return;
     }
     window.open(url, '_blank');
+  }
+
+  // ── Winner Details ───────────────────────────────────────────────────────
+
+  toggleWinnerDetails(card: PaymentCard): void {
+    this.updateCard(card, { showWinnerDetails: !card.showWinnerDetails });
+  }
+
+  hasWinnerPaymentDetails(card: PaymentCard): boolean {
+    const info = card.winnerPaymentInfo;
+    if (!info || !info.methods) return false;
+    return info.methods.length > 0;
+  }
+
+  getMethodLabel(type: string): string {
+    switch (type) {
+      case 'jazzcash': return 'JazzCash';
+      case 'easypaisa': return 'Easypaisa';
+      case 'bank': return 'Bank Account';
+      default: return type;
+    }
+  }
+
+  getMethodIcon(type: string): string {
+    switch (type) {
+      case 'jazzcash': return 'phone_iphone';
+      case 'easypaisa': return 'phone_android';
+      case 'bank': return 'account_balance';
+      default: return 'payment';
+    }
+  }
+
+  async copyToClipboard(text: string, label: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(`${label} copied to clipboard!`);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   }
 }

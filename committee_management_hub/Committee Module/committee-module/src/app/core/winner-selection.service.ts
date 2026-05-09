@@ -26,12 +26,14 @@ export interface WinnerSelection {
  * Payment details for winner
  */
 export interface WinnerPaymentDetails {
-  jazzcash_number?: string;
-  easypaisa_number?: string;
-  bank_account_number?: string;
-  bank_name?: string;
-  account_title?: string;
-  primary_method?: 'jazzcash' | 'easypaisa' | 'bank';
+  methods: Array<{
+    method_type: 'jazzcash' | 'easypaisa' | 'bank';
+    account_number: string;
+    account_title: string;
+    bank_name?: string;
+    iban?: string;
+    is_primary: boolean;
+  }>;
 }
 
 /**
@@ -231,20 +233,22 @@ export class WinnerSelectionService {
       .from('payment_methods')
       .select('*')
       .eq('user_id', userId)
-      .maybeSingle();
+      .order('is_primary', { ascending: false });
 
     if (error) return { data: null, error: error.message };
     
-    if (!data) return { data: null, error: null };
+    if (!data || data.length === 0) return { data: null, error: null };
 
     return {
       data: {
-        jazzcash_number: data.jazzcash_number,
-        easypaisa_number: data.easypaisa_number,
-        bank_account_number: data.bank_account_number,
-        bank_name: data.bank_name,
-        account_title: data.account_title,
-        primary_method: data.primary_method,
+        methods: data.map(m => ({
+          method_type: m.method_type,
+          account_number: m.account_number,
+          account_title: m.account_title,
+          bank_name: m.bank_name,
+          iban: m.iban,
+          is_primary: m.is_primary
+        }))
       },
       error: null
     };

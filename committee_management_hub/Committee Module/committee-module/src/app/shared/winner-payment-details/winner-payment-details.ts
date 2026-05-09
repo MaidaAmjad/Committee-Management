@@ -50,11 +50,8 @@ export class WinnerPaymentDetailsComponent implements OnInit {
   /**
    * Get primary method display name
    */
-  getPrimaryMethodName(): string {
-    const method = this.paymentDetails()?.primary_method;
-    if (!method) return 'Not Set';
-    
-    switch (method) {
+  getPrimaryMethodName(method: any): string {
+    switch (method.method_type) {
       case 'jazzcash': return 'JazzCash';
       case 'easypaisa': return 'Easypaisa';
       case 'bank': return 'Bank Transfer';
@@ -65,15 +62,24 @@ export class WinnerPaymentDetailsComponent implements OnInit {
   /**
    * Get primary method icon
    */
-  getPrimaryMethodIcon(): string {
-    const method = this.paymentDetails()?.primary_method;
-    if (!method) return 'payment';
-    
-    switch (method) {
-      case 'jazzcash': return 'phone_android';
+  getPrimaryMethodIcon(method: any): string {
+    switch (method.method_type) {
+      case 'jazzcash': return 'phone_iphone';
       case 'easypaisa': return 'phone_android';
       case 'bank': return 'account_balance';
       default: return 'payment';
+    }
+  }
+
+  /**
+   * Get method label
+   */
+  getMethodLabel(type: string): string {
+    switch (type) {
+      case 'jazzcash': return 'JazzCash';
+      case 'easypaisa': return 'Easypaisa';
+      case 'bank': return 'Bank Account';
+      default: return type;
     }
   }
 
@@ -82,13 +88,7 @@ export class WinnerPaymentDetailsComponent implements OnInit {
    */
   hasPaymentDetails(): boolean {
     const details = this.paymentDetails();
-    if (!details) return false;
-    
-    return !!(
-      details.jazzcash_number ||
-      details.easypaisa_number ||
-      details.bank_account_number
-    );
+    return !!(details && details.methods && details.methods.length > 0);
   }
 
   /**

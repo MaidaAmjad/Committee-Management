@@ -41,6 +41,9 @@ export class CommitteeDetailComponent implements OnInit {
   // Winner selection
   currentWinner = signal<WinnerSelection | null>(null);
   showWinnerSelection = signal(false);
+  selectingWinner = signal(false);
+  showWinnerModal = signal(false);
+  selectedWinnerName = signal('');
 
   // Broadcast
   broadcastText    = '';
@@ -214,5 +217,100 @@ export class CommitteeDetailComponent implements OnInit {
     
     const member = this.members().find(m => m.id === winner.member_id);
     return member?.user_id || null;
+  }
+
+  /**
+   * Select yourself (admin) as winner
+   */
+  async selectYourselfAsWinner(): Promise<void> {
+    const c = this.committee();
+    if (!c) return;
+
+    const adminMember = this.members().find(m => m.user_id === this.currentUserId() && m.status === 'approved');
+    if (!adminMember) {
+      this.errorMsg.set('You must be an approved member to select yourself as winner');
+      setTimeout(() => this.errorMsg.set(''), 4000);
+      return;
+    }
+
+    this.selectingWinner.set(true);
+    this.errorMsg.set('');
+
+    const { data, error } = await this.winnerService.selectManualWinner(c.id, adminMember.id);
+
+    this.selectingWinner.set(false);
+
+    if (error) {
+      this.errorMsg.set(error);
+      setTimeout(() => this.errorMsg.set(''), 4000);
+      return;
+    }
+
+    if (data) {
+      this.currentWinner.set(data);
+      
+      // Show winner modal
+      this.selectedWinnerName.set(data.member_name);
+      this.showWinnerModal.set(true);
+      console.log('Winner modal should show:', data.member_name);
+      
+      // Send announcement
+      await this.winnerService.sendWinnerAnnouncement(c.id, data.member_name, data.cycle_number, 'manual');
+
+      // Refresh broadcasts
+      const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
+      this.broadcasts.set(broadcastData);
+    }
+  }
+
+  /**
+   * Select random member as winner
+   */
+  async selectRandomWinner(): Promise<void> {
+    const c = this.committee();
+    if (!c) return;
+
+    const approved = this.approvedMembers();
+    if (approved.length < 2) {
+      this.errorMsg.set('Need at least 2 approved members for random selection');
+      setTimeout(() => this.errorMsg.set(''), 4000);
+      return;
+    }
+
+    this.selectingWinner.set(true);
+    this.errorMsg.set('');
+
+    const { data, error } = await this.winnerService.selectRandomWinner(c.id);
+
+    this.selectingWinner.set(false);
+
+    if (error) {
+      this.errorMsg.set(error);
+      setTimeout(() => this.errorMsg.set(''), 4000);
+      return;
+    }
+
+    if (data) {
+      this.currentWinner.set(data);
+      
+      // Show winner modal
+      this.selectedWinnerName.set(data.member_name);
+      this.showWinnerModal.set(true);
+      console.log('Winner modal should show:', data.member_name);
+      
+      // Send announcement
+      await this.winnerService.sendWinnerAnnouncement(c.id, data.member_name, data.cycle_number, 'random');
+
+      // Refresh broadcasts
+      const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
+      this.broadcasts.set(broadcastData);
+    }
+  }
+
+  /**
+   * Close winner modal
+   */
+  closeWinnerModal(): void {
+    this.showWinnerModal.set(false);
   }
 }

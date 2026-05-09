@@ -193,6 +193,87 @@
             </div>
           </div>
 
+          <!-- Winner Selection Section (Admin Only) -->
+          @if (isOwner() && approvedMembers().length > 0) {
+            <div class="mb-6 p-5 bg-gradient-to-br from-[#fff7ed] to-[#ffedd5] rounded-xl border border-[#fed7aa]">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-[#943700] rounded-xl flex items-center justify-center">
+                  <span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-[#191c1e]">Select Committee Winner</h3>
+                  <p class="text-xs text-[#737686]">Choose who receives the committee this cycle</p>
+                </div>
+              </div>
+
+              @if (currentWinner()) {
+                <!-- Current Winner Display -->
+                <div class="bg-white rounded-lg p-4 border border-[#fed7aa] mb-4">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-[#28a745] flex items-center justify-center text-white text-sm font-bold">
+                        {{ getInitials(currentWinner()!.member_name) }}
+                      </div>
+                      <div>
+                        <p class="text-sm font-bold text-[#191c1e]">{{ currentWinner()!.member_name }}</p>
+                        <p class="text-xs text-[#737686]">Current Winner · Cycle {{ currentWinner()!.cycle_number }}</p>
+                      </div>
+                    </div>
+                    <span class="px-3 py-1 bg-[#d4edda] text-[#155724] text-xs font-bold rounded-full flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">check_circle</span>
+                      Selected
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <!-- Selection Buttons -->
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  (click)="selectYourselfAsWinner()"
+                  [disabled]="selectingWinner()"
+                  class="flex flex-col items-center justify-center gap-2 p-4 bg-white border-2 border-[#004ac6] rounded-xl hover:bg-[#f7f9ff] transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
+                  <div class="w-12 h-12 bg-[#dbe1ff] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-[#004ac6] text-[24px]">person</span>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-sm font-bold text-[#191c1e]">Select Yourself</p>
+                    <p class="text-[10px] text-[#737686]">You become the winner</p>
+                  </div>
+                </button>
+
+                <button
+                  (click)="selectRandomWinner()"
+                  [disabled]="selectingWinner() || approvedMembers().length < 2"
+                  class="flex flex-col items-center justify-center gap-2 p-4 bg-white border-2 border-[#943700] rounded-xl hover:bg-[#fff8f5] transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
+                  <div class="w-12 h-12 bg-[#ffdbcd] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-[#943700] text-[24px]">shuffle</span>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-sm font-bold text-[#191c1e]">Select Random</p>
+                    <p class="text-[10px] text-[#737686]">Random member selected</p>
+                  </div>
+                </button>
+              </div>
+
+              @if (selectingWinner()) {
+                <div class="flex items-center justify-center gap-2 mt-4 text-sm text-[#943700] font-semibold">
+                  <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Selecting winner...
+                </div>
+              }
+
+              @if (approvedMembers().length < 2) {
+                <p class="text-xs text-[#737686] text-center mt-3">
+                  ℹ️ Random selection requires at least 2 approved members
+                </p>
+              }
+            </div>
+          }
+
           <!-- Members list — approved only for non-owners, all for owner -->
           @if (approvedMembers().length === 0 && !isOwner()) {
             <div class="flex flex-col items-center justify-center py-12 text-center">
@@ -206,15 +287,37 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <!-- Owner sees all members with status badges -->
               @for (member of (isOwner() ? members() : approvedMembers()); track member.id) {
-                <div class="flex items-center gap-3 p-4 bg-[#f7f9fb] rounded-xl border border-[#f2f4f6]">
+                <div class="relative flex items-center gap-3 p-4 rounded-xl border transition-all"
+                  [class.bg-gradient-to-br]="currentWinner()?.member_id === member.id"
+                  [class.from-[#fff7ed]]="currentWinner()?.member_id === member.id"
+                  [class.to-[#ffedd5]]="currentWinner()?.member_id === member.id"
+                  [class.border-[#fed7aa]]="currentWinner()?.member_id === member.id"
+                  [class.shadow-md]="currentWinner()?.member_id === member.id"
+                  [class.bg-[#f7f9fb]]="currentWinner()?.member_id !== member.id"
+                  [class.border-[#f2f4f6]]="currentWinner()?.member_id !== member.id">
+                  
+                  <!-- Winner Trophy Badge -->
+                  @if (currentWinner()?.member_id === member.id) {
+                    <div class="absolute -top-2 -right-2 w-8 h-8 bg-[#943700] rounded-full flex items-center justify-center shadow-lg z-10">
+                      <span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
+                    </div>
+                  }
+                  
                   <a [routerLink]="['/user', member.user_id]"
-                    class="w-10 h-10 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+                    class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
+                    [class.bg-[#943700]]="currentWinner()?.member_id === member.id"
+                    [class.bg-[#004ac6]]="currentWinner()?.member_id !== member.id">
                     {{ getInitials(member.full_name) }}
                   </a>
                   <div class="flex-1 min-w-0">
                     <a [routerLink]="['/user', member.user_id]"
-                      class="text-sm font-semibold text-[#191c1e] truncate hover:text-[#004ac6] transition-colors cursor-pointer block">
+                      class="text-sm font-semibold truncate hover:text-[#004ac6] transition-colors cursor-pointer block"
+                      [class.text-[#943700]]="currentWinner()?.member_id === member.id"
+                      [class.text-[#191c1e]]="currentWinner()?.member_id !== member.id">
                       {{ member.full_name }}
+                      @if (currentWinner()?.member_id === member.id) {
+                        <span class="ml-2 text-[10px] font-bold bg-[#943700] text-white px-2 py-0.5 rounded-full">🏆 WINNER</span>
+                      }
                     </a>
                     <p class="text-xs text-[#737686] truncate">{{ member.email }}</p>
                   </div>
@@ -355,3 +458,69 @@
     </main>
   </div>
 </div>
+
+
+<!-- ── Winner Selection Modal ──────────────────────────────────────────── -->
+@if (showWinnerModal()) {
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    style="z-index: 9999;"
+    (click)="closeWinnerModal()">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md border border-[#c3c6d7] overflow-hidden animate-scale-in"
+      (click)="$event.stopPropagation()">
+
+      <!-- Modal Header with Confetti Background -->
+      <div class="relative bg-gradient-to-br from-[#fff7ed] to-[#ffedd5] px-8 py-12 text-center overflow-hidden">
+        <!-- Decorative Elements -->
+        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+          <div class="absolute top-4 left-4 text-6xl">🎉</div>
+          <div class="absolute top-8 right-8 text-5xl">🎊</div>
+          <div class="absolute bottom-6 left-12 text-4xl">✨</div>
+          <div class="absolute bottom-4 right-6 text-5xl">🏆</div>
+        </div>
+
+        <!-- Trophy Icon -->
+        <div class="relative w-24 h-24 mx-auto mb-6 bg-[#943700] rounded-full flex items-center justify-center shadow-xl">
+          <span class="material-symbols-outlined text-white text-[56px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
+        </div>
+
+        <!-- Winner Announcement -->
+        <h2 class="relative text-2xl font-bold text-[#191c1e] mb-2">Winner Selected!</h2>
+        <p class="relative text-sm text-[#737686]">Congratulations to the selected member</p>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-8 py-8">
+        <!-- Winner Name Card -->
+        <div class="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7] rounded-2xl border-2 border-[#86efac] p-6 mb-6 text-center">
+          <div class="flex items-center justify-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-[#16a34a] text-[24px]" style="font-variation-settings:'FILL' 1;">person</span>
+            <p class="text-xs font-semibold text-[#15803d] uppercase tracking-wide">Selected Member</p>
+          </div>
+          <p class="text-2xl font-bold text-[#191c1e] mb-1">{{ selectedWinnerName() }}</p>
+          <p class="text-sm text-[#737686]">Will receive the committee this cycle</p>
+        </div>
+
+        <!-- Info Message -->
+        <div class="bg-[#dbe1ff] rounded-xl p-4 mb-6 flex items-start gap-3">
+          <span class="material-symbols-outlined text-[#004ac6] text-[20px] flex-shrink-0">info</span>
+          <div class="text-xs text-[#004ac6]">
+            <p class="font-semibold mb-1">What happens next?</p>
+            <ul class="space-y-1 list-disc list-inside">
+              <li>Winner will be notified via announcement</li>
+              <li>Winner's payment details are now visible</li>
+              <li>All members can see who won this cycle</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <button
+          (click)="closeWinnerModal()"
+          class="w-full flex items-center justify-center gap-2 py-3.5 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[20px]">check_circle</span>
+          Got it!
+        </button>
+      </div>
+    </div>
+  </div>
+}
