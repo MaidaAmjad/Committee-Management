@@ -61,10 +61,12 @@ export class SidebarComponent implements OnInit {
   }
 
   navItems: NavItem[] = [
-    { label: 'Dashboard',      icon: 'dashboard', route: '/dashboard' },
-    { label: 'Browse',         icon: 'search',    route: '/browse' },
-    { label: 'My Committees',  icon: 'groups',    route: '/my-committees' },
-    { label: 'Payments',       icon: 'payments',  route: '/payments' },
-    { label: 'Profile',        icon: 'person',    route: '/profile' },
+    { label: 'Dashboard',      icon: 'dashboard',        route: '/dashboard' },
+    { label: 'Browse',         icon: 'search',           route: '/browse' },
+    { label: 'My Committees',  icon: 'groups',           route: '/my-committees' },
+    { label: 'Payments',       icon: 'payments',         route: '/payments' },
+    { label: 'Shared Groups',  icon: 'group_work',       route: '/shared-groups' },
+    { label: 'Profile',        icon: 'person',           route: '/profile' },
+    { label: 'Admin Panel',    icon: 'admin_panel_settings', route: '/admin' },
   ];
 }

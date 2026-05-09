@@ -1,6 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee } from '../../core/committee.service';
@@ -13,13 +15,15 @@ import { AuthService } from '../../core/auth.service';
   templateUrl: './my-committees.html',
   styleUrl: './my-committees.scss'
 })
-export class MyCommitteesComponent implements OnInit {
+export class MyCommitteesComponent implements OnInit, OnDestroy {
   activeTab: 'Active' | 'Past' = 'Active';
 
   leadCommittees   = signal<Committee[]>([]);
   joinedCommittees = signal<Committee[]>([]);
   loading          = signal(true);
   errorMsg         = signal('');
+
+  private routerSub?: Subscription;
 
   constructor(
     private committeeService: CommitteeService,
@@ -28,6 +32,18 @@ export class MyCommitteesComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
+    await this.loadData();
+
+    this.routerSub = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd && e.urlAfterRedirects.startsWith('/my-committees'))
+    ).subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+  }
+
+  private async loadData(): Promise<void> {
     await this.auth.ready;
     this.loading.set(true);
     this.errorMsg.set('');

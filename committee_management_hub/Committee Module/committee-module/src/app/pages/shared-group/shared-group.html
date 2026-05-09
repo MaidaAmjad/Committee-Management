@@ -1,0 +1,125 @@
+<div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
+  <app-sidebar></app-sidebar>
+
+  <div class="flex flex-col flex-1 md:ml-64">
+    <app-topnav></app-topnav>
+
+    <main class="flex-1 p-6 max-w-[1200px] mx-auto w-full">
+
+      <!-- Page Header -->
+      <div class="mb-8">
+        <h1 class="text-[32px] font-bold text-[#191c1e] leading-tight">Shared Groups</h1>
+        <p class="text-sm text-[#737686] mt-1">
+          Share a committee slot with a partner — each pays half, both benefit equally.
+        </p>
+      </div>
+
+      <!-- Error banner -->
+      @if (errorMsg()) {
+        <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined">error</span>
+          {{ errorMsg() }}
+        </div>
+      }
+
+      <!-- How it works info strip -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-4 shadow-sm flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[#dbe1ff] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[#004ac6] text-[18px]">group_work</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#191c1e]">Share One Slot</p>
+            <p class="text-xs text-[#737686] mt-0.5">Two members occupy a single committee slot together.</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-4 shadow-sm flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[#d0e1fb] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[#2563eb] text-[18px]">payments</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#191c1e]">Half the Cost</p>
+            <p class="text-xs text-[#737686] mt-0.5">Each member pays exactly half the monthly amount.</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-[#c3c6d7] p-4 shadow-sm flex gap-3 items-start">
+          <div class="w-9 h-9 bg-[#ffdbcd] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[#943700] text-[18px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#191c1e]">Equal Winnings</p>
+            <p class="text-xs text-[#737686] mt-0.5">When your group wins, the payout is split 50/50.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading skeletons -->
+      @if (loading()) {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm animate-pulse overflow-hidden">
+              <div class="h-16 bg-[#e6e8ea]"></div>
+              <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="h-16 bg-[#e6e8ea] rounded-xl"></div>
+                  <div class="h-16 bg-[#e6e8ea] rounded-xl"></div>
+                </div>
+                <div class="h-20 bg-[#e6e8ea] rounded-2xl"></div>
+                <div class="h-20 bg-[#e6e8ea] rounded-2xl"></div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Empty state -->
+      @if (!loading() && cards().length === 0 && !errorMsg()) {
+        <div class="bg-white rounded-2xl border-2 border-dashed border-[#c3c6d7] p-16 flex flex-col items-center text-center">
+          <div class="w-16 h-16 bg-[#dbe1ff] rounded-2xl flex items-center justify-center mb-4">
+            <span class="material-symbols-outlined text-[#004ac6] text-3xl">group_work</span>
+          </div>
+          <h3 class="text-lg font-bold text-[#191c1e] mb-2">No shared groups yet</h3>
+          <p class="text-sm text-[#737686] mb-6 max-w-xs">
+            Join a committee using the "Join as Shared Group" option to create your first shared group.
+          </p>
+          <button (click)="goToCreate()"
+            class="flex items-center gap-2 px-6 py-3 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+            Browse Committees
+          </button>
+        </div>
+      }
+
+      <!-- Shared Group Cards grid -->
+      @if (!loading() && cards().length > 0) {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          @for (card of cards(); track card.group.id) {
+            <app-shared-payment-card
+              [card]="card"
+              [currentUserId]="currentUserId()"
+              (inviteClicked)="openInviteModal($event)"
+              (cancelInvite)="onCancelInvite($event)"
+              (uploadProof)="onUploadProof($event)"
+              (acceptProof)="onAcceptProof($event)"
+              (rejectProof)="onRejectProof($event)"
+            ></app-shared-payment-card>
+          }
+        </div>
+      }
+
+    </main>
+  </div>
+</div>
+
+<!-- Invite Member Modal — rendered at root level to avoid z-index issues -->
+@if (activeModal()) {
+  @for (card of cards(); track card.group.id) {
+    @if (card.group.id === activeModal()) {
+      <app-invite-member-modal
+        [group]="card.group"
+        (submitted)="onInviteSubmitted($event)"
+        (closed)="closeInviteModal()"
+      ></app-invite-member-modal>
+    }
+  }
+}

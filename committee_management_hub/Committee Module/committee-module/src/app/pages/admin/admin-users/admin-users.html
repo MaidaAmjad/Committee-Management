@@ -1,0 +1,300 @@
+<div class="flex min-h-screen bg-[#f8fafc] text-[#191c1e]">
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <div class="flex flex-col flex-1 md:ml-64">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-30 bg-white border-b border-[#e2e8f0] h-16 flex items-center justify-between px-6">
+      <div>
+        <h1 class="text-xl font-bold text-[#0f172a]">User Management</h1>
+        <p class="text-xs text-[#64748b]">Manage platform users, trust scores, and access</p>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full">
+
+      <!-- Error -->
+      @if (errorMsg()) {
+        <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined">error</span>{{ errorMsg() }}
+        </div>
+      }
+
+      <!-- Stats row -->
+      @if (!loading()) {
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Total Users</p>
+            <p class="text-2xl font-bold text-[#0f172a]">{{ stats.total }}</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Active</p>
+            <p class="text-2xl font-bold text-[#15803d]">{{ stats.active }}</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Suspended</p>
+            <p class="text-2xl font-bold text-[#ba1a1a]">{{ stats.suspended }}</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Avg Trust Score</p>
+            <p class="text-2xl font-bold text-[#0058be]">{{ stats.avgTrust }}%</p>
+          </div>
+        </div>
+      }
+
+      <!-- Filters -->
+      <div class="flex flex-col sm:flex-row gap-3 mb-5">
+        <div class="relative flex-1 max-w-sm">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] text-[18px]">search</span>
+          <input
+            type="text"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+            placeholder="Search by name or email..."
+            class="w-full pl-9 pr-4 py-2.5 border border-[#e2e8f0] rounded-xl text-sm outline-none focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/10 transition-all bg-white"
+          />
+        </div>
+        <div class="flex gap-2">
+          @for (s of ['all','active','suspended','pending']; track s) {
+            <button
+              (click)="statusFilter.set($any(s))"
+              class="px-3 py-2 rounded-xl text-xs font-semibold border transition-all"
+              [class.bg-[#0058be]]="statusFilter() === s"
+              [class.text-white]="statusFilter() === s"
+              [class.border-[#0058be]]="statusFilter() === s"
+              [class.bg-white]="statusFilter() !== s"
+              [class.text-[#475569]]="statusFilter() !== s"
+              [class.border-[#e2e8f0]]="statusFilter() !== s">
+              {{ s | titlecase }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+
+        @if (loading()) {
+          <div class="p-8 flex flex-col gap-3">
+            @for (i of [1,2,3,4,5]; track i) {
+              <div class="h-12 bg-[#f1f5f9] rounded-xl animate-pulse"></div>
+            }
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-[#f8fafc] border-b border-[#e2e8f0]">
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">User</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Trust Score</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Status</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Committees</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Joined</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#f1f5f9]">
+                @for (user of filteredUsers(); track user.id) {
+                  <tr class="hover:bg-[#f8fafc] transition-colors group">
+                    <!-- User info -->
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                          [style.background-color]="getTrustStyle(user.trust_score).bg"
+                          [style.color]="getTrustStyle(user.trust_score).color">
+                          {{ user.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() }}
+                        </div>
+                        <div>
+                          <p class="text-sm font-semibold text-[#0f172a]">{{ user.full_name }}</p>
+                          <p class="text-xs text-[#64748b]">{{ user.email }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <!-- Trust score -->
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-2 w-36">
+                        <div class="flex-1 h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
+                          <div class="h-full rounded-full transition-all"
+                            [style.width]="user.trust_score + '%'"
+                            [style.background-color]="getTrustStyle(user.trust_score).color"></div>
+                        </div>
+                        <span class="text-xs font-bold w-8 text-right" [style.color]="getTrustStyle(user.trust_score).color">
+                          {{ user.trust_score }}
+                        </span>
+                      </div>
+                    </td>
+                    <!-- Status -->
+                    <td class="px-6 py-4">
+                      <span class="text-xs font-bold px-2.5 py-1 rounded-full border"
+                        [style.color]="getUserStatusStyle(user.status).color"
+                        [style.background-color]="getUserStatusStyle(user.status).bg"
+                        [style.border-color]="getUserStatusStyle(user.status).border">
+                        {{ user.status | titlecase }}
+                      </span>
+                    </td>
+                    <!-- Committees -->
+                    <td class="px-6 py-4 text-sm font-mono text-[#0f172a]">{{ user.committee_count }}</td>
+                    <!-- Joined -->
+                    <td class="px-6 py-4 text-xs text-[#64748b]">{{ user.created_at | date:'MMM d, y' }}</td>
+                    <!-- Actions -->
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-end gap-1">
+                        <button (click)="openDetail(user)"
+                          class="p-1.5 rounded-lg text-[#64748b] hover:text-[#0058be] hover:bg-[#dbeafe] transition-colors"
+                          title="View details">
+                          <span class="material-symbols-outlined text-[18px]">visibility</span>
+                        </button>
+                        @if (user.status === 'suspended') {
+                          <button (click)="reinstateUser(user)"
+                            class="p-1.5 rounded-lg text-[#64748b] hover:text-[#15803d] hover:bg-[#d1fae5] transition-colors"
+                            title="Reinstate user">
+                            <span class="material-symbols-outlined text-[18px]">undo</span>
+                          </button>
+                        } @else {
+                          <button (click)="suspendUser(user)"
+                            class="p-1.5 rounded-lg text-[#64748b] hover:text-[#d97706] hover:bg-[#fef3c7] transition-colors"
+                            title="Suspend user">
+                            <span class="material-symbols-outlined text-[18px]">block</span>
+                          </button>
+                        }
+                        <button (click)="confirmDeleteUser.set(user)"
+                          class="p-1.5 rounded-lg text-[#64748b] hover:text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors"
+                          title="Delete user">
+                          <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+                @if (filteredUsers().length === 0) {
+                  <tr>
+                    <td colspan="6" class="px-6 py-16 text-center">
+                      <span class="material-symbols-outlined text-[#94a3b8] text-4xl">person_search</span>
+                      <p class="text-sm text-[#64748b] mt-2">No users match your filters</p>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="px-6 py-3 bg-[#f8fafc] border-t border-[#e2e8f0] text-xs text-[#64748b]">
+            Showing {{ filteredUsers().length }} of {{ allUsers().length }} users
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── User Detail Drawer ──────────────────────────────────────────────────── -->
+@if (selectedUser()) {
+  <div class="fixed inset-0 z-50 flex">
+    <div class="flex-1 bg-black/40 backdrop-blur-sm" (click)="closeDetail()"></div>
+    <div class="w-full max-w-sm bg-white h-full shadow-2xl flex flex-col overflow-y-auto">
+
+      <!-- Drawer header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-[#f1f5f9]">
+        <h2 class="font-bold text-[#0f172a]">User Details</h2>
+        <button (click)="closeDetail()" class="p-1.5 rounded-lg hover:bg-[#f1f5f9] text-[#64748b]">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Avatar + name -->
+      <div class="px-6 py-6 flex flex-col items-center border-b border-[#f1f5f9]">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mb-3"
+          [style.background-color]="getTrustStyle(selectedUser()!.trust_score).bg"
+          [style.color]="getTrustStyle(selectedUser()!.trust_score).color">
+          {{ selectedUser()!.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase() }}
+        </div>
+        <h3 class="text-lg font-bold text-[#0f172a]">{{ selectedUser()!.full_name }}</h3>
+        <p class="text-sm text-[#64748b]">{{ selectedUser()!.email }}</p>
+        <span class="mt-2 text-xs font-bold px-3 py-1 rounded-full border"
+          [style.color]="getUserStatusStyle(selectedUser()!.status).color"
+          [style.background-color]="getUserStatusStyle(selectedUser()!.status).bg"
+          [style.border-color]="getUserStatusStyle(selectedUser()!.status).border">
+          {{ selectedUser()!.status | titlecase }}
+        </span>
+      </div>
+
+      <!-- Stats -->
+      <div class="px-6 py-5 flex flex-col gap-4">
+        <!-- Trust score -->
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-semibold text-[#475569]">Trust Score</span>
+            <span class="font-bold" [style.color]="getTrustStyle(selectedUser()!.trust_score).color">
+              {{ selectedUser()!.trust_score }}/100 — {{ getTrustStyle(selectedUser()!.trust_score).label }}
+            </span>
+          </div>
+          <div class="h-2 bg-[#e2e8f0] rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all"
+              [style.width]="selectedUser()!.trust_score + '%'"
+              [style.background-color]="getTrustStyle(selectedUser()!.trust_score).color"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0]">
+            <p class="text-[10px] font-semibold text-[#64748b] uppercase tracking-wide mb-1">Committees</p>
+            <p class="text-xl font-bold text-[#0f172a]">{{ selectedUser()!.committee_count }}</p>
+          </div>
+          <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0]">
+            <p class="text-[10px] font-semibold text-[#64748b] uppercase tracking-wide mb-1">Payment Setup</p>
+            <p class="text-sm font-bold" [class.text-[#15803d]]="selectedUser()!.payment_setup_complete" [class.text-[#ba1a1a]]="!selectedUser()!.payment_setup_complete">
+              {{ selectedUser()!.payment_setup_complete ? 'Complete' : 'Incomplete' }}
+            </p>
+          </div>
+          <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0] col-span-2">
+            <p class="text-[10px] font-semibold text-[#64748b] uppercase tracking-wide mb-1">Member Since</p>
+            <p class="text-sm font-bold text-[#0f172a]">{{ selectedUser()!.created_at | date:'MMMM d, y' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="px-6 pb-6 mt-auto flex flex-col gap-2">
+        @if (selectedUser()!.status === 'suspended') {
+          <button (click)="reinstateUser(selectedUser()!)"
+            class="w-full py-2.5 bg-[#d1fae5] text-[#15803d] border border-[#bbf7d0] rounded-xl text-sm font-semibold hover:bg-[#a7f3d0] transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">undo</span>Reinstate User
+          </button>
+        } @else {
+          <button (click)="suspendUser(selectedUser()!)"
+            class="w-full py-2.5 bg-[#fef3c7] text-[#d97706] border border-[#fde68a] rounded-xl text-sm font-semibold hover:bg-[#fde68a] transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">block</span>Suspend User
+          </button>
+        }
+        <button (click)="confirmDeleteUser.set(selectedUser()!)"
+          class="w-full py-2.5 bg-[#ffdad6] text-[#ba1a1a] border border-[#fca5a5] rounded-xl text-sm font-semibold hover:bg-[#fca5a5] transition-all flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">delete</span>Delete User
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Confirm Delete Modal ────────────────────────────────────────────────── -->
+@if (confirmDeleteUser()) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm border border-[#e2e8f0] p-6">
+      <div class="w-12 h-12 bg-[#ffdad6] rounded-2xl flex items-center justify-center mb-4">
+        <span class="material-symbols-outlined text-[#ba1a1a] text-2xl">delete_forever</span>
+      </div>
+      <h3 class="text-lg font-bold text-[#0f172a] mb-2">Delete User?</h3>
+      <p class="text-sm text-[#475569] mb-6">
+        This will permanently remove <strong>{{ confirmDeleteUser()!.full_name }}</strong> from the platform. This action cannot be undone.
+      </p>
+      <div class="flex gap-3">
+        <button (click)="confirmDeleteUser.set(null)"
+          class="flex-1 py-2.5 bg-[#f1f5f9] text-[#475569] rounded-xl text-sm font-semibold hover:bg-[#e2e8f0] transition-all">
+          Cancel
+        </button>
+        <button (click)="confirmDelete()"
+          class="flex-1 py-2.5 bg-[#ba1a1a] text-white rounded-xl text-sm font-semibold hover:bg-[#93000a] transition-all">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}

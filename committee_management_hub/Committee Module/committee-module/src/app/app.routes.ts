@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
 import { paymentSetupGuard } from './core/payment-setup.guard';
+import { adminAuthGuard } from './core/admin-auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'signup', pathMatch: 'full' },
@@ -39,6 +40,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/my-committees/my-committees').then(m => m.MyCommitteesComponent)
   },
   {
+    path: 'shared-groups',
+    canActivate: [authGuard, paymentSetupGuard],
+    loadComponent: () => import('./pages/shared-group/shared-group').then(m => m.SharedGroupComponent)
+  },
+  {
     path: 'payments',
     canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/payments/payments').then(m => m.PaymentsComponent)
@@ -72,6 +78,32 @@ export const routes: Routes = [
     path: 'profile',
     canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/public-user-profile/public-user-profile').then(m => m.PublicUserProfileComponent)
+  },
+
+  // ── Admin routes ──────────────────────────────────────────────────────
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./pages/admin/admin-login/admin-login').then(m => m.AdminLoginComponent)
+  },
+  {
+    path: 'admin',
+    canActivate: [adminAuthGuard],
+    loadComponent: () => import('./pages/admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboardComponent)
+  },
+  {
+    path: 'admin/users',
+    canActivate: [adminAuthGuard],
+    loadComponent: () => import('./pages/admin/admin-users/admin-users').then(m => m.AdminUsersComponent)
+  },
+  {
+    path: 'admin/committees',
+    canActivate: [adminAuthGuard],
+    loadComponent: () => import('./pages/admin/admin-committees/admin-committees').then(m => m.AdminCommitteesComponent)
+  },
+  {
+    path: 'admin/reports',
+    canActivate: [adminAuthGuard],
+    loadComponent: () => import('./pages/admin/admin-reports/admin-reports').then(m => m.AdminReportsComponent)
   },
 
   { path: '**', redirectTo: 'signup' }

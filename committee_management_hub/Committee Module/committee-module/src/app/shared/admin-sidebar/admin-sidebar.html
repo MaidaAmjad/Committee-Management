@@ -1,0 +1,59 @@
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#0f172a] border-r border-[#1e293b] z-40 hidden md:flex flex-col">
+
+  <!-- Brand -->
+  <div class="px-6 py-6 border-b border-[#1e293b]">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-[#0058be] rounded-xl flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings:'FILL' 1;">security</span>
+      </div>
+      <div>
+        <p class="text-white font-bold text-base leading-tight">TrustCom</p>
+        <p class="text-[#64748b] text-[11px] font-medium">Admin Portal</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin identity -->
+  <div class="px-4 py-4 border-b border-[#1e293b]">
+    <div class="flex items-center gap-3 px-2 py-2 rounded-xl bg-[#1e293b]">
+      <div class="w-8 h-8 rounded-full bg-[#0058be] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+        {{ initials }}
+      </div>
+      <div class="min-w-0">
+        <p class="text-white text-xs font-semibold truncate">{{ displayName }}</p>
+        <p class="text-[#64748b] text-[10px]">Super Administrator</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex flex-col gap-1 flex-grow px-3 py-4">
+    @for (item of navItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="bg-[#0058be] !text-white"
+        [routerLinkActiveOptions]="{ exact: item.route === '/admin' }"
+        class="flex items-center gap-3 text-[#94a3b8] px-3 py-2.5 hover:text-white hover:bg-[#1e293b] rounded-xl transition-all text-sm font-semibold"
+      >
+        <span class="material-symbols-outlined text-[20px]">{{ item.icon }}</span>
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <!-- Bottom actions -->
+  <div class="border-t border-[#1e293b] px-3 py-4 flex flex-col gap-1">
+    <button
+      (click)="goToUserPortal()"
+      class="flex items-center gap-3 text-[#94a3b8] px-3 py-2.5 hover:text-white hover:bg-[#1e293b] rounded-xl transition-all text-sm font-semibold w-full text-left">
+      <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+      User Portal
+    </button>
+    <button
+      (click)="signOut()"
+      class="flex items-center gap-3 text-[#f87171] px-3 py-2.5 hover:bg-[#450a0a] rounded-xl transition-all text-sm font-semibold w-full text-left">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      Sign Out
+    </button>
+  </div>
+</aside>

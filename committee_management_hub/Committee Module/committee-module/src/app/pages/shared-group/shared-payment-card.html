@@ -1,0 +1,239 @@
+<div class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm overflow-hidden flex flex-col">
+
+  <!-- ── Card Header ──────────────────────────────────────────────────────── -->
+  <div class="bg-gradient-to-r from-[#004ac6] to-[#2563eb] px-6 py-4 flex items-center justify-between">
+    <div class="flex-1 min-w-0">
+      <h3 class="text-white font-bold text-base truncate">{{ card.group.committee_name }}</h3>
+      <p class="text-white/70 text-xs mt-0.5">Shared Group · {{ card.isLeader ? 'You are the Leader' : 'You are a Member' }}</p>
+    </div>
+
+    <!-- Slot Payment Status Badge -->
+    <span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 flex-shrink-0 ml-3"
+      [style.background-color]="getSlotStatusStyle(card.group.slot_payment_status).bg"
+      [style.color]="getSlotStatusStyle(card.group.slot_payment_status).text"
+      [style.border]="'1px solid ' + getSlotStatusStyle(card.group.slot_payment_status).border">
+      <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1;">
+        {{ getSlotStatusIcon(card.group.slot_payment_status) }}
+      </span>
+      {{ card.group.slot_payment_status }}
+    </span>
+  </div>
+
+  <!-- ── Card Body ────────────────────────────────────────────────────────── -->
+  <div class="p-6 flex flex-col gap-5 flex-grow">
+
+    <!-- Pending invitation banner -->
+    @if (card.group.status === 'Pending Member' && card.group.pending_invitee_email) {
+      <div class="flex items-center gap-3 bg-[#fef9c3] border border-[#fde68a] text-[#854d0e] rounded-xl px-4 py-3 text-sm">
+        <span class="material-symbols-outlined text-[18px]">schedule</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold">Invitation Pending</p>
+          <p class="text-xs opacity-80 truncate">Sent to {{ card.group.pending_invitee_email }}</p>
+        </div>
+        @if (card.isLeader) {
+          <button (click)="cancelInvite.emit(card.group)"
+            class="text-xs font-semibold underline hover:no-underline flex-shrink-0">
+            Cancel
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Contribution stats row -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-[#f7f9fb] rounded-xl p-4 border border-[#f2f4f6]">
+        <p class="text-[10px] font-semibold text-[#737686] uppercase tracking-wide mb-1">Monthly (Full Slot)</p>
+        <p class="text-lg font-bold text-[#004ac6]">{{ card.group.monthly_amount | number }} PKR</p>
+      </div>
+      <div class="bg-[#f7f9fb] rounded-xl p-4 border border-[#f2f4f6]">
+        <p class="text-[10px] font-semibold text-[#737686] uppercase tracking-wide mb-1">Each Member Pays</p>
+        <p class="text-lg font-bold text-[#191c1e]">{{ card.group.individual_contribution | number }} PKR</p>
+      </div>
+    </div>
+
+    <!-- ── Member rows ─────────────────────────────────────────────────────── -->
+
+    <!-- Group Leader row -->
+    <div class="rounded-2xl border p-4"
+      [class.border-[#004ac6]]="isCurrentUser(card.group.group_leader)"
+      [class.bg-[#f7f9ff]]="isCurrentUser(card.group.group_leader)"
+      [class.border-[#f2f4f6]]="!isCurrentUser(card.group.group_leader)"
+      [class.bg-[#f7f9fb]]="!isCurrentUser(card.group.group_leader)">
+
+      <div class="flex items-center gap-3 mb-3">
+        <!-- Avatar -->
+        <a [routerLink]="['/user', card.group.group_leader.user_id]"
+          class="w-10 h-10 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+          {{ getInitials(card.group.group_leader.full_name) }}
+        </a>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <a [routerLink]="['/user', card.group.group_leader.user_id]"
+              class="text-sm font-bold text-[#191c1e] hover:text-[#004ac6] transition-colors cursor-pointer">
+              {{ card.group.group_leader.full_name }}
+            </a>
+            <span class="bg-[#dbe1ff] text-[#004ac6] text-[9px] font-bold px-1.5 py-0.5 rounded-full">Leader</span>
+            @if (isCurrentUser(card.group.group_leader)) {
+              <span class="bg-[#004ac6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">You</span>
+            }
+          </div>
+          <p class="text-xs text-[#737686]">Trust Score: {{ card.group.group_leader.trust_score }}</p>
+        </div>
+        <!-- Payment status badge -->
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0"
+          [style.background-color]="getMemberStatusStyle(card.group.group_leader.payment_status).bg"
+          [style.color]="getMemberStatusStyle(card.group.group_leader.payment_status).text">
+          <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1;">
+            {{ getMemberStatusIcon(card.group.group_leader.payment_status) }}
+          </span>
+          {{ card.group.group_leader.payment_status }}
+        </span>
+      </div>
+
+      <!-- Leader proof / upload controls -->
+      @if (card.group.group_leader.proof) {
+        <div class="flex items-center gap-2 bg-white rounded-xl border border-[#f2f4f6] px-3 py-2 mb-2">
+          <span class="material-symbols-outlined text-[#004ac6] text-[16px]">
+            {{ card.group.group_leader.proof.file_type === 'image' ? 'image' : 'picture_as_pdf' }}
+          </span>
+          <span class="text-xs text-[#191c1e] truncate flex-1">{{ card.group.group_leader.proof.file_name }}</span>
+          <button (click)="openFile(card.group.group_leader.proof!.file_url)"
+            class="text-xs font-semibold text-[#004ac6] hover:underline flex-shrink-0">View</button>
+        </div>
+      }
+
+      <div class="flex gap-2">
+        @if (canUpload(card.group.group_leader)) {
+          <label class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#004ac6] text-white text-xs font-semibold rounded-xl hover:bg-[#2563eb] transition-all cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">upload</span>
+            Upload Proof
+            <input type="file" accept="image/jpeg,image/png,application/pdf" class="hidden"
+              (change)="onFileSelected($event, card.group.group_leader)" />
+          </label>
+        }
+        @if (canReview(card.group.group_leader)) {
+          <button (click)="onAccept(card.group.group_leader)"
+            class="flex items-center gap-1 px-3 py-2 bg-[#d4edda] border border-[#28a745] text-[#155724] text-xs font-semibold rounded-xl hover:bg-[#bbf7d0] transition-all">
+            <span class="material-symbols-outlined text-[14px]">check</span>Accept
+          </button>
+          <button (click)="onReject(card.group.group_leader)"
+            class="flex items-center gap-1 px-3 py-2 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] text-xs font-semibold rounded-xl hover:bg-[#fca5a5] transition-all">
+            <span class="material-symbols-outlined text-[14px]">close</span>Reject
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Group Member row (or placeholder) -->
+    @if (card.group.group_member) {
+      <!-- Member present -->
+      <div class="rounded-2xl border p-4"
+        [class.border-[#004ac6]]="isCurrentUser(card.group.group_member)"
+        [class.bg-[#f7f9ff]]="isCurrentUser(card.group.group_member)"
+        [class.border-[#f2f4f6]]="!isCurrentUser(card.group.group_member)"
+        [class.bg-[#f7f9fb]]="!isCurrentUser(card.group.group_member)">
+
+        <div class="flex items-center gap-3 mb-3">
+          <a [routerLink]="['/user', card.group.group_member.user_id]"
+            class="w-10 h-10 rounded-full bg-[#505f76] flex items-center justify-center text-white text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+            {{ getInitials(card.group.group_member.full_name) }}
+          </a>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <a [routerLink]="['/user', card.group.group_member.user_id]"
+                class="text-sm font-bold text-[#191c1e] hover:text-[#004ac6] transition-colors cursor-pointer">
+                {{ card.group.group_member.full_name }}
+              </a>
+              <span class="bg-[#e6e8ea] text-[#434655] text-[9px] font-bold px-1.5 py-0.5 rounded-full">Member</span>
+              @if (isCurrentUser(card.group.group_member)) {
+                <span class="bg-[#004ac6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">You</span>
+              }
+            </div>
+            <p class="text-xs text-[#737686]">Trust Score: {{ card.group.group_member.trust_score }}</p>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0"
+            [style.background-color]="getMemberStatusStyle(card.group.group_member.payment_status).bg"
+            [style.color]="getMemberStatusStyle(card.group.group_member.payment_status).text">
+            <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1;">
+              {{ getMemberStatusIcon(card.group.group_member.payment_status) }}
+            </span>
+            {{ card.group.group_member.payment_status }}
+          </span>
+        </div>
+
+        @if (card.group.group_member.proof) {
+          <div class="flex items-center gap-2 bg-white rounded-xl border border-[#f2f4f6] px-3 py-2 mb-2">
+            <span class="material-symbols-outlined text-[#004ac6] text-[16px]">
+              {{ card.group.group_member.proof.file_type === 'image' ? 'image' : 'picture_as_pdf' }}
+            </span>
+            <span class="text-xs text-[#191c1e] truncate flex-1">{{ card.group.group_member.proof.file_name }}</span>
+            <button (click)="openFile(card.group.group_member.proof!.file_url)"
+              class="text-xs font-semibold text-[#004ac6] hover:underline flex-shrink-0">View</button>
+          </div>
+        }
+
+        <div class="flex gap-2">
+          @if (canUpload(card.group.group_member)) {
+            <label class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#004ac6] text-white text-xs font-semibold rounded-xl hover:bg-[#2563eb] transition-all cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">upload</span>
+              Upload Proof
+              <input type="file" accept="image/jpeg,image/png,application/pdf" class="hidden"
+                (change)="onFileSelected($event, card.group.group_member!)" />
+            </label>
+          }
+          @if (canReview(card.group.group_member)) {
+            <button (click)="onAccept(card.group.group_member)"
+              class="flex items-center gap-1 px-3 py-2 bg-[#d4edda] border border-[#28a745] text-[#155724] text-xs font-semibold rounded-xl hover:bg-[#bbf7d0] transition-all">
+              <span class="material-symbols-outlined text-[14px]">check</span>Accept
+            </button>
+            <button (click)="onReject(card.group.group_member)"
+              class="flex items-center gap-1 px-3 py-2 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] text-xs font-semibold rounded-xl hover:bg-[#fca5a5] transition-all">
+              <span class="material-symbols-outlined text-[14px]">close</span>Reject
+            </button>
+          }
+        </div>
+      </div>
+
+    } @else {
+      <!-- Awaiting Member placeholder -->
+      <div class="rounded-2xl border-2 border-dashed border-[#c3c6d7] p-4 flex flex-col items-center justify-center text-center gap-2 min-h-[100px]">
+        <div class="w-10 h-10 rounded-full bg-[#f2f4f6] flex items-center justify-center">
+          <span class="material-symbols-outlined text-[#737686] text-[20px]">person_add</span>
+        </div>
+        <p class="text-sm font-semibold text-[#191c1e]">Awaiting Member</p>
+        <p class="text-xs text-[#737686]">No second member has joined yet</p>
+        @if (card.isLeader && card.group.status !== 'Pending Member') {
+          <button (click)="inviteClicked.emit(card.group)"
+            class="mt-1 flex items-center gap-1.5 px-4 py-2 bg-[#004ac6] text-white text-xs font-semibold rounded-xl hover:bg-[#2563eb] transition-all">
+            <span class="material-symbols-outlined text-[16px]">send</span>
+            Invite Member
+          </button>
+        }
+      </div>
+    }
+
+    <!-- ── Winner Distribution Section ──────────────────────────────────── -->
+    @if (card.group.winner_payout) {
+      <div class="bg-gradient-to-r from-[#fef9c3] to-[#fde68a] rounded-2xl border border-[#fde68a] p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="material-symbols-outlined text-[#854d0e] text-[22px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
+          <h4 class="text-sm font-bold text-[#854d0e]">🎉 Your Group Won!</h4>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white/70 rounded-xl p-3 text-center">
+            <p class="text-[10px] font-semibold text-[#854d0e] uppercase tracking-wide mb-1">Total Payout</p>
+            <p class="text-base font-bold text-[#191c1e]">{{ card.group.winner_payout | number }} PKR</p>
+          </div>
+          <div class="bg-white/70 rounded-xl p-3 text-center">
+            <p class="text-[10px] font-semibold text-[#854d0e] uppercase tracking-wide mb-1">Each Member Gets</p>
+            <p class="text-base font-bold text-[#28a745]">{{ card.group.winner_payout / 2 | number }} PKR</p>
+          </div>
+        </div>
+        <p class="text-xs text-[#854d0e] text-center mt-3 opacity-80">
+          Split equally between {{ card.group.group_leader.full_name }} and {{ card.group.group_member?.full_name ?? 'your partner' }}
+        </p>
+      </div>
+    }
+
+  </div>
+</div>

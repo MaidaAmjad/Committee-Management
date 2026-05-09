@@ -1,0 +1,229 @@
+<div class="flex min-h-screen bg-[#f8fafc] text-[#191c1e]">
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <div class="flex flex-col flex-1 md:ml-64">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-30 bg-white border-b border-[#e2e8f0] h-16 flex items-center justify-between px-6">
+      <div>
+        <h1 class="text-xl font-bold text-[#0f172a]">Reports & Complaints</h1>
+        <p class="text-xs text-[#64748b]">Review and action user-submitted reports</p>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full">
+
+      <!-- Error -->
+      @if (errorMsg()) {
+        <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined">error</span>{{ errorMsg() }}
+        </div>
+      }
+
+      <!-- Stats -->
+      @if (!loading()) {
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-5 flex items-center gap-4">
+            <div class="w-10 h-10 bg-[#ffdad6] rounded-xl flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[#ba1a1a] text-[20px]">priority_high</span>
+            </div>
+            <div>
+              <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide">Open Reports</p>
+              <p class="text-2xl font-bold text-[#0f172a]">{{ stats.open }}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-5 flex items-center gap-4">
+            <div class="w-10 h-10 bg-[#d1fae5] rounded-xl flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[#059669] text-[20px]">check_circle</span>
+            </div>
+            <div>
+              <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide">Resolved</p>
+              <p class="text-2xl font-bold text-[#0f172a]">{{ stats.resolved }}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-5 flex items-center gap-4">
+            <div class="w-10 h-10 bg-[#fef3c7] rounded-xl flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[#d97706] text-[20px]">warning</span>
+            </div>
+            <div>
+              <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide">High Severity</p>
+              <p class="text-2xl font-bold text-[#0f172a]">{{ stats.high }}</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Filters -->
+      <div class="flex flex-wrap gap-3 mb-5">
+        <div class="flex gap-2">
+          <span class="text-xs font-semibold text-[#64748b] self-center">Status:</span>
+          @for (s of ['all','open','resolved','ignored']; track s) {
+            <button
+              (click)="statusFilter.set($any(s))"
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all"
+              [class.bg-[#0058be]]="statusFilter() === s"
+              [class.text-white]="statusFilter() === s"
+              [class.border-[#0058be]]="statusFilter() === s"
+              [class.bg-white]="statusFilter() !== s"
+              [class.text-[#475569]]="statusFilter() !== s"
+              [class.border-[#e2e8f0]]="statusFilter() !== s">
+              {{ s | titlecase }}
+            </button>
+          }
+        </div>
+        <div class="flex gap-2">
+          <span class="text-xs font-semibold text-[#64748b] self-center">Severity:</span>
+          @for (s of ['all','high','medium','low']; track s) {
+            <button
+              (click)="severityFilter.set($any(s))"
+              class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all"
+              [class.bg-[#0058be]]="severityFilter() === s"
+              [class.text-white]="severityFilter() === s"
+              [class.border-[#0058be]]="severityFilter() === s"
+              [class.bg-white]="severityFilter() !== s"
+              [class.text-[#475569]]="severityFilter() !== s"
+              [class.border-[#e2e8f0]]="severityFilter() !== s">
+              {{ s | titlecase }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Reports list -->
+      @if (loading()) {
+        <div class="flex flex-col gap-3">
+          @for (i of [1,2,3]; track i) {
+            <div class="bg-white rounded-2xl border border-[#e2e8f0] p-6 animate-pulse">
+              <div class="h-4 bg-[#f1f5f9] rounded w-1/4 mb-3"></div>
+              <div class="h-3 bg-[#f1f5f9] rounded w-3/4 mb-2"></div>
+              <div class="h-3 bg-[#f1f5f9] rounded w-1/2"></div>
+            </div>
+          }
+        </div>
+
+      } @else if (tableNotFound()) {
+        <!-- ── Table not created yet — show setup instructions ── -->
+        <div class="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+          <div class="px-6 py-5 border-b border-[#f1f5f9] flex items-center gap-3">
+            <div class="w-10 h-10 bg-[#fef3c7] rounded-xl flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[#d97706] text-[20px]">table_chart</span>
+            </div>
+            <div>
+              <h2 class="font-bold text-[#0f172a]">Reports table not found</h2>
+              <p class="text-xs text-[#64748b]">The <code class="bg-[#f1f5f9] px-1 rounded">public.reports</code> table doesn't exist in your Supabase project yet.</p>
+            </div>
+          </div>
+
+          <div class="px-6 py-5">
+            <p class="text-sm text-[#475569] mb-4">
+              Run the SQL below in your Supabase SQL Editor to create the table, enable RLS, and set up the required policies. Once created, refresh this page.
+            </p>
+
+            <!-- Action buttons -->
+            <div class="flex gap-3 mb-5">
+              <button (click)="openSupabaseSqlEditor()"
+                class="flex items-center gap-2 px-4 py-2.5 bg-[#0058be] text-white text-sm font-semibold rounded-xl hover:bg-[#004395] transition-all">
+                <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                Open SQL Editor
+              </button>
+              <button (click)="copySql()"
+                class="flex items-center gap-2 px-4 py-2.5 border text-sm font-semibold rounded-xl transition-all"
+                [class.bg-[#d1fae5]]="sqlCopied()"
+                [class.text-[#15803d]]="sqlCopied()"
+                [class.border-[#bbf7d0]]="sqlCopied()"
+                [class.bg-white]="!sqlCopied()"
+                [class.text-[#475569]]="!sqlCopied()"
+                [class.border-[#e2e8f0]]="!sqlCopied()">
+                <span class="material-symbols-outlined text-[18px]">{{ sqlCopied() ? 'check' : 'content_copy' }}</span>
+                {{ sqlCopied() ? 'Copied!' : 'Copy SQL' }}
+              </button>
+            </div>
+
+            <!-- SQL block -->
+            <div class="relative">
+              <pre class="bg-[#0f172a] text-[#e2e8f0] text-xs rounded-2xl p-5 overflow-x-auto leading-relaxed font-mono whitespace-pre">{{ setupSql }}</pre>
+            </div>
+          </div>
+        </div>
+
+      } @else {
+        <div class="flex flex-col gap-4">
+          @for (report of filteredReports(); track report.id) {
+            <div class="bg-white rounded-2xl border border-[#e2e8f0] p-6 hover:shadow-md transition-shadow"
+              [class.border-l-4]="report.status === 'open'"
+              [class.border-l-[#ba1a1a]]="report.status === 'open' && report.severity === 'high'"
+              [class.border-l-[#d97706]]="report.status === 'open' && report.severity === 'medium'"
+              [class.border-l-[#64748b]]="report.status === 'open' && report.severity === 'low'">
+
+              <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+
+                <!-- Left: case info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="text-xs font-mono font-bold text-[#0058be]">{{ report.case_id }}</span>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                      [style.color]="getSeverityStyle(report.severity).color"
+                      [style.background-color]="getSeverityStyle(report.severity).bg">
+                      {{ report.severity | titlecase }} Severity
+                    </span>
+                    <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                      [style.color]="getStatusStyle(report.status).color"
+                      [style.background-color]="getStatusStyle(report.status).bg">
+                      {{ report.status | titlecase }}
+                    </span>
+                    <span class="text-xs text-[#94a3b8]">{{ timeAgo(report.created_at) }}</span>
+                  </div>
+
+                  <!-- Parties -->
+                  <div class="flex flex-wrap gap-3 mb-3">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[10px] font-bold bg-[#f1f5f9] text-[#64748b] px-1.5 py-0.5 rounded">REPORTER</span>
+                      <span class="text-sm font-semibold text-[#0f172a]">{{ report.reporter_name }}</span>
+                    </div>
+                    <span class="text-[#94a3b8]">→</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[10px] font-bold bg-[#ffdad6] text-[#ba1a1a] px-1.5 py-0.5 rounded">TARGET</span>
+                      <span class="text-sm font-semibold text-[#0f172a]">{{ report.target_name }}</span>
+                    </div>
+                  </div>
+
+                  <p class="text-sm text-[#475569] leading-relaxed">{{ report.description }}</p>
+                </div>
+
+                <!-- Right: actions -->
+                @if (report.status === 'open') {
+                  <div class="flex sm:flex-col gap-2 flex-shrink-0">
+                    <button (click)="resolveReport(report)"
+                      class="flex items-center gap-1.5 px-3 py-2 bg-[#d1fae5] text-[#15803d] border border-[#bbf7d0] rounded-xl text-xs font-semibold hover:bg-[#a7f3d0] transition-all">
+                      <span class="material-symbols-outlined text-[16px]">check_circle</span>Resolve
+                    </button>
+                    <button (click)="ignoreReport(report)"
+                      class="flex items-center gap-1.5 px-3 py-2 bg-[#f1f5f9] text-[#475569] border border-[#e2e8f0] rounded-xl text-xs font-semibold hover:bg-[#e2e8f0] transition-all">
+                      <span class="material-symbols-outlined text-[16px]">do_not_disturb</span>Ignore
+                    </button>
+                  </div>
+                } @else {
+                  <div class="flex-shrink-0">
+                    <span class="text-xs font-bold px-3 py-2 rounded-xl"
+                      [style.color]="getStatusStyle(report.status).color"
+                      [style.background-color]="getStatusStyle(report.status).bg">
+                      {{ report.status | titlecase }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (filteredReports().length === 0) {
+            <div class="bg-white rounded-2xl border-2 border-dashed border-[#e2e8f0] p-16 flex flex-col items-center text-center">
+              <span class="material-symbols-outlined text-[#94a3b8] text-4xl mb-3">assignment_turned_in</span>
+              <h3 class="text-base font-bold text-[#0f172a] mb-1">No reports found</h3>
+              <p class="text-sm text-[#64748b]">No reports match the selected filters.</p>
+            </div>
+          }
+        </div>
+      }
+    </main>
+  </div>
+</div>

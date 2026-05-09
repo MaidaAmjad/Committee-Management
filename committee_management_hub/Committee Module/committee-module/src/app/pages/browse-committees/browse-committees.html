@@ -243,19 +243,59 @@
                           </div>
                         }
                         @default {
-                          <button
-                            (click)="joinCommittee(c, $event)"
-                            [disabled]="joiningId() === c.id"
-                            class="flex-1 py-2.5 bg-[#004ac6] text-white rounded-xl text-sm font-semibold hover:bg-[#2563eb] transition-all flex items-center justify-center gap-1.5 disabled:opacity-60">
-                            @if (joiningId() === c.id) {
-                              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                              </svg>
-                            } @else {
-                              <span class="material-symbols-outlined text-[16px]">group_add</span>Join
-                            }
-                          </button>
+                          <div class="flex flex-col gap-2 w-full">
+
+                            <!-- Shared Group toggle row -->
+                            <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-xl bg-[#f2f4f6] hover:bg-[#e6e8ea] transition-colors"
+                              (click)="$event.stopPropagation()">
+                              <!-- Toggle switch -->
+                              <div class="relative flex-shrink-0">
+                                <input type="checkbox" class="sr-only"
+                                  [checked]="isSharedToggleOn(c)"
+                                  (change)="toggleSharedGroup(c)" />
+                                <div class="w-9 h-5 rounded-full transition-colors duration-200"
+                                  [class.bg-[#004ac6]]="isSharedToggleOn(c)"
+                                  [class.bg-[#c3c6d7]]="!isSharedToggleOn(c)">
+                                  <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
+                                    [class.translate-x-4]="isSharedToggleOn(c)"></div>
+                                </div>
+                              </div>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-[11px] font-semibold text-[#191c1e] leading-tight">Join as Shared Group</p>
+                                <p class="text-[10px] text-[#737686] leading-tight">Pay {{ c.monthly_amount / 2 | number }} PKR with a partner</p>
+                              </div>
+                              <span class="material-symbols-outlined text-[18px] flex-shrink-0 transition-colors"
+                                [class.text-[#004ac6]]="isSharedToggleOn(c)"
+                                [class.text-[#c3c6d7]]="!isSharedToggleOn(c)">group_work</span>
+                            </label>
+
+                            <!-- Action buttons row -->
+                            <div class="flex gap-2">
+                              <button (click)="viewDetails(c)"
+                                class="py-2.5 px-3 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[16px]">info</span>
+                              </button>
+                              <button
+                                (click)="joinCommittee(c, $event)"
+                                [disabled]="joiningId() === c.id"
+                                class="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60"
+                                [class.bg-[#004ac6]]="!isSharedToggleOn(c)"
+                                [class.bg-[#505f76]]="isSharedToggleOn(c)">
+                                @if (joiningId() === c.id) {
+                                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                  </svg>
+                                } @else {
+                                  <span class="material-symbols-outlined text-[16px]">
+                                    {{ isSharedToggleOn(c) ? 'group_work' : 'group_add' }}
+                                  </span>
+                                  {{ isSharedToggleOn(c) ? 'Join as Shared' : 'Join' }}
+                                }
+                              </button>
+                            </div>
+
+                          </div>
                         }
                       }
                     </div>
