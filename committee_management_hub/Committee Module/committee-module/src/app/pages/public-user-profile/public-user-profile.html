@@ -80,6 +80,18 @@
               <div class="flex flex-wrap items-center gap-3 mb-2">
                 <h2 class="text-2xl font-bold text-[#191c1e]">{{ displayName() }}</h2>
                 <span class="bg-[#d0e1fb] text-[#004ac6] px-3 py-0.5 rounded-full text-xs font-semibold">Member</span>
+                <!-- Verified Badge -->
+                @if (verificationStatus === 'approved') {
+                  <span class="flex items-center gap-1 bg-[#1d4ed8] text-white px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                    <svg viewBox="0 0 24 24" fill="white" width="11" height="11"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    Verified
+                  </span>
+                }
+                @if (verificationStatus === 'pending') {
+                  <span class="flex items-center gap-1 bg-[#d97706] text-white px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                    ⏳ Pending Verification
+                  </span>
+                }
               </div>
               <p class="text-sm text-[#737686] mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-[16px]">mail</span>
@@ -165,6 +177,80 @@
                 Edit Info
               </button>
             </div>
+          </section>
+
+          <!-- Verification Section -->
+          <section class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
+            <h3 class="text-base font-bold text-[#191c1e] mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#1d4ed8] text-[20px]">verified_user</span>
+              Identity Verification
+            </h3>
+
+            <!-- Not applied yet -->
+            @if (verificationStatus === 'none') {
+              <div class="flex flex-col items-center text-center py-4 gap-3">
+                <div class="w-14 h-14 bg-[#dbe1ff] rounded-full flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[#004ac6] text-2xl">badge</span>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-[#191c1e]">Get Verified</p>
+                  <p class="text-xs text-[#737686] mt-1">Boost trust with a blue verified badge beside your name.</p>
+                </div>
+                <button (click)="openVerifyModal()"
+                  class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#1d4ed8] text-white text-sm font-semibold rounded-xl hover:bg-[#1e40af] transition-all">
+                  <span class="material-symbols-outlined text-[18px]">verified</span>
+                  Apply for Verification
+                </button>
+              </div>
+            }
+
+            <!-- Pending -->
+            @if (verificationStatus === 'pending') {
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3 bg-[#fef9c3] border border-[#fde68a] rounded-xl px-4 py-3">
+                  <span class="text-xl">⏳</span>
+                  <div>
+                    <p class="text-sm font-bold text-[#854d0e]">Pending Review</p>
+                    <p class="text-xs text-[#854d0e]">Your verification is being reviewed by admin.</p>
+                  </div>
+                </div>
+                <p class="text-xs text-[#737686] text-center">You'll be notified once reviewed.</p>
+              </div>
+            }
+
+            <!-- Approved -->
+            @if (verificationStatus === 'approved') {
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] rounded-xl px-4 py-3">
+                  <span class="w-8 h-8 bg-[#1d4ed8] rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                  </span>
+                  <div>
+                    <p class="text-sm font-bold text-[#155724]">✅ Verified</p>
+                    <p class="text-xs text-[#155724]">Blue badge is now visible on your profile.</p>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Rejected -->
+            @if (verificationStatus === 'rejected') {
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] rounded-xl px-4 py-3">
+                  <span class="material-symbols-outlined text-[#ba1a1a]">cancel</span>
+                  <div>
+                    <p class="text-sm font-bold text-[#ba1a1a]">Verification Rejected</p>
+                    @if (verification()?.rejection_reason) {
+                      <p class="text-xs text-[#ba1a1a]">{{ verification()!.rejection_reason }}</p>
+                    }
+                  </div>
+                </div>
+                <button (click)="openVerifyModal()"
+                  class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#1d4ed8] text-white text-sm font-semibold rounded-xl hover:bg-[#1e40af] transition-all">
+                  Re-apply for Verification
+                </button>
+              </div>
+            }
           </section>
 
           <!-- Payment Methods -->
@@ -335,6 +421,229 @@
     </main>
   </div>
 </div>
+
+<!-- ── Verification Modal ─────────────────────────────────────────────── -->
+@if (showVerifyModal()) {
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    (click)="closeVerifyModal()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-[#c3c6d7] max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-[#f2f4f6] sticky top-0 bg-white z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-[#dbe1ff] rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#1d4ed8] text-[20px]">verified_user</span>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-[#191c1e]">Apply for Verification</h2>
+            <p class="text-xs text-[#737686]">Step {{ verifyStep() }} of 2</p>
+          </div>
+        </div>
+        <button (click)="closeVerifyModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f2f4f6]">
+          <span class="material-symbols-outlined text-[20px] text-[#737686]">close</span>
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="h-1 bg-[#f2f4f6]">
+        <div class="h-full bg-[#1d4ed8] transition-all duration-300"
+          [style.width]="verifyStep() === 1 ? '50%' : '100%'"></div>
+      </div>
+
+      <div class="px-6 py-5 flex flex-col gap-4">
+
+        <!-- Success -->
+        @if (verifySuccess()) {
+          <div class="flex flex-col items-center text-center py-8 gap-4">
+            <div class="w-16 h-16 bg-[#d4edda] rounded-full flex items-center justify-center">
+              <span class="material-symbols-outlined text-[#155724] text-3xl" style="font-variation-settings:'FILL' 1;">check_circle</span>
+            </div>
+            <div>
+              <p class="text-lg font-bold text-[#191c1e]">Submitted Successfully!</p>
+              <p class="text-sm text-[#737686] mt-1">Your verification is now pending admin review. You'll be notified once approved.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Error -->
+        @if (verifyError() && !verifySuccess()) {
+          <div class="flex items-center gap-2 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-xl px-4 py-3 text-sm">
+            <span class="material-symbols-outlined text-[18px]">error</span>
+            {{ verifyError() }}
+          </div>
+        }
+
+        <!-- Step 1: Personal Info -->
+        @if (verifyStep() === 1 && !verifySuccess()) {
+          <div class="flex flex-col gap-4">
+            <p class="text-sm font-semibold text-[#191c1e]">Personal Information</p>
+
+            <!-- Full Name -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                Full Name <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <input type="text" [(ngModel)]="vFullName" placeholder="As on CNIC"
+                class="w-full px-4 py-3 border border-[#c3c6d7] rounded-xl text-sm outline-none focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#1d4ed8]/10 transition-all"/>
+            </div>
+
+            <!-- Phone -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                Phone Number <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <input type="tel" [(ngModel)]="vPhone" (input)="onPhoneInput()" placeholder="03XX-XXXXXXX"
+                class="w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 transition-all"
+                [class.border-[#ba1a1a]]="phoneError()"
+                [class.bg-[#fff5f5]]="phoneError()"
+                [class.border-[#c3c6d7]]="!phoneError()"
+                [class.focus:border-[#1d4ed8]]="!phoneError()"
+                [class.focus:ring-[#1d4ed8]/10]="!phoneError()"/>
+              @if (phoneError()) {
+                <p class="text-xs text-[#ba1a1a] mt-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[12px]">error</span>
+                  {{ phoneError() }}
+                </p>
+              } @else {
+                <p class="text-[10px] text-[#737686] mt-1">e.g. 0312-3456789 or +923123456789</p>
+              }
+            </div>
+
+            <!-- CNIC -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                CNIC Number <span class="text-[#ba1a1a]">*</span>
+              </label>
+              <input type="text" [value]="vCnic" (input)="onCnicInput($event)"
+                placeholder="XXXXX-XXXXXXX-X" maxlength="15"
+                class="w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 transition-all font-mono"
+                [class.border-[#ba1a1a]]="cnicError()"
+                [class.bg-[#fff5f5]]="cnicError()"
+                [class.border-[#c3c6d7]]="!cnicError()"
+                [class.focus:border-[#1d4ed8]]="!cnicError()"
+                [class.focus:ring-[#1d4ed8]/10]="!cnicError()"/>
+              @if (cnicError()) {
+                <p class="text-xs text-[#ba1a1a] mt-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[12px]">error</span>
+                  {{ cnicError() }}
+                </p>
+              } @else {
+                <p class="text-[10px] text-[#737686] mt-1">13 digits — auto-formatted as XXXXX-XXXXXXX-X</p>
+              }
+            </div>
+
+            <!-- Bank Account Title (optional) -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                Bank Account Title <span class="text-[#737686] font-normal">(optional)</span>
+              </label>
+              <input type="text" [(ngModel)]="vBankTitle" placeholder="e.g. Muhammad Ali"
+                class="w-full px-4 py-3 border border-[#c3c6d7] rounded-xl text-sm outline-none focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#1d4ed8]/10 transition-all"/>
+            </div>
+
+            <!-- Notes (optional) -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                Additional Notes <span class="text-[#737686] font-normal">(optional)</span>
+              </label>
+              <textarea [(ngModel)]="vNotes" rows="2" placeholder="Any additional information..."
+                class="w-full px-4 py-3 border border-[#c3c6d7] rounded-xl text-sm outline-none focus:border-[#1d4ed8] resize-none transition-all"></textarea>
+            </div>
+
+            <button (click)="goToStep2()"
+              class="w-full flex items-center justify-center gap-2 py-3 bg-[#1d4ed8] text-white text-sm font-semibold rounded-xl hover:bg-[#1e40af] transition-all">
+              Next: Upload Documents
+              <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
+        }
+
+        <!-- Step 2: Document Upload -->
+        @if (verifyStep() === 2 && !verifySuccess()) {
+          <div class="flex flex-col gap-4">
+            <p class="text-sm font-semibold text-[#191c1e]">Upload Documents</p>
+
+            <!-- CNIC Front -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                CNIC Front Image <span class="text-[#ba1a1a]">*</span>
+              </label>
+              @if (!cnicFrontPreview()) {
+                <label class="flex flex-col items-center justify-center gap-2 p-5 border-2 border-dashed border-[#c3c6d7] rounded-xl cursor-pointer hover:border-[#1d4ed8] hover:bg-[#f7f9ff] transition-all">
+                  <span class="material-symbols-outlined text-[#737686] text-3xl">id_card</span>
+                  <p class="text-xs font-semibold text-[#191c1e]">Upload CNIC Front</p>
+                  <p class="text-[10px] text-[#737686]">JPG, PNG or PDF · Max 5MB</p>
+                  <input type="file" accept="image/jpeg,image/png,application/pdf" class="hidden" (change)="onCnicFrontSelected($event)"/>
+                </label>
+              } @else {
+                <div class="relative rounded-xl overflow-hidden border border-[#c3c6d7]">
+                  @if (cnicFrontPreview() === 'pdf') {
+                    <div class="flex items-center gap-3 p-4 bg-[#fff7ed]">
+                      <span class="material-symbols-outlined text-[#943700] text-2xl">picture_as_pdf</span>
+                      <p class="text-sm font-semibold text-[#191c1e]">{{ cnicFrontFile?.name }}</p>
+                    </div>
+                  } @else {
+                    <img [src]="cnicFrontPreview()" alt="CNIC Front" class="w-full h-32 object-cover"/>
+                  }
+                  <button type="button" (click)="cnicFrontPreview.set(''); cnicFrontFile = null"
+                    class="absolute top-2 right-2 w-7 h-7 bg-[#ba1a1a] text-white rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Selfie -->
+            <div>
+              <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
+                Selfie / Profile Photo <span class="text-[#ba1a1a]">*</span>
+              </label>
+              @if (!selfiePreview()) {
+                <label class="flex flex-col items-center justify-center gap-2 p-5 border-2 border-dashed border-[#c3c6d7] rounded-xl cursor-pointer hover:border-[#1d4ed8] hover:bg-[#f7f9ff] transition-all">
+                  <span class="material-symbols-outlined text-[#737686] text-3xl">face</span>
+                  <p class="text-xs font-semibold text-[#191c1e]">Upload Selfie</p>
+                  <p class="text-[10px] text-[#737686]">JPG or PNG · Max 5MB</p>
+                  <input type="file" accept="image/jpeg,image/png" class="hidden" (change)="onSelfieSelected($event)"/>
+                </label>
+              } @else {
+                <div class="relative rounded-xl overflow-hidden border border-[#c3c6d7]">
+                  <img [src]="selfiePreview()" alt="Selfie" class="w-full h-32 object-cover"/>
+                  <button type="button" (click)="selfiePreview.set(''); selfieFile = null"
+                    class="absolute top-2 right-2 w-7 h-7 bg-[#ba1a1a] text-white rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <div class="flex gap-3">
+              <button (click)="verifyStep.set(1)"
+                class="flex-1 py-3 border border-[#c3c6d7] text-[#434655] text-sm font-semibold rounded-xl hover:bg-[#f2f4f6] transition-all">
+                Back
+              </button>
+              <button (click)="submitVerification()"
+                [disabled]="verifySubmitting() || !cnicFrontFile || !selfieFile"
+                class="flex-1 flex items-center justify-center gap-2 py-3 bg-[#1d4ed8] text-white text-sm font-semibold rounded-xl hover:bg-[#1e40af] transition-all disabled:opacity-50">
+                @if (verifySubmitting()) {
+                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Submitting...
+                } @else {
+                  <span class="material-symbols-outlined text-[18px]">send</span>
+                  Submit Verification
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+}
 
 <!-- ── Edit Profile Modal ──────────────────────────────────────────────── -->
 @if (showEditModal()) {

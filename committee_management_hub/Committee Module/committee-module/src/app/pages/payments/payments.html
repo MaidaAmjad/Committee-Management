@@ -79,7 +79,7 @@
                   <!-- Monthly Amount -->
                   <div class="bg-[#f7f9fb] rounded-xl p-4 border border-[#f2f4f6]">
                     <p class="text-[10px] font-semibold text-[#737686] uppercase tracking-wide mb-1">Monthly Amount</p>
-                    <p class="text-xl font-bold text-[#004ac6]">${{ card.committee.monthly_amount | number }}</p>
+                    <p class="text-xl font-bold text-[#004ac6]">Rs. {{ card.committee.monthly_amount | number }}</p>
                   </div>
                   <!-- Due Date -->
                   <div class="bg-[#f7f9fb] rounded-xl p-4 border border-[#f2f4f6]">
@@ -226,8 +226,8 @@
 
                 <!-- Action Buttons -->
                 <div class="flex gap-2 mt-auto pt-2">
-                  @if (!isAdmin(card)) {
-                    <!-- Upload buttons for members -->
+                  @if (!isWinner(card)) {
+                    <!-- Upload buttons for non-winner members -->
                     @if (!card.myProof || card.myProof.status === 'rejected') {
                       <button (click)="openUpload(card)"
                         class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all">
@@ -243,8 +243,8 @@
                     }
                   }
 
-                  @if (isAdmin(card)) {
-                    <!-- Admin: view all proofs -->
+                  @if (isWinner(card)) {
+                    <!-- Winner: view all payment proofs -->
                     <button (click)="toggleProofsPanel(card)"
                       class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all">
                       <span class="material-symbols-outlined text-[18px]">folder_open</span>
@@ -253,8 +253,8 @@
                   }
                 </div>
 
-                <!-- Admin: Received Proofs Panel -->
-                @if (isAdmin(card) && card.showProofsPanel) {
+                <!-- Winner: Received Proofs Panel -->
+                @if (isWinner(card) && card.showProofsPanel) {
                   <div class="border-t border-[#f2f4f6] pt-4 mt-2">
                     <p class="text-xs font-bold text-[#191c1e] uppercase tracking-wide mb-3 flex items-center gap-2">
                       <span class="material-symbols-outlined text-[#004ac6] text-[16px]">receipt_long</span>

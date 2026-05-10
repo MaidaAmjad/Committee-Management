@@ -34,7 +34,7 @@
         Payment Amount <span class="text-[#ba1a1a]">*</span>
       </label>
       <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#737686] font-semibold">$</span>
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#737686] font-semibold">Rs.</span>
         <input
           type="number"
           formControlName="amount"
@@ -48,7 +48,7 @@
       @if (fieldError('amount')) {
         <p class="text-xs text-[#ba1a1a] mt-1">{{ getError('amount') }}</p>
       }
-      <p class="text-xs text-[#737686] mt-1">Required: ${{ requiredAmount }}</p>
+      <p class="text-xs text-[#737686] mt-1">Required: Rs. {{ requiredAmount }}</p>
     </div>
 
     <!-- Payment Date -->

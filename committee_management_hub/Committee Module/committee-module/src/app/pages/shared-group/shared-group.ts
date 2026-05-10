@@ -13,6 +13,7 @@ import {
 import { AuthService } from '../../core/auth.service';
 import { SharedPaymentCardComponent } from './shared-payment-card';
 import { InviteMemberModalComponent } from './invite-member-modal';
+import { SupabaseService } from '../../core/supabase.service';
 
 @Component({
   selector: 'app-shared-group',
@@ -32,16 +33,31 @@ export class SharedGroupComponent implements OnInit, OnDestroy {
   loading     = signal(true);
   errorMsg    = signal('');
   activeModal = signal<string | null>(null);
+  activeTab   = signal<'active' | 'recent'>('active');
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
 
+  // Active = committee not completed
+  activeCards = computed(() =>
+    this.cards().filter(c => c.group.status !== 'Completed')
+  );
+
+  // Recent = committee completed
+  recentCards = computed(() =>
+    this.cards().filter(c => c.group.status === 'Completed')
+  );
+
   private routerSub?: Subscription;
+  private supabase;
 
   constructor(
     private sharedGroupService: SharedGroupService,
     private auth: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private supabaseService: SupabaseService
+  ) {
+    this.supabase = this.supabaseService.client;
+  }
 
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
@@ -71,18 +87,46 @@ export class SharedGroupComponent implements OnInit, OnDestroy {
     const monthYear = this.sharedGroupService.getCurrentMonthYear();
     const userId    = this.currentUserId();
 
-    // Build view-model cards from raw SharedGroup data
-    const cardList: SharedGroupCard[] = (data ?? []).map(group => ({
-      group,
-      isLeader:        group.group_leader.user_id === userId,
-      isMember:        group.group_member?.user_id === userId,
-      monthYear,
-      showUploadModal: false,
-      uploading:       false,
-      uploadError:     '',
-    }));
+    // Fetch committee statuses to detect completed ones
+    const committeeIds = [...new Set((data ?? []).map(g => g.committee_id))];
+    let committeeStatusMap: Record<string, string> = {};
+
+    if (committeeIds.length > 0) {
+      const { data: committees } = await this.supabase
+        .from('committees')
+        .select('id, status')
+        .in('id', committeeIds);
+      (committees || []).forEach((c: any) => {
+        committeeStatusMap[c.id] = c.status;
+      });
+    }
+
+    // Build view-model cards — mark group as Completed if committee is Completed
+    const cardList: SharedGroupCard[] = (data ?? []).map(group => {
+      const committeeStatus = committeeStatusMap[group.committee_id] ?? '';
+      const enrichedGroup: SharedGroup = {
+        ...group,
+        status: committeeStatus === 'Completed' ? 'Completed' : group.status,
+      };
+      return {
+        group: enrichedGroup,
+        isLeader:        group.group_leader.user_id === userId,
+        isMember:        group.group_member?.user_id === userId,
+        monthYear,
+        showUploadModal: false,
+        uploading:       false,
+        uploadError:     '',
+      };
+    });
 
     this.cards.set(cardList);
+
+    // Auto-switch to Recent tab if there are no active groups but there are recent ones
+    const hasActive = cardList.some(c => c.group.status !== 'Completed');
+    const hasRecent = cardList.some(c => c.group.status === 'Completed');
+    if (!hasActive && hasRecent) {
+      this.activeTab.set('recent');
+    }
   }
 
   // ── Invite modal ──────────────────────────────────────────────────────────

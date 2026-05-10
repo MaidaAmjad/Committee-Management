@@ -38,6 +38,8 @@ export interface PaymentCard {
   loadingProofs: boolean;
   winnerPaymentInfo: WinnerPaymentInfo | null;
   showWinnerDetails: boolean;
+  winnerUserId: string | null;   // The member who was selected (for isWinner check)
+  leaderUserId: string | null;   // For shared groups: the leader's user_id (also a winner)
 }
 
 @Component({
@@ -83,36 +85,48 @@ export class PaymentsComponent implements OnInit {
         
         // Get winner's payment details if winner exists
         let winnerPaymentInfo: WinnerPaymentInfo | null = null;
+        let winnerUserId: string | null = null;
+        let leaderUserId: string | null = null;
+        
         if (winnerSelection) {
-          console.log('🏆 Winner found:', winnerSelection.member_name, 'Member ID:', winnerSelection.member_id);
+          console.log('🏆 Winner found:', winnerSelection.member_name, 'is_shared_group:', winnerSelection.is_shared_group);
           
-          // Find the member to get their user_id
-          const { data: members } = await this.committeeService.getCommitteeMembers(c.id);
-          const winnerMember = members?.find(m => m.id === winnerSelection.member_id);
-          
-          console.log('👤 Winner member record:', winnerMember);
-          
-          if (winnerMember) {
-            console.log('🔍 Fetching payment details for user_id:', winnerMember.user_id);
-            const { data: paymentDetails, error: paymentError } = await this.winnerService.getWinnerPaymentDetails(winnerMember.user_id);
-            
+          let paymentUserId: string | null = null;
+
+          if (winnerSelection.is_shared_group && winnerSelection.payment_details_user_id) {
+            // Shared group: always use the group leader's user_id for payment details
+            paymentUserId = winnerSelection.payment_details_user_id;
+            leaderUserId = winnerSelection.payment_details_user_id;
+            console.log('👥 Shared group winner — using leader user_id for payment details:', paymentUserId);
+            // Also get the selected member's user_id so both are treated as winners
+            const { data: members } = await this.committeeService.getCommitteeMembers(c.id);
+            const winnerMember = members?.find(m => m.id === winnerSelection.member_id);
+            winnerUserId = winnerMember?.user_id ?? null;
+          } else {
+            // Single member: find their user_id from committee_members
+            const { data: members } = await this.committeeService.getCommitteeMembers(c.id);
+            const winnerMember = members?.find(m => m.id === winnerSelection.member_id);
+            paymentUserId = winnerMember?.user_id ?? null;
+            winnerUserId = paymentUserId;
+            console.log('👤 Single winner member record:', winnerMember);
+          }
+
+          if (paymentUserId) {
+            console.log('🔍 Fetching payment details for user_id:', paymentUserId);
+            const { data: paymentDetails, error: paymentError } = await this.winnerService.getWinnerPaymentDetails(paymentUserId);
             console.log('💳 Payment details response:', { data: paymentDetails, error: paymentError });
-            
+
             if (paymentDetails) {
-              console.log('✅ Payment details found:', paymentDetails);
               winnerPaymentInfo = {
                 winner_name: winnerSelection.member_name,
                 methods: paymentDetails.methods
               };
             } else {
-              console.warn('⚠️ Winner exists but no payment details found for user_id:', winnerMember.user_id);
-              // Winner exists but no payment details
-              winnerPaymentInfo = {
-                winner_name: winnerSelection.member_name
-              };
+              winnerPaymentInfo = { winner_name: winnerSelection.member_name };
             }
           } else {
-            console.error('❌ Winner member not found in committee members! Winner member_id:', winnerSelection.member_id);
+            console.error('❌ Could not determine payment user_id for winner');
+            winnerPaymentInfo = { winner_name: winnerSelection.member_name };
           }
         } else {
           console.log('ℹ️ No winner selected yet for committee:', c.name);
@@ -152,6 +166,8 @@ export class PaymentsComponent implements OnInit {
           loadingProofs: false,
           winnerPaymentInfo: winnerPaymentInfo,
           showWinnerDetails: false,
+          winnerUserId: winnerUserId,
+          leaderUserId: leaderUserId,
         };
       })
     );
@@ -161,6 +177,19 @@ export class PaymentsComponent implements OnInit {
 
   isAdmin(card: PaymentCard): boolean {
     return card.committee.created_by === this.currentUserId();
+  }
+
+  /**
+   * Check if current user is the winner for this committee.
+   * For shared groups, both the leader and the member are winners.
+   */
+  isWinner(card: PaymentCard): boolean {
+    if (!card.winnerUserId) return false;
+    // Direct match (single winner or shared group member who was selected)
+    if (card.winnerUserId === this.currentUserId()) return true;
+    // For shared groups, also check if current user is the leader (payment_details_user_id)
+    if (card.leaderUserId && card.leaderUserId === this.currentUserId()) return true;
+    return false;
   }
 
   // ── Upload flow ──────────────────────────────────────────────────────────

@@ -1,0 +1,301 @@
+<div class="flex min-h-screen bg-[#f8fafc] text-[#191c1e]">
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <div class="flex flex-col flex-1 md:ml-64">
+    <header class="sticky top-0 z-30 bg-white border-b border-[#e2e8f0] h-16 flex items-center justify-between px-6">
+      <div>
+        <h1 class="text-xl font-bold text-[#0f172a]">Verification Requests</h1>
+        <p class="text-xs text-[#64748b]">Review and approve user identity verifications</p>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full">
+
+      @if (errorMsg()) {
+        <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined">error</span>{{ errorMsg() }}
+        </div>
+      }
+
+      <!-- Stats -->
+      @if (!loading()) {
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Total</p>
+            <p class="text-2xl font-bold text-[#0f172a]">{{ stats().total }}</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Pending</p>
+            <p class="text-2xl font-bold text-[#d97706]">{{ stats().pending }}</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Approved</p>
+            <p class="text-2xl font-bold text-[#15803d]">{{ stats().approved }}</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#e2e8f0] p-4">
+            <p class="text-xs text-[#64748b] font-semibold uppercase tracking-wide mb-1">Rejected</p>
+            <p class="text-2xl font-bold text-[#ba1a1a]">{{ stats().rejected }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- Filter Tabs -->
+      <div class="flex gap-2 mb-5">
+        @for (s of ['all','pending','approved','rejected']; track s) {
+          <button (click)="filterStatus.set($any(s))"
+            class="px-4 py-2 rounded-xl text-xs font-semibold border transition-all"
+            [class.bg-[#0058be]]="filterStatus() === s" [class.text-white]="filterStatus() === s"
+            [class.border-[#0058be]]="filterStatus() === s" [class.bg-white]="filterStatus() !== s"
+            [class.text-[#475569]]="filterStatus() !== s" [class.border-[#e2e8f0]]="filterStatus() !== s">
+            {{ s | titlecase }}
+            @if (s === 'pending' && stats().pending > 0) {
+              <span class="ml-1 bg-[#d97706] text-white text-[9px] px-1.5 py-0.5 rounded-full">{{ stats().pending }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+        @if (loading()) {
+          <div class="p-8 flex flex-col gap-3">
+            @for (i of [1,2,3]; track i) {
+              <div class="h-16 bg-[#f1f5f9] rounded-xl animate-pulse"></div>
+            }
+          </div>
+        } @else if (filtered().length === 0) {
+          <div class="p-12 text-center">
+            <span class="material-symbols-outlined text-4xl text-[#c3c6d7] block mb-3">verified_user</span>
+            <p class="text-sm font-semibold text-[#737686]">No {{ filterStatus() === 'all' ? '' : filterStatus() }} verification requests</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-[#f8fafc] border-b border-[#e2e8f0]">
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">User</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">CNIC</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Phone</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Submitted</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide">Status</th>
+                  <th class="px-6 py-3 text-xs font-semibold text-[#64748b] uppercase tracking-wide text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#f1f5f9]">
+                @for (item of filtered(); track item.id) {
+                  <tr class="hover:bg-[#f0f7ff] transition-colors cursor-pointer" (click)="openDetail(item)">
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-[#dbe1ff] text-[#004ac6] flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          {{ initials(item.full_name) }}
+                        </div>
+                        <div>
+                          <p class="text-sm font-semibold text-[#0f172a]">{{ item.full_name }}</p>
+                          <p class="text-xs text-[#64748b]">{{ item.user_id | slice:0:8 }}...</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-[#475569] font-mono">{{ item.cnic_number }}</td>
+                    <td class="px-6 py-4 text-sm text-[#475569]">{{ item.phone_number }}</td>
+                    <td class="px-6 py-4 text-sm text-[#475569]">{{ item.submitted_at | date:'MMM d, y' }}</td>
+                    <td class="px-6 py-4">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit"
+                        [style.background-color]="getStatusStyle(item.status).bg"
+                        [style.color]="getStatusStyle(item.status).color">
+                        <span class="material-symbols-outlined text-[12px]">{{ getStatusIcon(item.status) }}</span>
+                        {{ item.status | titlecase }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <button (click)="openDetail(item); $event.stopPropagation()"
+                        class="px-3 py-1.5 bg-[#dbe1ff] text-[#004ac6] text-xs font-semibold rounded-lg hover:bg-[#004ac6] hover:text-white transition-all">
+                        Review
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── Detail Drawer ──────────────────────────────────────────────────── -->
+@if (selectedItem()) {
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-end"
+    (click)="closeDetail()">
+    <div class="bg-white w-full max-w-xl h-full overflow-y-auto shadow-2xl"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="sticky top-0 bg-white border-b border-[#e2e8f0] px-6 py-4 flex items-center justify-between z-10">
+        <div>
+          <h2 class="text-base font-bold text-[#0f172a]">Verification Review</h2>
+          <p class="text-xs text-[#64748b]">{{ selectedItem()!.full_name }}</p>
+        </div>
+        <button (click)="closeDetail()" class="p-2 hover:bg-[#f1f5f9] rounded-full transition-colors">
+          <span class="material-symbols-outlined text-[#64748b]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 flex flex-col gap-6">
+
+        <!-- Status Banner -->
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl"
+          [style.background-color]="getStatusStyle(selectedItem()!.status).bg">
+          <span class="material-symbols-outlined text-[20px]"
+            [style.color]="getStatusStyle(selectedItem()!.status).color">
+            {{ getStatusIcon(selectedItem()!.status) }}
+          </span>
+          <div>
+            <p class="text-sm font-bold" [style.color]="getStatusStyle(selectedItem()!.status).color">
+              {{ selectedItem()!.status | titlecase }}
+            </p>
+            @if (selectedItem()!.reviewed_at) {
+              <p class="text-xs" [style.color]="getStatusStyle(selectedItem()!.status).color">
+                Reviewed {{ selectedItem()!.reviewed_at | date:'MMM d, y' }}
+              </p>
+            }
+            @if (selectedItem()!.rejection_reason) {
+              <p class="text-xs mt-1" [style.color]="getStatusStyle(selectedItem()!.status).color">
+                Reason: {{ selectedItem()!.rejection_reason }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="bg-[#f8fafc] rounded-xl p-4 border border-[#e2e8f0]">
+          <h3 class="text-xs font-bold text-[#64748b] uppercase tracking-wide mb-3">User Information</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <p class="text-xs text-[#64748b]">Full Name</p>
+              <p class="text-sm font-semibold text-[#0f172a]">{{ selectedItem()!.full_name }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-[#64748b]">Phone Number</p>
+              <p class="text-sm font-semibold text-[#0f172a]">{{ selectedItem()!.phone_number }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-[#64748b]">CNIC Number</p>
+              <p class="text-sm font-semibold text-[#0f172a] font-mono">{{ selectedItem()!.cnic_number }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-[#64748b]">Submitted</p>
+              <p class="text-sm font-semibold text-[#0f172a]">{{ selectedItem()!.submitted_at | date:'MMM d, y, h:mm a' }}</p>
+            </div>
+            @if (selectedItem()!.bank_account_title) {
+              <div class="col-span-2">
+                <p class="text-xs text-[#64748b]">Bank Account Title</p>
+                <p class="text-sm font-semibold text-[#0f172a]">{{ selectedItem()!.bank_account_title }}</p>
+              </div>
+            }
+            @if (selectedItem()!.additional_notes) {
+              <div class="col-span-2">
+                <p class="text-xs text-[#64748b]">Additional Notes</p>
+                <p class="text-sm text-[#475569]">{{ selectedItem()!.additional_notes }}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Documents -->
+        <div>
+          <h3 class="text-xs font-bold text-[#64748b] uppercase tracking-wide mb-3">Uploaded Documents</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- CNIC Front -->
+            <div class="flex flex-col gap-2">
+              <p class="text-xs font-semibold text-[#475569]">CNIC Front</p>
+              <div class="relative rounded-xl overflow-hidden border border-[#e2e8f0] bg-[#f8fafc] aspect-video cursor-pointer hover:opacity-90 transition-opacity"
+                (click)="openImage(selectedItem()!.cnic_front_url)">
+                <img [src]="selectedItem()!.cnic_front_url" alt="CNIC Front"
+                  class="w-full h-full object-cover"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+                <div class="hidden absolute inset-0 items-center justify-center flex-col gap-2">
+                  <span class="material-symbols-outlined text-[#94a3b8] text-3xl">image</span>
+                  <p class="text-xs text-[#94a3b8]">Click to view</p>
+                </div>
+                <div class="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
+                  View Full
+                </div>
+              </div>
+            </div>
+            <!-- Selfie -->
+            <div class="flex flex-col gap-2">
+              <p class="text-xs font-semibold text-[#475569]">Selfie / Profile Photo</p>
+              <div class="relative rounded-xl overflow-hidden border border-[#e2e8f0] bg-[#f8fafc] aspect-video cursor-pointer hover:opacity-90 transition-opacity"
+                (click)="openImage(selectedItem()!.selfie_url)">
+                <img [src]="selectedItem()!.selfie_url" alt="Selfie"
+                  class="w-full h-full object-cover"
+                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+                <div class="hidden absolute inset-0 items-center justify-center flex-col gap-2">
+                  <span class="material-symbols-outlined text-[#94a3b8] text-3xl">person</span>
+                  <p class="text-xs text-[#94a3b8]">Click to view</p>
+                </div>
+                <div class="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
+                  View Full
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Actions -->
+        @if (selectedItem()!.status === 'pending') {
+          <div class="flex gap-3 pt-2">
+            <button (click)="approve(selectedItem()!)"
+              [disabled]="processing()"
+              class="flex-1 flex items-center justify-center gap-2 py-3 bg-[#16a34a] text-white text-sm font-semibold rounded-xl hover:bg-[#15803d] transition-all disabled:opacity-50">
+              <span class="material-symbols-outlined text-[18px]">verified</span>
+              Approve Verification
+            </button>
+            <button (click)="openRejectModal()"
+              [disabled]="processing()"
+              class="flex-1 flex items-center justify-center gap-2 py-3 bg-[#ffdad6] text-[#ba1a1a] text-sm font-semibold rounded-xl hover:bg-[#ba1a1a] hover:text-white transition-all disabled:opacity-50">
+              <span class="material-symbols-outlined text-[18px]">cancel</span>
+              Reject
+            </button>
+          </div>
+        }
+
+        @if (selectedItem()!.status === 'approved') {
+          <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] rounded-xl px-4 py-3">
+            <span class="material-symbols-outlined text-[#155724]" style="font-variation-settings:'FILL' 1;">verified</span>
+            <p class="text-sm font-semibold text-[#155724]">This user is verified ✅</p>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reject Modal -->
+@if (showRejectModal() && selectedItem()) {
+  <div class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-base font-bold text-[#0f172a] mb-1">Reject Verification</h3>
+      <p class="text-xs text-[#64748b] mb-4">Provide a reason for rejection. This will be shown to the user.</p>
+      <textarea
+        [(ngModel)]="rejectionReason"
+        rows="3"
+        placeholder="e.g. CNIC image is blurry, please resubmit with a clearer photo..."
+        class="w-full px-4 py-3 border border-[#e2e8f0] rounded-xl text-sm outline-none focus:border-[#ba1a1a] resize-none mb-4">
+      </textarea>
+      <div class="flex gap-3">
+        <button (click)="showRejectModal.set(false)"
+          class="flex-1 py-2.5 border border-[#e2e8f0] text-[#475569] text-sm font-semibold rounded-xl hover:bg-[#f1f5f9] transition-all">
+          Cancel
+        </button>
+        <button (click)="confirmReject(selectedItem()!)"
+          [disabled]="!rejectionReason.trim() || processing()"
+          class="flex-1 py-2.5 bg-[#ba1a1a] text-white text-sm font-semibold rounded-xl hover:bg-[#d32f2f] transition-all disabled:opacity-50">
+          Confirm Reject
+        </button>
+      </div>
+    </div>
+  </div>
+}

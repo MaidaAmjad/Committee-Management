@@ -25,12 +25,18 @@
             >Active</button>
             <button
               (click)="activeTab = 'Past'"
-              class="px-6 py-2 rounded-lg text-sm font-semibold transition-colors"
+              class="px-6 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
               [class.bg-white]="activeTab === 'Past'"
               [class.text-[#191c1e]]="activeTab === 'Past'"
               [class.shadow-sm]="activeTab === 'Past'"
               [class.text-[#434655]]="activeTab !== 'Past'"
-            >Past</button>
+            >Past
+              @if (!loading() && pastCount() > 0) {
+                <span class="bg-[#737686] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  {{ pastCount() }}
+                </span>
+              }
+            </button>
           </div>
           <!-- Create Button -->
           <button
@@ -65,7 +71,7 @@
           <h2 class="text-2xl font-bold text-[#191c1e]">Committees I Lead</h2>
           @if (!loading()) {
             <span class="bg-[#dbe1ff] text-[#004ac6] text-xs font-bold px-2.5 py-0.5 rounded-full">
-              {{ leadCommittees().length }}
+              {{ activeTab === 'Active' ? activeLeadCommittees().length : pastLeadCommittees().length }}
             </span>
           }
         </div>
@@ -88,27 +94,34 @@
         }
 
         <!-- Empty state -->
-        @if (!loading() && leadCommittees().length === 0 && !errorMsg()) {
+        @if (!loading() && (activeTab === 'Active' ? activeLeadCommittees() : pastLeadCommittees()).length === 0 && !errorMsg()) {
           <div class="bg-white rounded-2xl border-2 border-dashed border-[#c3c6d7] p-12 flex flex-col items-center justify-center text-center">
             <div class="w-16 h-16 bg-[#dbe1ff] rounded-2xl flex items-center justify-center mb-4">
-              <span class="material-symbols-outlined text-[#004ac6] text-3xl">groups</span>
+              <span class="material-symbols-outlined text-[#004ac6] text-3xl">{{ activeTab === 'Past' ? 'history' : 'groups' }}</span>
             </div>
-            <h3 class="text-lg font-bold text-[#191c1e] mb-2">No committees yet</h3>
-            <p class="text-sm text-[#737686] mb-6 max-w-xs">You haven't created any committees. Start one and invite members to join your savings circle.</p>
-            <button
-              (click)="goToCreate()"
-              class="flex items-center gap-2 px-6 py-3 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
-              <span class="material-symbols-outlined text-[18px]">add_circle</span>
-              Create Your First Committee
-            </button>
+            <h3 class="text-lg font-bold text-[#191c1e] mb-2">
+              {{ activeTab === 'Past' ? 'No completed committees yet' : 'No committees yet' }}
+            </h3>
+            <p class="text-sm text-[#737686] mb-6 max-w-xs">
+              {{ activeTab === 'Past' ? 'Committees you lead will appear here once completed.' : 'You haven\'t created any committees. Start one and invite members to join your savings circle.' }}
+            </p>
+            @if (activeTab === 'Active') {
+              <button
+                (click)="goToCreate()"
+                class="flex items-center gap-2 px-6 py-3 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                Create Your First Committee
+              </button>
+            }
           </div>
         }
 
-        <!-- Real committees -->
-        @if (!loading() && leadCommittees().length > 0) {
+        <!-- Committees list -->
+        @if (!loading() && (activeTab === 'Active' ? activeLeadCommittees() : pastLeadCommittees()).length > 0) {
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            @for (committee of leadCommittees(); track committee.id) {
-              <div class="bg-white rounded-2xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
+            @for (committee of (activeTab === 'Active' ? activeLeadCommittees() : pastLeadCommittees()); track committee.id) {
+              <div class="bg-white rounded-2xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group"
+                [class.opacity-75]="committee.status === 'Completed'">
 
                 <!-- Header -->
                 <div class="flex justify-between items-start mb-4">
@@ -155,7 +168,7 @@
                 <div class="flex items-center justify-between bg-[#f2f4f6] rounded-xl px-4 py-3 mb-4">
                   <span class="text-xs font-semibold text-[#737686]">Total Pool Value</span>
                   <span class="text-sm font-bold text-[#004ac6]">
-                    ${{ (committee.monthly_amount * committee.max_members * committee.duration_months).toLocaleString() }}
+                    Rs. {{ (committee.monthly_amount * committee.max_members * committee.duration_months).toLocaleString() }}
                   </span>
                 </div>
 
@@ -168,16 +181,18 @@
               </div>
             }
 
-            <!-- Add another card -->
-            <div
-              (click)="goToCreate()"
-              class="bg-white rounded-2xl border-2 border-dashed border-[#c3c6d7] p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] hover:bg-[#f7f9ff] transition-all min-h-[200px]">
-              <div class="w-12 h-12 rounded-full bg-[#dbe1ff] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <span class="material-symbols-outlined text-[#004ac6]">add</span>
+            <!-- Add another card — only on Active tab -->
+            @if (activeTab === 'Active') {
+              <div
+                (click)="goToCreate()"
+                class="bg-white rounded-2xl border-2 border-dashed border-[#c3c6d7] p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] hover:bg-[#f7f9ff] transition-all min-h-[200px]">
+                <div class="w-12 h-12 rounded-full bg-[#dbe1ff] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <span class="material-symbols-outlined text-[#004ac6]">add</span>
+                </div>
+                <h3 class="text-sm font-bold text-[#191c1e]">Create Another</h3>
+                <p class="text-xs text-[#737686] mt-1">Start a new savings circle</p>
               </div>
-              <h3 class="text-sm font-bold text-[#191c1e]">Create Another</h3>
-              <p class="text-xs text-[#737686] mt-1">Start a new savings circle</p>
-            </div>
+            }
           </div>
         }
       </section>
@@ -189,7 +204,7 @@
           <h2 class="text-2xl font-bold text-[#191c1e]">Committees I'm In</h2>
           @if (!loading()) {
             <span class="bg-[#e6e8ea] text-[#434655] text-xs font-bold px-2.5 py-0.5 rounded-full">
-              {{ joinedCommittees().length }}
+              {{ activeTab === 'Active' ? activeJoinedCommittees().length : pastJoinedCommittees().length }}
             </span>
           }
         </div>
@@ -209,12 +224,26 @@
           </div>
         }
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <!-- Empty state for joined -->
+        @if (!loading() && (activeTab === 'Active' ? activeJoinedCommittees() : pastJoinedCommittees()).length === 0) {
+          <div class="bg-white rounded-xl border-2 border-dashed border-[#c3c6d7] p-10 flex flex-col items-center justify-center text-center">
+            <span class="material-symbols-outlined text-[#c3c6d7] text-4xl mb-3">{{ activeTab === 'Past' ? 'history' : 'group_add' }}</span>
+            <p class="text-sm font-semibold text-[#737686]">
+              {{ activeTab === 'Past' ? 'No completed memberships yet' : 'You haven\'t joined any committees yet' }}
+            </p>
+            @if (activeTab === 'Active') {
+              <button (click)="goToBrowse()" class="mt-4 px-4 py-2 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all">
+                Browse Committees
+              </button>
+            }
+          </div>
+        }
 
-          <!-- Real joined committees -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           @if (!loading()) {
-            @for (committee of joinedCommittees(); track committee.id) {
-              <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group">
+            @for (committee of (activeTab === 'Active' ? activeJoinedCommittees() : pastJoinedCommittees()); track committee.id) {
+              <div class="bg-white rounded-xl border border-[#c3c6d7] p-6 shadow-sm hover:shadow-md transition-all group"
+                [class.opacity-75]="committee.status === 'Completed'">
                 <div class="flex justify-between items-start mb-4">
                   <div>
                     <h3 class="text-sm font-bold text-[#191c1e] group-hover:text-[#004ac6] transition-colors">
@@ -259,16 +288,18 @@
             }
           }
 
-          <!-- Join New Committee CTA -->
-          <div
-            (click)="goToBrowse()"
-            class="bg-[#f2f4f6] rounded-xl border-2 border-dashed border-[#c3c6d7] p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] hover:bg-[#f7f9ff] transition-all min-h-[160px]">
-            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[#004ac6]">search</span>
+          <!-- Join New Committee CTA — only on Active tab -->
+          @if (activeTab === 'Active') {
+            <div
+              (click)="goToBrowse()"
+              class="bg-[#f2f4f6] rounded-xl border-2 border-dashed border-[#c3c6d7] p-8 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-[#004ac6] hover:bg-[#f7f9ff] transition-all min-h-[160px]">
+              <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-[#004ac6]">search</span>
+              </div>
+              <h3 class="text-sm font-bold text-[#191c1e]">Join a Committee</h3>
+              <p class="text-xs text-[#737686] mt-1">Browse and join savings circles</p>
             </div>
-            <h3 class="text-sm font-bold text-[#191c1e]">Join a Committee</h3>
-            <p class="text-xs text-[#737686] mt-1">Browse and join savings circles</p>
-          </div>
+          }
         </div>
       </section>
 

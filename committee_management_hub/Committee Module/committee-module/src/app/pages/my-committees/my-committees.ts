@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -22,6 +22,17 @@ export class MyCommitteesComponent implements OnInit, OnDestroy {
   joinedCommittees = signal<Committee[]>([]);
   loading          = signal(true);
   errorMsg         = signal('');
+
+  // Active tab: non-completed committees
+  activeLeadCommittees   = computed(() => this.leadCommittees().filter(c => c.status !== 'Completed'));
+  activeJoinedCommittees = computed(() => this.joinedCommittees().filter(c => c.status !== 'Completed'));
+
+  // Past tab: completed committees only
+  pastLeadCommittees   = computed(() => this.leadCommittees().filter(c => c.status === 'Completed'));
+  pastJoinedCommittees = computed(() => this.joinedCommittees().filter(c => c.status === 'Completed'));
+
+  // Total past count for badge
+  pastCount = computed(() => this.pastLeadCommittees().length + this.pastJoinedCommittees().length);
 
   private routerSub?: Subscription;
 

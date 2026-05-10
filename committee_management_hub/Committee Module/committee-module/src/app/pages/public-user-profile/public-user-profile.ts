@@ -1,12 +1,15 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { PaymentMethodService, PaymentMethod } from '../../core/payment-method.service';
+import { VerificationService, VerificationRequest } from '../../core/verification.service';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
+import { VerifiedBadgeComponent } from '../../shared/verified-badge/verified-badge';
 
 export interface PaymentRecord { label: string; date: string; }
 export interface Review {
@@ -17,13 +20,83 @@ export interface Review {
 @Component({
   selector: 'app-public-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopnavComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent, VerifiedBadgeComponent],
   templateUrl: './public-user-profile.html',
   styleUrl: './public-user-profile.scss'
 })
 export class PublicUserProfileComponent implements OnInit {
 
   paymentMethods = signal<PaymentMethod[]>([]);
+
+  // ── Verification ──────────────────────────────────────────────────────────
+  verification       = signal<VerificationRequest | null>(null);
+  showVerifyModal    = signal(false);
+  verifyStep         = signal<1 | 2>(1); // step 1: form, step 2: upload docs
+  verifySubmitting   = signal(false);
+  verifyError        = signal('');
+  verifySuccess      = signal(false);
+
+  // Form fields
+  vFullName       = '';
+  vPhone          = '';
+  vCnic           = '';
+  vBankTitle      = '';
+  vNotes          = '';
+
+  // Field-level errors
+  phoneError      = signal('');
+  cnicError       = signal('');
+
+  // Validation helpers
+  private isValidPhone(phone: string): boolean {
+    // Accepts: 03XX-XXXXXXX, 03XXXXXXXXX, +923XXXXXXXXX, 923XXXXXXXXX
+    const cleaned = phone.replace(/[\s\-]/g, '');
+    return /^(03\d{9}|\+923\d{9}|923\d{9})$/.test(cleaned);
+  }
+
+  private isValidCnic(cnic: string): boolean {
+    // Accepts: XXXXX-XXXXXXX-X or XXXXXXXXXXXXX (13 digits)
+    const cleaned = cnic.replace(/-/g, '');
+    return /^\d{13}$/.test(cleaned);
+  }
+
+  formatCnic(value: string): string {
+    // Auto-format as XXXXX-XXXXXXX-X
+    const digits = value.replace(/\D/g, '').slice(0, 13);
+    if (digits.length <= 5) return digits;
+    if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+  }
+
+  onCnicInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = this.formatCnic(input.value);
+    this.vCnic = formatted;
+    input.value = formatted;
+    if (formatted.length > 0 && !this.isValidCnic(formatted)) {
+      this.cnicError.set('Format: XXXXX-XXXXXXX-X (13 digits)');
+    } else {
+      this.cnicError.set('');
+    }
+  }
+
+  onPhoneInput(): void {
+    if (this.vPhone.length > 0 && !this.isValidPhone(this.vPhone)) {
+      this.phoneError.set('Format: 03XX-XXXXXXX or +923XXXXXXXXX');
+    } else {
+      this.phoneError.set('');
+    }
+  }
+
+  // File uploads
+  cnicFrontFile:   File | null = null;
+  cnicFrontPreview = signal('');
+  selfieFile:      File | null = null;
+  selfiePreview    = signal('');
+  uploadingCnic    = signal(false);
+  uploadingSelfie  = signal(false);
+  cnicFrontUrl     = '';
+  selfieUrl        = '';
 
   // ── Computed user data from Supabase session ──────────────────────────────
   displayName = computed(() => {
@@ -59,7 +132,8 @@ export class PublicUserProfileComponent implements OnInit {
     public auth: AuthService,
     private supabaseService: SupabaseService,
     private fb: FormBuilder,
-    private paymentMethodService: PaymentMethodService
+    private paymentMethodService: PaymentMethodService,
+    private verificationService: VerificationService
   ) {
     this.editForm = this.fb.group({
       full_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -72,6 +146,142 @@ export class PublicUserProfileComponent implements OnInit {
     await this.auth.ready;
     const { data } = await this.paymentMethodService.getMyMethods();
     this.paymentMethods.set(data);
+    // Load verification status
+    const { data: verif } = await this.verificationService.getMyVerification();
+    this.verification.set(verif);
+  }
+
+  // ── Verification Modal ────────────────────────────────────────────────────
+
+  openVerifyModal(): void {
+    const u = this.auth.user();
+    this.vFullName = u?.user_metadata?.['full_name'] || '';
+    this.vPhone    = u?.user_metadata?.['phone'] || '';
+    this.vCnic = ''; this.vBankTitle = ''; this.vNotes = '';
+    this.cnicFrontFile = null; this.selfieFile = null;
+    this.cnicFrontPreview.set(''); this.selfiePreview.set('');
+    this.cnicFrontUrl = ''; this.selfieUrl = '';
+    this.verifyError.set(''); this.verifySuccess.set(false);
+    this.phoneError.set(''); this.cnicError.set('');
+    this.verifyStep.set(1);
+    this.showVerifyModal.set(true);
+  }
+
+  closeVerifyModal(): void { this.showVerifyModal.set(false); }
+
+  goToStep2(): void {
+    this.verifyError.set('');
+    this.phoneError.set('');
+    this.cnicError.set('');
+
+    if (!this.vFullName.trim()) {
+      this.verifyError.set('Full Name is required.');
+      return;
+    }
+    if (!this.vPhone.trim()) {
+      this.verifyError.set('Phone Number is required.');
+      return;
+    }
+    if (!this.isValidPhone(this.vPhone)) {
+      this.phoneError.set('Format: 03XX-XXXXXXX or +923XXXXXXXXX');
+      this.verifyError.set('Please enter a valid Pakistani phone number.');
+      return;
+    }
+    if (!this.vCnic.trim()) {
+      this.verifyError.set('CNIC Number is required.');
+      return;
+    }
+    if (!this.isValidCnic(this.vCnic)) {
+      this.cnicError.set('Format: XXXXX-XXXXXXX-X (13 digits)');
+      this.verifyError.set('Please enter a valid CNIC number.');
+      return;
+    }
+
+    this.verifyStep.set(2);
+  }
+
+  onCnicFrontSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!['image/jpeg','image/png','application/pdf'].includes(file.type)) {
+      this.verifyError.set('Only JPG, PNG, or PDF allowed.'); return;
+    }
+    if (file.size > 5 * 1024 * 1024) { this.verifyError.set('File must be under 5MB.'); return; }
+    this.cnicFrontFile = file;
+    if (file.type.startsWith('image')) {
+      const reader = new FileReader();
+      reader.onload = e => this.cnicFrontPreview.set(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      this.cnicFrontPreview.set('pdf');
+    }
+    this.verifyError.set('');
+  }
+
+  onSelfieSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!['image/jpeg','image/png'].includes(file.type)) {
+      this.verifyError.set('Selfie must be JPG or PNG.'); return;
+    }
+    if (file.size > 5 * 1024 * 1024) { this.verifyError.set('File must be under 5MB.'); return; }
+    this.selfieFile = file;
+    const reader = new FileReader();
+    reader.onload = e => this.selfiePreview.set(e.target?.result as string);
+    reader.readAsDataURL(file);
+    this.verifyError.set('');
+  }
+
+  async submitVerification(): Promise<void> {
+    if (!this.cnicFrontFile || !this.selfieFile) {
+      this.verifyError.set('Please upload both CNIC front image and selfie.'); return;
+    }
+    this.verifySubmitting.set(true);
+    this.verifyError.set('');
+
+    // Upload CNIC front
+    this.uploadingCnic.set(true);
+    const { url: cnicUrl, error: cnicErr } = await this.verificationService.uploadDocument(this.cnicFrontFile, 'cnic_front');
+    this.uploadingCnic.set(false);
+    if (cnicErr || !cnicUrl) {
+      this.verifyError.set('Failed to upload CNIC image: ' + (cnicErr || 'Unknown error'));
+      this.verifySubmitting.set(false); return;
+    }
+
+    // Upload selfie
+    this.uploadingSelfie.set(true);
+    const { url: selfieUrl, error: selfieErr } = await this.verificationService.uploadDocument(this.selfieFile, 'selfie');
+    this.uploadingSelfie.set(false);
+    if (selfieErr || !selfieUrl) {
+      this.verifyError.set('Failed to upload selfie: ' + (selfieErr || 'Unknown error'));
+      this.verifySubmitting.set(false); return;
+    }
+
+    // Submit verification
+    const { error } = await this.verificationService.submitVerification({
+      full_name:          this.vFullName.trim(),
+      phone_number:       this.vPhone.trim(),
+      cnic_number:        this.vCnic.trim(),
+      cnic_front_url:     cnicUrl,
+      selfie_url:         selfieUrl,
+      bank_account_title: this.vBankTitle.trim() || undefined,
+      additional_notes:   this.vNotes.trim() || undefined,
+    });
+
+    this.verifySubmitting.set(false);
+    if (error) { this.verifyError.set(error); return; }
+
+    this.verifySuccess.set(true);
+    // Refresh verification status
+    const { data: verif } = await this.verificationService.getMyVerification();
+    this.verification.set(verif);
+    setTimeout(() => this.showVerifyModal.set(false), 2000);
+  }
+
+  get verificationStatus(): 'none' | 'pending' | 'approved' | 'rejected' {
+    const v = this.verification();
+    if (!v) return 'none';
+    return v.status as any;
   }
 
   openEditModal(): void {

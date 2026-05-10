@@ -105,6 +105,12 @@
                 <div class="flex flex-wrap items-center gap-3 mb-2">
                   <h2 class="text-2xl font-bold text-[#191c1e]">{{ profile()!.full_name }}</h2>
                   <span class="bg-[#d0e1fb] text-[#004ac6] px-3 py-0.5 rounded-full text-xs font-semibold">Member</span>
+                  @if (isVerified()) {
+                    <span class="flex items-center gap-1 bg-[#1d4ed8] text-white px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                      <svg viewBox="0 0 24 24" fill="white" width="11" height="11"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      Verified
+                    </span>
+                  }
                   @if (isOwnProfile()) {
                     <span class="bg-[#dbe1ff] text-[#004ac6] px-3 py-0.5 rounded-full text-xs font-semibold">You</span>
                   }
@@ -218,7 +224,7 @@
                       </div>
                       <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold text-[#191c1e] group-hover:text-[#004ac6] truncate transition-colors">{{ c.name }}</p>
-                        <p class="text-[10px] text-[#737686]">${{ c.monthly_amount | number }} · {{ c.duration_months }}mo</p>
+                        <p class="text-[10px] text-[#737686]">Rs. {{ c.monthly_amount | number }} · {{ c.duration_months }}mo</p>
                       </div>
                       <span class="material-symbols-outlined text-[#c3c6d7] text-[16px] group-hover:text-[#004ac6] transition-colors">chevron_right</span>
                     </div>

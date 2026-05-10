@@ -125,110 +125,340 @@ export class SharedGroupService {
 
   /**
    * Returns all shared groups where the current user is either the leader or member.
-   * Fetches real committee members from the database and enriches mock groups.
+   * Loads from database for persistence across page refreshes.
    */
   async getMySharedGroups(): Promise<{ data: SharedGroup[]; error: string | null }> {
     const user = this.auth.user();
     if (!user) return { data: [], error: 'Not authenticated' };
 
-    console.log('Fetching shared groups for user:', user.id);
-    console.log('Mock groups available:', this.mockGroups.length);
+    console.log('🔍 Fetching shared groups for user:', user.id);
 
-    // Get mock groups for this user
-    const myGroups = this.mockGroups.filter(
-      g => g.group_leader.user_id === user.id || g.group_member?.user_id === user.id
-    );
+    // Get user's committee_member IDs (including pending members)
+    const { data: myMemberRecords, error: memberError } = await this.supabase
+      .from('committee_members')
+      .select('id, committee_id')
+      .eq('user_id', user.id)
+      .eq('slot_type', 'shared')
+      .in('status', ['pending', 'approved']); // Include both pending and approved
 
-    console.log('My groups after filter:', myGroups.length);
+    if (memberError) {
+      console.error('❌ Failed to fetch member records:', memberError);
+      return { data: [], error: memberError.message };
+    }
 
-    // If no mock groups, return empty (user hasn't created any shared groups yet)
-    if (myGroups.length === 0) {
+    if (!myMemberRecords || myMemberRecords.length === 0) {
+      console.log('ℹ️ No shared member records found');
       return { data: [], error: null };
     }
 
-    // Enrich each group with real committee members
+    const myMemberIds = myMemberRecords.map(m => m.id);
+    console.log('👤 My member IDs:', myMemberIds);
+
+    // Get shared groups where user is leader or member
+    // Using separate queries and combining results for better compatibility
+    const leaderQuery = this.supabase
+      .from('shared_groups')
+      .select('*')
+      .in('group_leader_member_id', myMemberIds);
+
+    const memberQuery = this.supabase
+      .from('shared_groups')
+      .select('*')
+      .in('group_member_member_id', myMemberIds);
+
+    const [leaderResult, memberResult] = await Promise.all([leaderQuery, memberQuery]);
+
+    if (leaderResult.error) {
+      console.error('❌ Failed to fetch shared groups (leader):', leaderResult.error);
+      return { data: [], error: leaderResult.error.message };
+    }
+
+    if (memberResult.error) {
+      console.error('❌ Failed to fetch shared groups (member):', memberResult.error);
+      return { data: [], error: memberResult.error.message };
+    }
+
+    // Combine results and remove duplicates
+    const allGroups = [...(leaderResult.data || []), ...(memberResult.data || [])];
+    const uniqueGroups = Array.from(new Map(allGroups.map(g => [g.id, g])).values());
+    const dbGroups = uniqueGroups;
+
+    console.log('📊 Database query result:', dbGroups);
+
+    if (!dbGroups || dbGroups.length === 0) {
+      console.log('ℹ️ No shared groups found in database');
+      return { data: [], error: null };
+    }
+
+    console.log('✅ Found', dbGroups.length, 'shared groups in database');
+    console.log('📋 Raw database groups:', JSON.stringify(dbGroups, null, 2));
+
+    // Convert database records to SharedGroup format
     const enrichedGroups: SharedGroup[] = [];
 
-    for (const group of myGroups) {
-      console.log('Processing group:', group.committee_name, 'Committee ID:', group.committee_id);
+    for (const dbGroup of dbGroups) {
+      console.log('🔄 Processing group:', dbGroup.id);
+      
+      // Get committee info
+      const { data: committee, error: committeeError } = await this.supabase
+        .from('committees')
+        .select('name, monthly_amount')
+        .eq('id', dbGroup.committee_id)
+        .single();
 
-      // Fetch all shared members for this committee (try both with and without slot_type filter)
-      let { data: members, error } = await this.supabase
-        .from('committee_members')
-        .select('*')
-        .eq('committee_id', group.committee_id)
-        .eq('slot_type', 'shared')
-        .eq('status', 'approved');
-
-      // If no members found with slot_type filter, try without it (backward compatibility)
-      if (!members || members.length === 0) {
-        console.log('No members with slot_type=shared, trying without filter...');
-        const result = await this.supabase
-          .from('committee_members')
-          .select('*')
-          .eq('committee_id', group.committee_id)
-          .eq('status', 'approved');
-        
-        members = result.data;
-        error = result.error;
+      if (committeeError) {
+        console.error('❌ Error fetching committee:', committeeError);
       }
 
-      if (error) {
-        console.warn('Failed to fetch shared members:', error);
-        // Still show the group even if query fails
-        enrichedGroups.push(group);
+      if (!committee) {
+        console.warn('⚠️ Committee not found for group:', dbGroup.id, 'committee_id:', dbGroup.committee_id);
         continue;
       }
 
-      console.log('Found members:', members?.length || 0, members);
+      console.log('✅ Committee found:', committee.name);
 
-      // If there are 2 shared members, update the group
-      if (members && members.length === 2) {
-        const leader = members.find(m => m.user_id === group.group_leader.user_id);
-        const member = members.find(m => m.user_id !== group.group_leader.user_id);
+      // Get leader info
+      const { data: leaderMember, error: leaderError } = await this.supabase
+        .from('committee_members')
+        .select('user_id, full_name, email')
+        .eq('id', dbGroup.group_leader_member_id)
+        .single();
 
-        console.log('Leader found:', !!leader, 'Member found:', !!member);
-
-        if (member) {
-          // Update the group with the second member
-          const updatedGroup: SharedGroup = {
-            ...group,
-            status: 'Active',
-            group_member: {
-              user_id: member.user_id,
-              full_name: member.full_name,
-              email: member.email,
-              trust_score: 90,
-              payment_status: 'Unpaid',
-            },
-            pending_invitee_email: null,
-          };
-          enrichedGroups.push(updatedGroup);
-        } else {
-          enrichedGroups.push(group);
-        }
-      } else if (members && members.length === 1) {
-        // Only one member (the leader), keep as "Pending Member"
-        console.log('Only one member, keeping as Pending');
-        enrichedGroups.push(group);
-      } else if (members && members.length === 0) {
-        // No approved shared members yet, keep original group
-        console.log('No approved members yet');
-        enrichedGroups.push(group);
-      } else {
-        enrichedGroups.push(group);
+      if (leaderError) {
+        console.error('❌ Error fetching leader:', leaderError);
       }
+
+      if (!leaderMember) {
+        console.warn('⚠️ Leader not found for group:', dbGroup.id, 'leader_id:', dbGroup.group_leader_member_id);
+        continue;
+      }
+
+      console.log('✅ Leader found:', leaderMember.full_name);
+
+      // Get member info (if exists)
+      let memberInfo = null;
+      if (dbGroup.group_member_member_id) {
+        console.log('🔍 Fetching second member:', dbGroup.group_member_member_id);
+        
+        const { data: memberMember, error: memberError } = await this.supabase
+          .from('committee_members')
+          .select('user_id, full_name, email')
+          .eq('id', dbGroup.group_member_member_id)
+          .single();
+
+        if (memberError) {
+          console.error('❌ Error fetching member:', memberError);
+        }
+
+        if (memberMember) {
+          console.log('✅ Member found:', memberMember.full_name);
+          memberInfo = {
+            user_id: memberMember.user_id,
+            full_name: memberMember.full_name,
+            email: memberMember.email,
+            trust_score: 95,
+            payment_status: 'Unpaid' as IndividualPaymentStatus
+          };
+        } else {
+          console.warn('⚠️ Member not found for ID:', dbGroup.group_member_member_id);
+        }
+      } else {
+        console.log('ℹ️ No second member yet (pending)');
+      }
+
+      const group: SharedGroup = {
+        id: dbGroup.id,
+        committee_id: dbGroup.committee_id,
+        committee_name: committee.name,
+        monthly_amount: committee.monthly_amount,
+        individual_contribution: this.computeIndividualContribution(committee.monthly_amount),
+        status: dbGroup.status === 'active' ? 'Active' : dbGroup.status === 'pending' ? 'Pending Member' : 'Completed',
+        slot_payment_status: 'Unpaid',
+        group_leader: {
+          user_id: leaderMember.user_id,
+          full_name: leaderMember.full_name,
+          email: leaderMember.email,
+          trust_score: 95,
+          payment_status: 'Unpaid'
+        },
+        group_member: memberInfo,
+        pending_invitee_email: null,
+        created_at: dbGroup.created_at
+      };
+
+      // Compute slot payment status
+      group.slot_payment_status = this.computeSlotPaymentStatus(group);
+
+      console.log('✅ Enriched group created:', {
+        id: group.id,
+        committee: group.committee_name,
+        leader: group.group_leader.full_name,
+        member: group.group_member?.full_name || 'None',
+        status: group.status
+      });
+
+      enrichedGroups.push(group);
     }
 
-    console.log('Returning enriched groups:', enrichedGroups.length);
+    // Update mockGroups for backward compatibility
+    this.mockGroups = enrichedGroups;
+
+    console.log('✅ Returning', enrichedGroups.length, 'enriched groups');
+    console.log('📦 Final enriched groups:', JSON.stringify(enrichedGroups.map(g => ({
+      id: g.id,
+      committee: g.committee_name,
+      leader: g.group_leader.full_name,
+      member: g.group_member?.full_name,
+      status: g.status
+    })), null, 2));
+    
     return { data: enrichedGroups, error: null };
   }
 
   // ── Mutation methods ──────────────────────────────────────────────────────
 
   /**
+   * Find a pending shared group for a committee (waiting for second member)
+   * Returns null if no pending group exists
+   */
+  async findPendingSharedGroup(committeeId: string): Promise<{ data: SharedGroup | null; error: string | null }> {
+    console.log('🔍 Looking for pending shared group in committee:', committeeId);
+
+    // First, log all shared groups for this committee (for debugging)
+    const { data: allGroups, error: allError } = await this.supabase
+      .from('shared_groups')
+      .select('id, status, group_leader_member_id, group_member_member_id')
+      .eq('committee_id', committeeId);
+
+    console.log('📋 All shared groups for committee:', allGroups, 'error:', allError);
+
+    const { data: pendingGroups, error } = await this.supabase
+      .from('shared_groups')
+      .select('*')
+      .eq('committee_id', committeeId)
+      .eq('status', 'pending')
+      .is('group_member_member_id', null)
+      .limit(1);
+
+    console.log('🔎 Pending groups query result:', pendingGroups, 'error:', error);
+
+    if (error) {
+      console.error('❌ Failed to find pending shared group:', error);
+      return { data: null, error: error.message };
+    }
+
+    if (!pendingGroups || pendingGroups.length === 0) {
+      console.log('ℹ️ No pending shared group found');
+      return { data: null, error: null };
+    }
+
+    const dbGroup = pendingGroups[0];
+    console.log('✅ Found pending shared group:', dbGroup.id);
+
+    // Get committee info
+    const { data: committee } = await this.supabase
+      .from('committees')
+      .select('name, monthly_amount')
+      .eq('id', dbGroup.committee_id)
+      .single();
+
+    if (!committee) {
+      return { data: null, error: 'Committee not found' };
+    }
+
+    // Get leader info
+    const { data: leaderMember } = await this.supabase
+      .from('committee_members')
+      .select('user_id, full_name, email')
+      .eq('id', dbGroup.group_leader_member_id)
+      .single();
+
+    if (!leaderMember) {
+      return { data: null, error: 'Leader not found' };
+    }
+
+    const group: SharedGroup = {
+      id: dbGroup.id,
+      committee_id: dbGroup.committee_id,
+      committee_name: committee.name,
+      monthly_amount: committee.monthly_amount,
+      individual_contribution: this.computeIndividualContribution(committee.monthly_amount),
+      status: 'Pending Member',
+      slot_payment_status: 'Unpaid',
+      group_leader: {
+        user_id: leaderMember.user_id,
+        full_name: leaderMember.full_name,
+        email: leaderMember.email,
+        trust_score: 95,
+        payment_status: 'Unpaid'
+      },
+      group_member: null,
+      pending_invitee_email: null,
+      created_at: dbGroup.created_at
+    };
+
+    return { data: group, error: null };
+  }
+
+  /**
+   * Join an existing pending shared group as the second member
+   */
+  async joinExistingSharedGroup(
+    groupId: string,
+    committeeId: string
+  ): Promise<{ error: string | null }> {
+    const user = this.auth.user();
+    if (!user) return { error: 'Not authenticated' };
+
+    console.log('👥 Joining existing shared group:', groupId);
+
+    // Get the current user's committee_member record
+    const { data: memberRecord, error: memberError } = await this.supabase
+      .from('committee_members')
+      .select('id')
+      .eq('committee_id', committeeId)
+      .eq('user_id', user.id)
+      .eq('slot_type', 'shared')
+      .single();
+
+    if (memberError || !memberRecord) {
+      console.error('Failed to find member record:', memberError);
+      return { error: 'Could not find your member record. Please try again.' };
+    }
+
+    console.log('✅ Found member record:', memberRecord.id);
+
+    // Update shared group with second member
+    const { data: updateData, error: updateError, count } = await this.supabase
+      .from('shared_groups')
+      .update({
+        group_member_member_id: memberRecord.id,
+        status: 'active',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', groupId)
+      .select();
+
+    if (updateError) {
+      console.error('❌ Failed to join shared group (DB error):', updateError);
+      return { error: updateError.message };
+    }
+
+    // Check if the update actually affected any rows
+    // If RLS blocked it, Supabase returns empty array with no error
+    if (!updateData || updateData.length === 0) {
+      console.error('❌ Update was blocked (likely RLS policy). No rows updated.');
+      console.log('💡 Please run fix-shared-groups-rls.sql in Supabase SQL Editor');
+      return { error: 'Permission denied: Could not join shared group. Please ask admin to run the RLS fix migration.' };
+    }
+
+    console.log('✅ Successfully joined shared group as second member:', updateData);
+    return { error: null };
+  }
+
+  /**
    * Creates a new shared group for a committee slot, designating the current
-   * user as the Group Leader. Returns an error if the slot is already occupied.
+   * user as the Group Leader. Saves to database for persistence.
    */
   async createSharedGroup(
     committeeId: string,
@@ -238,14 +468,50 @@ export class SharedGroupService {
     const user = this.auth.user();
     if (!user) return { data: null, error: 'Not authenticated' };
 
-    // Enforce one shared group per committee slot
-    const existing = this.mockGroups.find(g => g.committee_id === committeeId);
-    if (existing) {
-      return { data: null, error: 'Slot already occupied by a shared group' };
+    // Check if current user is already in a shared group for this committee
+    const userExistingGroup = this.mockGroups.find(g => 
+      g.committee_id === committeeId && 
+      (g.group_leader.user_id === user.id || g.group_member?.user_id === user.id)
+    );
+    
+    if (userExistingGroup) {
+      return { data: null, error: 'You are already part of a shared group for this committee' };
     }
 
+    // Get the current user's committee_member record (any status - pending or approved)
+    const { data: memberRecord, error: memberError } = await this.supabase
+      .from('committee_members')
+      .select('id')
+      .eq('committee_id', committeeId)
+      .eq('user_id', user.id)
+      .eq('slot_type', 'shared')
+      .single();
+
+    if (memberError || !memberRecord) {
+      console.error('Failed to find member record:', memberError);
+      return { data: null, error: 'Could not find your member record. Please try again.' };
+    }
+
+    // Create shared group in database
+    const { data: dbGroup, error: dbError } = await this.supabase
+      .from('shared_groups')
+      .insert({
+        committee_id: committeeId,
+        group_leader_member_id: memberRecord.id,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Failed to create shared group in database:', dbError);
+      return { data: null, error: dbError.message };
+    }
+
+    console.log('✅ Shared group created in database:', dbGroup);
+
     const newGroup: SharedGroup = {
-      id: `sg-${Date.now()}`,
+      id: dbGroup.id,
       committee_id: committeeId,
       committee_name: committeeName,
       monthly_amount: monthlyAmount,
@@ -261,7 +527,7 @@ export class SharedGroupService {
       },
       group_member: null,
       pending_invitee_email: null,
-      created_at: new Date().toISOString(),
+      created_at: dbGroup.created_at,
     };
 
     this.mockGroups.push(newGroup);
@@ -286,14 +552,20 @@ export class SharedGroupService {
       return { error: 'Only the Group Leader can invite members' };
     }
 
+    // Update in-memory
     group.pending_invitee_email = inviteeEmail;
     group.status = 'Pending Member';
+
+    // Note: Invitation tracking can be added to database in future
+    // For now, invitations are handled through the join flow
+    console.log('📧 Invitation recorded for:', inviteeEmail);
+    
     return { error: null };
   }
 
   /**
    * Assigns the given user as the Group Member, activating the shared group.
-   * Called when the invitee accepts the invitation.
+   * Called when the invitee accepts the invitation (second member joins).
    */
   async acceptInvitation(
     groupId: string,
@@ -304,6 +576,38 @@ export class SharedGroupService {
     const group = this.mockGroups.find(g => g.id === groupId);
     if (!group) return { error: 'Group not found' };
 
+    // Get the second member's committee_member record
+    const { data: memberRecord, error: memberError } = await this.supabase
+      .from('committee_members')
+      .select('id')
+      .eq('committee_id', group.committee_id)
+      .eq('user_id', userId)
+      .eq('slot_type', 'shared')
+      .single();
+
+    if (memberError || !memberRecord) {
+      console.error('Failed to find second member record:', memberError);
+      return { error: 'Could not find your member record' };
+    }
+
+    // Update shared group in database
+    const { error: updateError } = await this.supabase
+      .from('shared_groups')
+      .update({
+        group_member_member_id: memberRecord.id,
+        status: 'active',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', groupId);
+
+    if (updateError) {
+      console.error('Failed to update shared group in database:', updateError);
+      return { error: updateError.message };
+    }
+
+    console.log('✅ Second member joined shared group in database');
+
+    // Update in-memory
     group.group_member = {
       user_id: userId,
       full_name: fullName,
@@ -313,6 +617,7 @@ export class SharedGroupService {
     };
     group.status = 'Active';
     group.pending_invitee_email = null;
+    
     return { error: null };
   }
 

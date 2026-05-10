@@ -150,30 +150,55 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
     if (this.isSharedToggleOn(c)) {
       this.joiningId.set(c.id);
 
-      // 1. Create the shared group (in-memory, for the Shared Groups tab)
-      const { error: sgError } = await this.sharedGroupService.createSharedGroup(
-        c.id,
-        c.name,
-        c.monthly_amount
-      );
-      if (sgError) { 
-        this.joiningId.set(null); 
-        this.errorMsg.set(sgError); 
+      // 1. Submit a join request with slot_type = 'shared' (creates committee_member record)
+      const { error: joinError } = await this.committeeService.joinCommitteeAsShared(c.id);
+      if (joinError) { 
+        this.joiningId.set(null);
+        this.errorMsg.set(joinError); 
         return; 
       }
 
-      // 2. Submit a join request with slot_type = 'shared'
-      const { error: joinError } = await this.committeeService.joinCommitteeAsShared(c.id);
-      this.joiningId.set(null);
-      if (joinError) { 
-        this.errorMsg.set(joinError); 
-        return; 
+      // 2. Check if there's an existing pending shared group for this committee
+      const { data: pendingGroup, error: findError } = await this.sharedGroupService.findPendingSharedGroup(c.id);
+      if (findError) {
+        this.joiningId.set(null);
+        this.errorMsg.set(findError);
+        return;
+      }
+
+      if (pendingGroup) {
+        // Join existing shared group as second member
+        console.log('👥 Found pending shared group, joining as second member');
+        const { error: joinGroupError } = await this.sharedGroupService.joinExistingSharedGroup(
+          pendingGroup.id,
+          c.id
+        );
+        this.joiningId.set(null);
+        if (joinGroupError) {
+          this.errorMsg.set(joinGroupError);
+          return;
+        }
+        console.log('✅ Successfully joined existing shared group');
+      } else {
+        // Create new shared group as leader
+        console.log('👤 No pending group found, creating new shared group as leader');
+        const { error: sgError } = await this.sharedGroupService.createSharedGroup(
+          c.id,
+          c.name,
+          c.monthly_amount
+        );
+        this.joiningId.set(null);
+        if (sgError) { 
+          this.errorMsg.set(sgError); 
+          return; 
+        }
+        console.log('✅ Successfully created new shared group');
       }
 
       // Mark card as pending
       this.requestStates.update(s => ({ ...s, [c.id]: { requested: true, status: 'pending' } }));
 
-      // Navigate to the shared groups page to invite a partner
+      // Navigate to the shared groups page
       this.router.navigate(['/shared-groups']);
       return;
     }

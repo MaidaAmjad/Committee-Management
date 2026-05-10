@@ -405,7 +405,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div class="flex flex-col gap-0.5">
                   <span class="text-xs text-[#737686]">Monthly</span>
-                  <span class="text-sm font-bold text-[#004ac6]">${{ f['monthlyAmount'].value }}</span>
+                  <span class="text-sm font-bold text-[#004ac6]">Rs. {{ f['monthlyAmount'].value }}</span>
                 </div>
                 <div class="flex flex-col gap-0.5">
                   <span class="text-xs text-[#737686]">Members</span>
@@ -418,7 +418,7 @@
                 <div class="flex flex-col gap-0.5">
                   <span class="text-xs text-[#737686]">Total Pool</span>
                   <span class="text-sm font-bold text-[#28a745]">
-                    ${{ f['monthlyAmount'].value * f['maxMembers'].value * f['durationMonths'].value | number }}
+                    Rs. {{ f['monthlyAmount'].value * f['maxMembers'].value * f['durationMonths'].value | number }}
                   </span>
                 </div>
                 <div class="flex flex-col gap-0.5">

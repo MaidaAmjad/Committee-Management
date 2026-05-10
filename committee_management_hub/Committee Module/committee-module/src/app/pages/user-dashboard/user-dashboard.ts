@@ -5,6 +5,7 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee } from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
+import { SupabaseService } from '../../core/supabase.service';
 
 export interface ActivityItem {
   icon: string;
@@ -45,14 +46,14 @@ export interface SuggestedCommittee {
 })
 export class UserDashboardComponent implements OnInit {
   trustScore = signal(95);
-  trustDashOffset = signal(22); // 440 * (1 - 0.95) = 22
+  trustDashOffset = signal(22);
   loading = signal(true);
   errorMsg = signal('');
 
   stats = signal([
-    { label: 'Active Committees', value: '0', icon: 'groups', bg: '#dbe1ff', iconColor: '#00174b' },
+    { label: 'My Committees', value: '0', icon: 'groups', bg: '#dbe1ff', iconColor: '#00174b' },
     { label: 'Completed', value: '0', icon: 'verified', bg: '#d3e4fe', iconColor: '#0b1c30' },
-    { label: 'Total Pool', value: '$0', icon: 'payments', bg: '#ffdbcd', iconColor: '#360f00' },
+    { label: 'Total Pool', value: 'Rs. 0', icon: 'payments', bg: '#ffdbcd', iconColor: '#360f00' },
   ]);
 
   myCommittees = signal<CommitteeCard[]>([]);
@@ -62,15 +63,99 @@ export class UserDashboardComponent implements OnInit {
     { icon: 'info', iconBg: '#dbe1ff', iconColor: '#004ac6', message: 'Welcome to TrustCom! Start by browsing committees or creating your own.', time: 'Just now' },
   ]);
 
+  private supabase;
+
   constructor(
     private committeeService: CommitteeService,
     private auth: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private supabaseService: SupabaseService
+  ) {
+    this.supabase = this.supabaseService.client;
+  }
 
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
     await this.loadDashboardData();
+    await this.loadActivityFeed();
+  }
+
+  private async loadActivityFeed(): Promise<void> {
+    const user = this.auth.user();
+    if (!user) return;
+
+    // Get all committees the user is a member of (any status)
+    const { data: memberships } = await this.supabase
+      .from('committee_members')
+      .select('committee_id')
+      .eq('user_id', user.id);
+
+    // Also get committees the user created
+    const { data: created } = await this.supabase
+      .from('committees')
+      .select('id')
+      .eq('created_by', user.id);
+
+    const committeeIds = new Set<string>([
+      ...(memberships || []).map((m: any) => m.committee_id),
+      ...(created || []).map((c: any) => c.id),
+    ]);
+
+    if (committeeIds.size === 0) return;
+
+    // Fetch all messages from those committees, newest first, limit 20
+    const { data: messages } = await this.supabase
+      .from('committee_messages')
+      .select('id, message, sender_name, created_at, committee_id, committees(name)')
+      .in('committee_id', [...committeeIds])
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!messages || messages.length === 0) return;
+
+    const items: ActivityItem[] = messages.map((m: any) => {
+      const { icon, iconBg, iconColor } = this.getActivityStyle(m.sender_name, m.message);
+      return {
+        icon,
+        iconBg,
+        iconColor,
+        message: `<span class="font-semibold">${m.committees?.name ?? 'Committee'}</span> — ${m.message}`,
+        time: this.formatTime(m.created_at),
+      };
+    });
+
+    this.activityItems.set(items);
+  }
+
+  private getActivityStyle(senderName: string, message: string): { icon: string; iconBg: string; iconColor: string } {
+    if (message.includes('Winner') || message.includes('winner')) {
+      return { icon: 'emoji_events', iconBg: '#fff7ed', iconColor: '#943700' };
+    }
+    if (message.includes('Completed') || message.includes('completed')) {
+      return { icon: 'celebration', iconBg: '#f0fdf4', iconColor: '#16a34a' };
+    }
+    if (message.includes('deadline') || message.includes('payment')) {
+      return { icon: 'payments', iconBg: '#fef9c3', iconColor: '#854d0e' };
+    }
+    if (senderName.includes('System') || senderName.includes('system')) {
+      return { icon: 'notifications', iconBg: '#dbe1ff', iconColor: '#004ac6' };
+    }
+    return { icon: 'campaign', iconBg: '#dbe1ff', iconColor: '#004ac6' };
+  }
+
+  private formatTime(isoString: string): string {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   private async loadDashboardData(): Promise<void> {
@@ -127,17 +212,24 @@ export class UserDashboardComponent implements OnInit {
         this.suggestedCommittees.set(suggested);
       }
 
-      // Update stats
-      const activeCount = allMyCommittees.filter((c: Committee) => c.status === 'Active').length;
-      const completedCount = allMyCommittees.filter((c: Committee) => c.status === 'Completed').length;
-      const totalPool = allMyCommittees
-        .filter((c: Committee) => c.status === 'Active')
-        .reduce((sum: number, c: Committee) => sum + (c.monthly_amount * c.max_members * c.duration_months), 0);
+      // Update stats — count all committees user is part of
+      const activeCount = allMyCommittees.filter(
+        (c: Committee) => c.status === 'Active' || c.status === 'Recruiting'
+      ).length;
+      const completedCount = allMyCommittees.filter(
+        (c: Committee) => c.status === 'Completed'
+      ).length;
+      // Total pool = sum of (monthly_amount × max_members × duration) for ALL committees
+      const totalPool = allMyCommittees.reduce(
+        (sum: number, c: Committee) => sum + (c.monthly_amount * c.max_members * (c.duration_months || 1)), 0
+      );
+
+      console.log('📊 Dashboard stats:', { activeCount, completedCount, totalPool, allMyCommittees });
 
       this.stats.set([
-        { label: 'Active Committees', value: activeCount.toString(), icon: 'groups', bg: '#dbe1ff', iconColor: '#00174b' },
+        { label: 'My Committees', value: activeCount.toString(), icon: 'groups', bg: '#dbe1ff', iconColor: '#00174b' },
         { label: 'Completed', value: completedCount.toString(), icon: 'verified', bg: '#d3e4fe', iconColor: '#0b1c30' },
-        { label: 'Total Pool', value: `$${totalPool.toLocaleString()}`, icon: 'payments', bg: '#ffdbcd', iconColor: '#360f00' },
+        { label: 'Total Pool', value: `Rs. ${totalPool.toLocaleString()}`, icon: 'payments', bg: '#ffdbcd', iconColor: '#360f00' },
       ]);
 
     } catch (error) {

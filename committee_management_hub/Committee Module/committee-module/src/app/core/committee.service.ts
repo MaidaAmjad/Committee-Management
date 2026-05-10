@@ -41,8 +41,9 @@ export interface CommitteeMember {
   full_name: string;
   email: string;
   status: 'pending' | 'approved' | 'rejected';
-  slot_type?: 'full' | 'shared'; // Type of slot occupied
-  shared_group_id?: string | null; // Reference to shared group if slot_type is 'shared'
+  slot_type?: 'full' | 'shared';
+  shared_group_id?: string | null;
+  is_verified?: boolean; // From profiles table join
 }
 
 @Injectable({ providedIn: 'root' })
@@ -261,12 +262,20 @@ export class CommitteeService {
   async getCommitteeMembers(committeeId: string): Promise<{ data: CommitteeMember[]; error: string | null }> {
     const { data, error } = await this.supabase
       .from('committee_members')
-      .select('*')
+      .select('*, profiles(is_verified)')
       .eq('committee_id', committeeId)
       .order('joined_at', { ascending: true });
 
     if (error) return { data: [], error: error.message };
-    return { data: data as CommitteeMember[], error: null };
+
+    // Flatten is_verified from profiles join
+    const members = (data || []).map((m: any) => ({
+      ...m,
+      is_verified: m.profiles?.is_verified ?? false,
+      profiles: undefined,
+    }));
+
+    return { data: members as CommitteeMember[], error: null };
   }
 
   /** Get only PENDING requests for committees owned by current user */

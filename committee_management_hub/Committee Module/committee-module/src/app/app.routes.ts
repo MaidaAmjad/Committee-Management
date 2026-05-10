@@ -105,6 +105,11 @@ export const routes: Routes = [
     canActivate: [adminAuthGuard],
     loadComponent: () => import('./pages/admin/admin-reports/admin-reports').then(m => m.AdminReportsComponent)
   },
+  {
+    path: 'admin/verification',
+    canActivate: [adminAuthGuard],
+    loadComponent: () => import('./pages/admin/admin-verification/admin-verification').then(m => m.AdminVerificationComponent)
+  },
 
   { path: '**', redirectTo: 'signup' }
 ];

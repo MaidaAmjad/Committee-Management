@@ -17,10 +17,11 @@ export class AdminSidebarComponent {
   }
 
   navItems = [
-    { label: 'Overview',    icon: 'dashboard',          route: '/admin' },
-    { label: 'Users',       icon: 'group',              route: '/admin/users' },
-    { label: 'Committees',  icon: 'account_balance',    route: '/admin/committees' },
-    { label: 'Reports',     icon: 'assignment_late',    route: '/admin/reports' },
+    { label: 'Overview',      icon: 'dashboard',          route: '/admin' },
+    { label: 'Users',         icon: 'group',              route: '/admin/users' },
+    { label: 'Committees',    icon: 'account_balance',    route: '/admin/committees' },
+    { label: 'Verification',  icon: 'verified_user',      route: '/admin/verification' },
+    { label: 'Reports',       icon: 'assignment_late',    route: '/admin/reports' },
   ];
 
   constructor(private adminAuth: AdminAuthService, private router: Router) {}

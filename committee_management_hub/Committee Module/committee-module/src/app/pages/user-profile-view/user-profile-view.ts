@@ -5,6 +5,7 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { ProfileService, UserProfile } from '../../core/profile.service';
 import { AuthService } from '../../core/auth.service';
+import { VerificationService } from '../../core/verification.service';
 
 @Component({
   selector: 'app-user-profile-view',
@@ -18,6 +19,7 @@ export class UserProfileViewComponent implements OnInit {
   committees   = signal<any[]>([]);
   loading      = signal(true);
   errorMsg     = signal('');
+  isVerified   = signal(false);
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
   isOwnProfile  = computed(() => this.profile()?.id === this.currentUserId());
@@ -26,7 +28,8 @@ export class UserProfileViewComponent implements OnInit {
     private route: ActivatedRoute,
     public router: Router,
     private profileService: ProfileService,
-    private auth: AuthService
+    private auth: AuthService,
+    private verificationService: VerificationService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -44,7 +47,6 @@ export class UserProfileViewComponent implements OnInit {
     this.loading.set(false);
 
     if (profileRes.error || !profileRes.data) {
-      // Fallback: try to build a minimal profile from committee_members data
       const fallback = await this.profileService.getProfileFromMembers(userId);
       if (fallback) {
         this.profile.set(fallback);
@@ -57,6 +59,10 @@ export class UserProfileViewComponent implements OnInit {
     }
 
     this.committees.set(committeesRes.data);
+
+    // Load verification status
+    const status = await this.verificationService.getUserVerificationStatus(userId);
+    this.isVerified.set(status === 'approved');
   }
 
   getInitials(name: string): string {

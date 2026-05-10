@@ -139,10 +139,21 @@ export class NotificationService {
 
     const user = this.auth.user();
     if (user) {
-      await this.supabase.from('message_reads').insert({
-        message_id: popup.id,
-        user_id: user.id,
-      }).then(() => {});
+      console.log('💾 Saving read for message:', popup.id, 'user:', user.id);
+      
+      const { data, error } = await this.supabase
+        .from('message_reads')
+        .upsert(
+          { message_id: popup.id, user_id: user.id },
+          { onConflict: 'message_id,user_id', ignoreDuplicates: true }
+        )
+        .select();
+      
+      if (error) {
+        console.error('❌ Failed to mark message as read:', error.message, error);
+      } else {
+        console.log('✅ Message marked as read:', data);
+      }
     }
 
     // Remove from queue
@@ -166,7 +177,11 @@ export class NotificationService {
     if (!popups.length) return;
 
     const inserts = popups.map(p => ({ message_id: p.id, user_id: user.id }));
-    await this.supabase.from('message_reads').insert(inserts);
+    const { error } = await this.supabase.from('message_reads').upsert(
+      inserts,
+      { onConflict: 'message_id,user_id', ignoreDuplicates: true }
+    );
+    if (error) console.error('Failed to mark all as read:', error.message);
 
     this.pendingPopups.set([]);
     this.currentPopup.set(null);
