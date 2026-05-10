@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminSidebarComponent } from '../../../shared/admin-sidebar/admin-sidebar';
-import { AdminSetupBannerComponent } from '../../../shared/admin-setup-banner/admin-setup-banner';
+import {  } from '../../../shared/admin-setup-banner/admin-setup-banner';
 import { AdminService, AdminUser } from '../../../core/admin.service';
 import { SupabaseService } from '../../../core/supabase.service';
 
@@ -18,7 +18,7 @@ export interface UserDetail extends AdminUser {
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminSidebarComponent, AdminSetupBannerComponent],
+  imports: [CommonModule, FormsModule, AdminSidebarComponent],
   templateUrl: './admin-users.html',
 })
 export class AdminUsersComponent implements OnInit {

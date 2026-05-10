@@ -2,13 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AdminSidebarComponent } from '../../../shared/admin-sidebar/admin-sidebar';
-import { AdminSetupBannerComponent } from '../../../shared/admin-setup-banner/admin-setup-banner';
+import {  } from '../../../shared/admin-setup-banner/admin-setup-banner';
 import { AdminService, AdminStats, AdminUser, AdminCommittee, AdminReport } from '../../../core/admin.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, AdminSidebarComponent, AdminSetupBannerComponent],
+  imports: [CommonModule, RouterLink, AdminSidebarComponent],
   templateUrl: './admin-dashboard.html',
 })
 export class AdminDashboardComponent implements OnInit {

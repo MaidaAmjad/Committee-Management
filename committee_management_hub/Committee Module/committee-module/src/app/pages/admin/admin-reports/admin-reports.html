@@ -9,6 +9,26 @@
         <h1 class="text-xl font-bold text-[#0f172a]">Reports & Complaints</h1>
         <p class="text-xs text-[#64748b]">Review and action user-submitted reports</p>
       </div>
+      <!-- Section toggle -->
+      <div class="flex bg-[#f1f5f9] p-1 rounded-xl">
+        <button (click)="activeSection.set('complaints')"
+          class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+          [class.bg-white]="activeSection() === 'complaints'"
+          [class.text-[#0f172a]]="activeSection() === 'complaints'"
+          [class.shadow-sm]="activeSection() === 'complaints'"
+          [class.text-[#64748b]]="activeSection() !== 'complaints'">
+          Complaints
+        </button>
+        <button (click)="activeSection.set('downloads')"
+          class="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5"
+          [class.bg-white]="activeSection() === 'downloads'"
+          [class.text-[#0f172a]]="activeSection() === 'downloads'"
+          [class.shadow-sm]="activeSection() === 'downloads'"
+          [class.text-[#64748b]]="activeSection() !== 'downloads'">
+          <span class="material-symbols-outlined text-[16px]">download</span>
+          Download Reports
+        </button>
+      </div>
     </header>
 
     <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full">
@@ -20,7 +40,220 @@
         </div>
       }
 
-      <!-- Stats -->
+      <!-- Success -->
+      @if (successMsg()) {
+        <div class="flex items-center gap-3 bg-[#d1fae5] border border-[#059669] text-[#15803d] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
+          {{ successMsg() }}
+        </div>
+      }
+
+      <!-- ── DOWNLOADS SECTION ──────────────────────────────────────────── -->
+      @if (activeSection() === 'downloads') {
+        <div class="flex flex-col gap-6">
+
+          <!-- Section header -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-[#dbeafe] rounded-xl flex items-center justify-center">
+              <span class="material-symbols-outlined text-[#1d4ed8] text-[20px]">download_for_offline</span>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-[#0f172a]">Download System Reports</h2>
+              <p class="text-xs text-[#64748b]">Export data as CSV or PDF for offline analysis</p>
+            </div>
+          </div>
+
+          <!-- Report cards grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+            <!-- 1. All Users Report -->
+            <div class="bg-white rounded-2xl border border-[#e2e8f0] p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-start gap-4 mb-5">
+                <div class="w-12 h-12 bg-[#dbeafe] rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-[#1d4ed8] text-[24px]">group</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-[#0f172a]">All Users Report</h3>
+                  <p class="text-xs text-[#64748b] mt-0.5">Name, email, phone, trust score, verification, committees joined</p>
+                </div>
+              </div>
+              <!-- Fields preview -->
+              <div class="flex flex-wrap gap-1.5 mb-5">
+                @for (field of ['User Name','Email','Phone','Trust Score','Verification','Committees','Status']; track field) {
+                  <span class="text-[10px] bg-[#f1f5f9] text-[#475569] px-2 py-0.5 rounded-full font-semibold">{{ field }}</span>
+                }
+              </div>
+              <div class="flex gap-3">
+                <button (click)="download('users', 'csv')"
+                  [disabled]="downloading() !== null"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#0058be] text-white text-sm font-semibold rounded-xl hover:bg-[#004395] transition-all disabled:opacity-50">
+                  @if (isDownloading('users','csv')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">table_view</span>
+                  }
+                  CSV
+                </button>
+                <button (click)="download('users', 'pdf')"
+                  [disabled]="downloading() !== null"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#f1f5f9] text-[#0f172a] text-sm font-semibold rounded-xl hover:bg-[#e2e8f0] transition-all disabled:opacity-50">
+                  @if (isDownloading('users','pdf')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                  }
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. All Committees Report -->
+            <div class="bg-white rounded-2xl border border-[#e2e8f0] p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-start gap-4 mb-5">
+                <div class="w-12 h-12 bg-[#d1fae5] rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-[#059669] text-[24px]">account_balance</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-[#0f172a]">All Committees Report</h3>
+                  <p class="text-xs text-[#64748b] mt-0.5">Name, admin, members, amount, status, distribution, dates</p>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-1.5 mb-5">
+                @for (field of ['Committee','Admin','Members','Amount','Status','Method','Start Date','End Date']; track field) {
+                  <span class="text-[10px] bg-[#f1f5f9] text-[#475569] px-2 py-0.5 rounded-full font-semibold">{{ field }}</span>
+                }
+              </div>
+              <div class="flex gap-3">
+                <button (click)="download('committees', 'csv')"
+                  [disabled]="downloading() !== null"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#059669] text-white text-sm font-semibold rounded-xl hover:bg-[#047857] transition-all disabled:opacity-50">
+                  @if (isDownloading('committees','csv')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">table_view</span>
+                  }
+                  CSV
+                </button>
+                <button (click)="download('committees', 'pdf')"
+                  [disabled]="downloading() !== null"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#f1f5f9] text-[#0f172a] text-sm font-semibold rounded-xl hover:bg-[#e2e8f0] transition-all disabled:opacity-50">
+                  @if (isDownloading('committees','pdf')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                  }
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. All Payments Report -->
+            <div class="bg-white rounded-2xl border border-[#e2e8f0] p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-start gap-4 mb-5">
+                <div class="w-12 h-12 bg-[#fef3c7] rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-[#d97706] text-[24px]">payments</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-[#0f172a]">All Payments Report</h3>
+                  <p class="text-xs text-[#64748b] mt-0.5">Sender, receiver, committee, amount, status, date, verification</p>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-1.5 mb-5">
+                @for (field of ['Sender','Receiver','Committee','Amount','Status','Date','Verification']; track field) {
+                  <span class="text-[10px] bg-[#f1f5f9] text-[#475569] px-2 py-0.5 rounded-full font-semibold">{{ field }}</span>
+                }
+              </div>
+              <div class="flex gap-3">
+                <button (click)="download('payments', 'csv')"
+                  [disabled]="downloading() !== null"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#d97706] text-white text-sm font-semibold rounded-xl hover:bg-[#b45309] transition-all disabled:opacity-50">
+                  @if (isDownloading('payments','csv')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">table_view</span>
+                  }
+                  CSV
+                </button>
+                <button (click)="download('payments', 'pdf')"
+                  [disabled]="downloading() !== null"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#f1f5f9] text-[#0f172a] text-sm font-semibold rounded-xl hover:bg-[#e2e8f0] transition-all disabled:opacity-50">
+                  @if (isDownloading('payments','pdf')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                  }
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. Specific Committee Payment Details -->
+            <div class="bg-white rounded-2xl border border-[#e2e8f0] p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-start gap-4 mb-5">
+                <div class="w-12 h-12 bg-[#fce7f3] rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-[#be185d] text-[24px]">receipt_long</span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-[#0f172a]">Committee Payment Details</h3>
+                  <p class="text-xs text-[#64748b] mt-0.5">Per-member payment status, dates, late payments, proof status</p>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-1.5 mb-4">
+                @for (field of ['Member','Amount','Paid/Unpaid','Date','Late','Proof Status']; track field) {
+                  <span class="text-[10px] bg-[#f1f5f9] text-[#475569] px-2 py-0.5 rounded-full font-semibold">{{ field }}</span>
+                }
+              </div>
+              <!-- Committee selector -->
+              <div class="mb-4">
+                <label class="block text-xs font-semibold text-[#64748b] uppercase tracking-wide mb-1.5">Select Committee</label>
+                <select [(ngModel)]="selectedCommitteeId"
+                  class="w-full px-3 py-2.5 border border-[#e2e8f0] rounded-xl text-sm text-[#0f172a] outline-none focus:border-[#0058be] bg-white">
+                  <option value="">— Choose a committee —</option>
+                  @for (c of committees(); track c.id) {
+                    <option [value]="c.id">{{ c.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="flex gap-3">
+                <button (click)="download('committee-payments', 'csv')"
+                  [disabled]="downloading() !== null || !selectedCommitteeId"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#be185d] text-white text-sm font-semibold rounded-xl hover:bg-[#9d174d] transition-all disabled:opacity-50">
+                  @if (isDownloading('committee-payments','csv')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">table_view</span>
+                  }
+                  CSV
+                </button>
+                <button (click)="download('committee-payments', 'pdf')"
+                  [disabled]="downloading() !== null || !selectedCommitteeId"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#f1f5f9] text-[#0f172a] text-sm font-semibold rounded-xl hover:bg-[#e2e8f0] transition-all disabled:opacity-50">
+                  @if (isDownloading('committee-payments','pdf')) {
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                  }
+                  PDF
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Format info -->
+          <div class="flex items-start gap-3 bg-[#f0f9ff] border border-[#bae6fd] rounded-xl px-5 py-4">
+            <span class="material-symbols-outlined text-[#0284c7] text-[20px] flex-shrink-0">info</span>
+            <div class="text-xs text-[#0369a1]">
+              <p class="font-semibold mb-1">About Export Formats</p>
+              <p><strong>CSV</strong> — Opens in Excel/Google Sheets for further analysis and filtering.</p>
+              <p class="mt-0.5"><strong>PDF</strong> — Downloads as a formatted HTML file. Open in browser and use Ctrl+P → Save as PDF for a print-ready document.</p>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── COMPLAINTS SECTION ─────────────────────────────────────────── -->
+      @if (activeSection() === 'complaints') {
       @if (!loading()) {
         <div class="grid grid-cols-3 gap-4 mb-6">
           <div class="bg-white rounded-2xl border border-[#e2e8f0] p-5 flex items-center gap-4">
@@ -224,6 +457,7 @@
           }
         </div>
       }
+      } <!-- end complaints section -->
     </main>
   </div>
 </div>

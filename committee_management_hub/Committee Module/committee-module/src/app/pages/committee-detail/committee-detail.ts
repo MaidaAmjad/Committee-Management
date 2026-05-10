@@ -118,16 +118,6 @@ export class CommitteeDetailComponent implements OnInit {
 
     const { data } = await this.winnerService.getCurrentWinner(c.id);
     this.currentWinner.set(data);
-
-    // If committee is already complete, show the completion modal
-    const isComplete = await this.winnerService.isCommitteeComplete(c.id);
-    if (isComplete && data) {
-      // Only show if committee status isn't already marked completed
-      // (avoid showing on every page load after completion)
-      if (c.status !== 'Completed') {
-        this.showCompletionModal.set(true);
-      }
-    }
   }
 
   async join(): Promise<void> {
@@ -265,7 +255,6 @@ export class CommitteeDetailComponent implements OnInit {
       // Show winner modal
       this.selectedWinnerName.set(data.member_name);
       this.showWinnerModal.set(true);
-      console.log('Winner modal should show:', data.member_name);
       
       // Send announcement
       await this.winnerService.sendWinnerAnnouncement(c.id, data.member_name, data.cycle_number, 'manual');
@@ -273,9 +262,6 @@ export class CommitteeDetailComponent implements OnInit {
       // Refresh broadcasts
       const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
       this.broadcasts.set(broadcastData);
-
-      // Check if committee is now complete (all members have won)
-      await this.checkAndHandleCompletion(c.id);
     }
   }
 
@@ -324,9 +310,6 @@ export class CommitteeDetailComponent implements OnInit {
       // Refresh broadcasts
       const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
       this.broadcasts.set(broadcastData);
-
-      // Check if committee is now complete (all members have won)
-      await this.checkAndHandleCompletion(c.id);
     }
   }
 

@@ -13,8 +13,6 @@
 
     <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full">
 
-      <app-admin-setup-banner></app-admin-setup-banner>
-
       @if (errorMsg()) {
         <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-4 mb-6 text-sm">
           <span class="material-symbols-outlined">error</span>{{ errorMsg() }}

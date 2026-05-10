@@ -90,15 +90,20 @@ export class AdminService {
   // ── Stats ─────────────────────────────────────────────────────────────────
 
   async getStats(): Promise<{ data: AdminStats; error: string | null }> {
-    const [usersRes, activeRes, completedRes, pendingRes, committeesRes] = await Promise.all([
+    const [usersRes, completedRes, pendingRes, committeesRes] = await Promise.all([
       this.supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      this.supabase.from('committees').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
       this.supabase.from('committees').select('*', { count: 'exact', head: true }).eq('status', 'Completed'),
       this.supabase.from('committee_members').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      this.supabase.from('committees').select('monthly_amount, max_members, duration_months'),
+      this.supabase.from('committees').select('monthly_amount, max_members, duration_months, status'),
     ]);
 
     const committees = (committeesRes.data ?? []) as any[];
+
+    // Count non-completed committees as "active"
+    const activeCount = committees.filter(
+      (c: any) => c.status !== 'Completed'
+    ).length;
+
     const totalCapital = committees.reduce(
       (sum: number, c: any) => sum + (c.monthly_amount ?? 0) * (c.max_members ?? 0) * (c.duration_months ?? 0),
       0
@@ -107,7 +112,7 @@ export class AdminService {
     return {
       data: {
         totalUsers:          usersRes.count ?? 0,
-        activeCommittees:    activeRes.count ?? 0,
+        activeCommittees:    activeCount,
         completedCommittees: completedRes.count ?? 0,
         totalCapital,
         pendingRequests:     pendingRes.count ?? 0,
@@ -416,8 +421,8 @@ export class AdminService {
   }
 
   formatCurrency(amount: number): string {
-    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-    if (amount >= 1_000)     return `$${(amount / 1_000).toFixed(0)}K`;
-    return `$${amount.toLocaleString()}`;
+    if (amount >= 1_000_000) return `Rs. ${(amount / 1_000_000).toFixed(1)}M`;
+    if (amount >= 1_000)     return `Rs. ${(amount / 1_000).toFixed(0)}K`;
+    return `Rs. ${amount.toLocaleString()}`;
   }
 }

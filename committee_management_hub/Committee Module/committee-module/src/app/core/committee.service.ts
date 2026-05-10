@@ -113,10 +113,11 @@ export class CommitteeService {
 
   /** Fetch ALL committees from all users (Browse page) */
   async getAllCommittees(): Promise<{ data: Committee[]; error: string | null }> {
-    // Fetch committees
+    // Fetch committees — exclude Completed ones from Browse
     const { data: committees, error: committeesError } = await this.supabase
       .from('committees')
       .select('*')
+      .neq('status', 'Completed')
       .order('created_at', { ascending: false });
 
     if (committeesError) return { data: [], error: committeesError.message };
@@ -262,17 +263,28 @@ export class CommitteeService {
   async getCommitteeMembers(committeeId: string): Promise<{ data: CommitteeMember[]; error: string | null }> {
     const { data, error } = await this.supabase
       .from('committee_members')
-      .select('*, profiles(is_verified)')
+      .select('*')
       .eq('committee_id', committeeId)
       .order('joined_at', { ascending: true });
 
     if (error) return { data: [], error: error.message };
+    if (!data || data.length === 0) return { data: [], error: null };
 
-    // Flatten is_verified from profiles join
-    const members = (data || []).map((m: any) => ({
+    // Fetch verification status for all members separately (avoids FK join issues)
+    const userIds = data.map((m: any) => m.user_id);
+    const { data: profiles } = await this.supabase
+      .from('profiles')
+      .select('id, is_verified')
+      .in('id', userIds);
+
+    const verifiedMap: Record<string, boolean> = {};
+    (profiles || []).forEach((p: any) => {
+      verifiedMap[p.id] = p.is_verified ?? false;
+    });
+
+    const members = data.map((m: any) => ({
       ...m,
-      is_verified: m.profiles?.is_verified ?? false,
-      profiles: undefined,
+      is_verified: verifiedMap[m.user_id] ?? false,
     }));
 
     return { data: members as CommitteeMember[], error: null };

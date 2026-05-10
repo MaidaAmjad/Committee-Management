@@ -2,14 +2,14 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminSidebarComponent } from '../../../shared/admin-sidebar/admin-sidebar';
-import { AdminSetupBannerComponent } from '../../../shared/admin-setup-banner/admin-setup-banner';
+import {  } from '../../../shared/admin-setup-banner/admin-setup-banner';
 import { AdminService, AdminCommittee } from '../../../core/admin.service';
 import { CommitteeMember } from '../../../core/committee.service';
 
 @Component({
   selector: 'app-admin-committees',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdminSidebarComponent, AdminSetupBannerComponent],
+  imports: [CommonModule, FormsModule, AdminSidebarComponent],
   templateUrl: './admin-committees.html',
 })
 export class AdminCommitteesComponent implements OnInit {
