@@ -114,66 +114,33 @@
             }
           </div>
 
-          <!-- Two-column row: Duration + Max Members -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-            <!-- Duration in Months -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold text-[#191c1e]" for="durationMonths">
-                Committee Duration (months) <span class="text-[#ba1a1a]">*</span>
-              </label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">calendar_month</span>
-                <input
-                  id="durationMonths"
-                  type="number"
-                  formControlName="durationMonths"
-                  placeholder="e.g. 12"
-                  min="1"
-                  max="120"
-                  class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
-                  [class.border-[#ba1a1a]]="fieldError('durationMonths')"
-                  [class.bg-[#fff8f8]]="fieldError('durationMonths')"
-                  [class.border-[#c3c6d7]]="!fieldError('durationMonths')"
-                />
-              </div>
-              @if (fieldError('durationMonths')) {
-                <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[14px]">error</span>
-                  {{ getError('durationMonths') }}
-                </p>
-              }
-              <p class="text-xs text-[#737686]">Enter any number of months (e.g. 5, 7, 10)</p>
+          <!-- Max Members (full width now) -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-semibold text-[#191c1e]" for="maxMembers">
+              Maximum Members <span class="text-[#ba1a1a]">*</span>
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">group</span>
+              <input
+                id="maxMembers"
+                type="number"
+                formControlName="maxMembers"
+                placeholder="e.g. 10"
+                min="2"
+                max="100"
+                class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
+                [class.border-[#ba1a1a]]="fieldError('maxMembers')"
+                [class.bg-[#fff8f8]]="fieldError('maxMembers')"
+                [class.border-[#c3c6d7]]="!fieldError('maxMembers')"
+              />
             </div>
-
-            <!-- Maximum Members -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold text-[#191c1e]" for="maxMembers">
-                Maximum Members <span class="text-[#ba1a1a]">*</span>
-              </label>
-              <div class="relative">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#737686] text-[20px]">group</span>
-                <input
-                  id="maxMembers"
-                  type="number"
-                  formControlName="maxMembers"
-                  placeholder="e.g. 10"
-                  min="2"
-                  max="100"
-                  class="w-full h-12 pl-11 pr-4 border rounded-xl text-sm text-[#191c1e] placeholder:text-[#9ca3af] outline-none transition-all"
-                  [class.border-[#ba1a1a]]="fieldError('maxMembers')"
-                  [class.bg-[#fff8f8]]="fieldError('maxMembers')"
-                  [class.border-[#c3c6d7]]="!fieldError('maxMembers')"
-                />
-              </div>
-              @if (fieldError('maxMembers')) {
-                <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[14px]">error</span>
-                  {{ getError('maxMembers') }}
-                </p>
-              }
-              <p class="text-xs text-[#737686]">Minimum 2 members required</p>
-            </div>
+            @if (fieldError('maxMembers')) {
+              <p class="text-xs text-[#ba1a1a] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ getError('maxMembers') }}
+              </p>
+            }
+            <p class="text-xs text-[#737686]">Minimum 2 members required</p>
           </div>
 
           <!-- Description -->
@@ -412,13 +379,9 @@
                   <span class="text-sm font-bold text-[#191c1e]">Up to {{ f['maxMembers'].value }}</span>
                 </div>
                 <div class="flex flex-col gap-0.5">
-                  <span class="text-xs text-[#737686]">Duration</span>
-                  <span class="text-sm font-bold text-[#191c1e]">{{ f['durationMonths'].value }} months</span>
-                </div>
-                <div class="flex flex-col gap-0.5">
                   <span class="text-xs text-[#737686]">Total Pool</span>
                   <span class="text-sm font-bold text-[#28a745]">
-                    Rs. {{ f['monthlyAmount'].value * f['maxMembers'].value * f['durationMonths'].value | number }}
+                    Rs. {{ f['monthlyAmount'].value * f['maxMembers'].value | number }}
                   </span>
                 </div>
                 <div class="flex flex-col gap-0.5">

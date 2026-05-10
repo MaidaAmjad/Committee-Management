@@ -33,11 +33,11 @@ export class CreateCommitteeComponent {
       monthlyAmount:        [null, [Validators.required, Validators.min(1)]],
       maxMembers:           [null, [Validators.required, Validators.min(2), Validators.max(100)]],
       description:          ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
-      durationMonths:       [null, [Validators.required, Validators.min(1), Validators.max(120)]],
+      durationMonths:       [12], // default 12 months, hidden from user
       paymentDeadlineDate:  ['', Validators.required],
       gracePeriodDays:      [3, [Validators.required, Validators.min(0), Validators.max(30)]],
       paymentCycleDays:     [30, [Validators.required, Validators.min(1), Validators.max(365)]],
-      distributionMethod:   ['random', Validators.required], // Default to random selection
+      distributionMethod:   ['random', Validators.required],
     });
   }
 
