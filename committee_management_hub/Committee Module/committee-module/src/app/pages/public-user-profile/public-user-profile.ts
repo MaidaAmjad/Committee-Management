@@ -396,10 +396,6 @@ export class PublicUserProfileComponent implements OnInit {
     { label: 'March Contribution',        date: 'Completed on March 01, 2024' },
   ];
 
-  getStars(rating: number): number[] {
-    return Array(5).fill(0).map((_, i) => i < rating ? 1 : 0);
-  }
-
   getMethodInfo(type: string) {
     return this.paymentMethodService.getMethodInfo(type as any);
   }

@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { CommitteeService } from '../../core/committee.service';
+import { ReviewService } from '../../core/review.service';
 
 export interface NavItem {
   label: string;
@@ -18,7 +19,7 @@ export interface NavItem {
   styleUrl: './sidebar.scss'
 })
 export class SidebarComponent implements OnInit {
-  trustScore = 95;
+  trustScore = signal(95);
   pendingCount = signal(0);
 
   displayName = computed(() => {
@@ -34,12 +35,23 @@ export class SidebarComponent implements OnInit {
   constructor(
     private router: Router,
     private auth: AuthService,
-    private committeeService: CommitteeService
+    private committeeService: CommitteeService,
+    private reviewService: ReviewService
   ) {}
 
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
-    await this.loadPendingCount();
+    await Promise.all([
+      this.loadPendingCount(),
+      this.loadTrustScore(),
+    ]);
+  }
+
+  async loadTrustScore(): Promise<void> {
+    const user = this.auth.user();
+    if (!user) return;
+    const score = await this.reviewService.getTrustScore(user.id);
+    this.trustScore.set(score);
   }
 
   async loadPendingCount(): Promise<void> {
@@ -47,7 +59,6 @@ export class SidebarComponent implements OnInit {
       const { data } = await this.committeeService.getPendingRequests();
       this.pendingCount.set(data.length);
     } catch {
-      // Silently fail — don't block the sidebar from rendering
       this.pendingCount.set(0);
     }
   }
