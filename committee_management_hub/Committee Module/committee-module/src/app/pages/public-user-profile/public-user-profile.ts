@@ -7,15 +7,12 @@ import { AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { PaymentMethodService, PaymentMethod } from '../../core/payment-method.service';
 import { VerificationService, VerificationRequest } from '../../core/verification.service';
+import { ReviewService, MemberReview } from '../../core/review.service';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge/verified-badge';
 
 export interface PaymentRecord { label: string; date: string; }
-export interface Review {
-  avatar: string; name: string; timeAgo: string;
-  rating: number; comment: string; helpful: number;
-}
 
 @Component({
   selector: 'app-public-user-profile',
@@ -27,6 +24,21 @@ export interface Review {
 export class PublicUserProfileComponent implements OnInit {
 
   paymentMethods = signal<PaymentMethod[]>([]);
+
+  // Real reviews + trust score
+  reviews        = signal<MemberReview[]>([]);
+  myReview       = signal<MemberReview | null>(null);
+  reviewsLoading = signal(false);
+  trustScore     = signal(95);
+  showReviewForm = signal(false);
+  reviewRating   = 0;
+  hoverRating    = 0;
+  reviewComment  = '';
+  reviewSubmitting = signal(false);
+  reviewError    = signal('');
+  reviewSuccess  = signal(false);
+
+  averageRating = computed(() => this.reviewService.getAverageRating(this.reviews()));
 
   // ── Verification ──────────────────────────────────────────────────────────
   verification       = signal<VerificationRequest | null>(null);
@@ -133,7 +145,8 @@ export class PublicUserProfileComponent implements OnInit {
     private supabaseService: SupabaseService,
     private fb: FormBuilder,
     private paymentMethodService: PaymentMethodService,
-    private verificationService: VerificationService
+    private verificationService: VerificationService,
+    private reviewService: ReviewService
   ) {
     this.editForm = this.fb.group({
       full_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -144,12 +157,45 @@ export class PublicUserProfileComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
+    const user = this.auth.user();
     const { data } = await this.paymentMethodService.getMyMethods();
     this.paymentMethods.set(data);
     // Load verification status
     const { data: verif } = await this.verificationService.getMyVerification();
     this.verification.set(verif);
+    // Load real reviews + trust score for current user
+    if (user) {
+      await this.loadReviews(user.id);
+    }
   }
+
+  private async loadReviews(userId: string): Promise<void> {
+    this.reviewsLoading.set(true);
+    const [reviewsRes, myReviewRes, score] = await Promise.all([
+      this.reviewService.getReviewsForUser(userId),
+      this.reviewService.getMyReviewFor(userId),
+      this.reviewService.getTrustScore(userId),
+    ]);
+    this.reviewsLoading.set(false);
+    if (!reviewsRes.error) this.reviews.set(reviewsRes.data);
+    if (!myReviewRes.error) {
+      this.myReview.set(myReviewRes.data);
+      if (myReviewRes.data) {
+        this.reviewRating = myReviewRes.data.rating;
+        this.reviewComment = myReviewRes.data.comment;
+      }
+    }
+    this.trustScore.set(score);
+  }
+
+  // ── Review form (own profile — can't review yourself, but can see reviews) ──
+  setRating(r: number): void { this.reviewRating = r; }
+  setHover(r: number): void  { this.hoverRating = r; }
+  clearHover(): void         { this.hoverRating = 0; }
+  getStarFill(star: number): boolean {
+    return star <= (this.hoverRating || this.reviewRating);
+  }
+  formatTime(iso: string): string { return this.reviewService.formatTimeAgo(iso); }
 
   // ── Verification Modal ────────────────────────────────────────────────────
 
@@ -345,24 +391,9 @@ export class PublicUserProfileComponent implements OnInit {
 
   // ── Static data ───────────────────────────────────────────────────────────
   paymentHistory: PaymentRecord[] = [
-    { label: 'May Payout - $2,500',   date: 'Completed on May 15, 2024'   },
-    { label: 'April Contribution',    date: 'Completed on April 01, 2024' },
-    { label: 'March Contribution',    date: 'Completed on March 01, 2024' },
-  ];
-
-  reviews: Review[] = [
-    {
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBN8EcbZ0_dXDy8DnarL5DlKcC_RWpsXdxLMRAfKCgbPrXi_U6mZmkt2XGUT5GBlqKSkiK04_oKmEvzJyGr3rDuTZ7Ivv-lsHtuHE6ImkkzxQ1H_x5hrzW2ELHIAY_of8EESRtXZuE8dqeiUhpZqIdw7mI8MQILUqlnJt0TvQ3JLHzSq_OkjmqA1J-k5tHVCKLBKAjjzNprLV7tw1cBbu3qzA_zXxcN7CkL_EVSEzL9OK1CwyHejAhU6cfy2L_B6jqO404KhX2LYUU',
-      name: 'Michael Ross', timeAgo: '2 days ago', rating: 5,
-      comment: 'An exemplary committee member. Always makes contributions on the first of the month without reminders.',
-      helpful: 12
-    },
-    {
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuByBs8zK-QCurIPap8b7K3XFHbBpoUIUa1Ys992n9U3nKvrI74GWww-262gpwZ5HYpGFcfMBsqGTLnJ_wTCo2IVJWOowUJR4WX5wGr5G2-hX1l2wUmP1DmZ_MqET_L8ExCFiYS-jnJWm-nHRCraEXW004TNdNXdDz6VDyZ_3-G7Vc5ZCjtqVAp5HbA0Wrwr69NA5n4dtaMaVnID3TI23WBs45V9X-E-zlwkpgeC58-FReVRVsegcDgYh4d2j2h06I9n6ABvdW5kSpY',
-      name: 'Elena Rodriguez', timeAgo: '3 weeks ago', rating: 4,
-      comment: 'Trustworthy and professional. A backbone of our local savings group.',
-      helpful: 8
-    },
+    { label: 'May Payout - Rs. 2,500',   date: 'Completed on May 15, 2024'   },
+    { label: 'April Contribution',        date: 'Completed on April 01, 2024' },
+    { label: 'March Contribution',        date: 'Completed on March 01, 2024' },
   ];
 
   getStars(rating: number): number[] {

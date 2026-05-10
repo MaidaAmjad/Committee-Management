@@ -108,7 +108,7 @@
             <!-- Stats -->
             <div class="flex gap-6 sm:gap-8">
               <div class="flex flex-col items-center">
-                <span class="text-2xl font-bold text-[#004ac6]">95</span>
+                <span class="text-2xl font-bold text-[#004ac6]">{{ trustScore() }}</span>
                 <span class="text-xs text-[#737686] uppercase tracking-wide mt-0.5">Trust Score</span>
               </div>
               <div class="w-px bg-[#c3c6d7]"></div>
@@ -359,61 +359,78 @@
               <div>
                 <p class="text-sm font-semibold opacity-80 uppercase tracking-wide mb-1">Your Trust Score</p>
                 <div class="flex items-end gap-2">
-                  <span class="text-5xl font-bold">95</span>
+                  <span class="text-5xl font-bold">{{ trustScore() }}</span>
                   <span class="text-lg opacity-70 mb-1">/ 100</span>
                 </div>
-                <p class="text-sm opacity-80 mt-2">You're in the top 10% of reliable members.</p>
+                @if (reviews().length > 0) {
+                  <p class="text-sm opacity-80 mt-2">Based on {{ reviews().length }} review{{ reviews().length !== 1 ? 's' : '' }} · Avg {{ averageRating() }}/5 stars</p>
+                } @else {
+                  <p class="text-sm opacity-80 mt-2">No reviews yet — default score.</p>
+                }
               </div>
               <div class="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center">
                 <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">verified_user</span>
               </div>
             </div>
             <div class="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
-              <div class="bg-white h-full rounded-full" style="width: 95%"></div>
+              <div class="bg-white h-full rounded-full transition-all duration-500" [style.width]="trustScore() + '%'"></div>
             </div>
           </section>
 
-          <!-- Member Reviews -->
+          <!-- Member Reviews — Real data -->
           <section class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-base font-bold text-[#191c1e]">Member Reviews</h3>
-              <div class="flex items-center gap-1 bg-[#f2f4f6] px-3 py-1.5 rounded-lg cursor-pointer">
-                <span class="text-xs font-semibold text-[#434655]">Latest</span>
-                <span class="material-symbols-outlined text-[16px] text-[#434655]">expand_more</span>
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-3">
+                <h3 class="text-base font-bold text-[#191c1e]">Member Reviews</h3>
+                @if (reviews().length > 0) {
+                  <span class="bg-[#fef9c3] text-[#854d0e] text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[12px]" style="font-variation-settings:'FILL' 1;">star</span>
+                    {{ averageRating() }} · {{ reviews().length }} review{{ reviews().length !== 1 ? 's' : '' }}
+                  </span>
+                }
               </div>
             </div>
 
-            <div class="space-y-6">
-              @for (review of reviews; track review.name) {
-                <div class="flex gap-4">
-                  <img [src]="review.avatar" [alt]="review.name" class="w-10 h-10 rounded-full flex-shrink-0 object-cover" />
-                  <div class="flex-1">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="text-sm font-semibold text-[#191c1e]">{{ review.name }}</span>
-                      <span class="text-xs text-[#737686]">{{ review.timeAgo }}</span>
+            @if (reviewsLoading()) {
+              <div class="flex items-center justify-center py-8">
+                <svg class="animate-spin h-6 w-6 text-[#004ac6]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+              </div>
+            } @else if (reviews().length === 0) {
+              <div class="flex flex-col items-center justify-center py-10 text-center">
+                <div class="w-12 h-12 bg-[#f2f4f6] rounded-full flex items-center justify-center mb-3">
+                  <span class="material-symbols-outlined text-[#737686]">rate_review</span>
+                </div>
+                <p class="text-sm font-semibold text-[#191c1e]">No reviews yet</p>
+                <p class="text-xs text-[#737686] mt-1">Reviews will appear after committee interactions.</p>
+              </div>
+            } @else {
+              <div class="space-y-5">
+                @for (review of reviews(); track review.id) {
+                  <div class="flex gap-4 pb-5 border-b border-[#f2f4f6] last:border-0 last:pb-0">
+                    <div class="w-10 h-10 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {{ review.reviewer_initials }}
                     </div>
-                    <div class="flex items-center gap-0.5 text-[#943700] mb-2">
-                      @for (star of getStars(review.rating); track $index) {
-                        <span class="material-symbols-outlined text-[16px]"
-                          [style.font-variation-settings]="star ? '\'FILL\' 1' : '\'FILL\' 0'">star</span>
-                      }
-                    </div>
-                    <p class="text-sm text-[#434655] leading-relaxed">{{ review.comment }}</p>
-                    <div class="mt-3 flex items-center gap-4">
-                      <span class="text-xs font-semibold text-[#004ac6] flex items-center gap-1 cursor-pointer hover:underline">
-                        <span class="material-symbols-outlined text-[14px]">thumb_up</span>
-                        Helpful ({{ review.helpful }})
-                      </span>
-                      <span class="text-xs font-semibold text-[#737686] cursor-pointer hover:text-[#191c1e]">Reply</span>
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-semibold text-[#191c1e]">{{ review.reviewer_name }}</span>
+                        <span class="text-xs text-[#737686]">{{ formatTime(review.created_at) }}</span>
+                      </div>
+                      <div class="flex items-center gap-0.5 mb-2">
+                        @for (star of [1,2,3,4,5]; track star) {
+                          <span class="material-symbols-outlined text-[16px]"
+                            [style.color]="star <= review.rating ? '#f59e0b' : '#e5e7eb'"
+                            style="font-variation-settings:'FILL' 1;">star</span>
+                        }
+                      </div>
+                      <p class="text-sm text-[#434655] leading-relaxed">{{ review.comment }}</p>
                     </div>
                   </div>
-                </div>
-              }
-            </div>
-
-            <button class="w-full mt-6 py-3 border border-[#c3c6d7] rounded-xl text-sm font-semibold text-[#434655] hover:bg-[#f2f4f6] transition-all">
-              View All Reviews
-            </button>
+                }
+              </div>
+            }
           </section>
 
         </div>

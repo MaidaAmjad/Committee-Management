@@ -6,6 +6,7 @@ import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee } from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
+import { ReviewService } from '../../core/review.service';
 
 export interface ActivityItem {
   icon: string;
@@ -46,7 +47,7 @@ export interface SuggestedCommittee {
 })
 export class UserDashboardComponent implements OnInit {
   trustScore = signal(95);
-  trustDashOffset = signal(22);
+  trustDashOffset = signal(22); // 440 * (1 - 0.95) = 22
   loading = signal(true);
   errorMsg = signal('');
 
@@ -69,7 +70,8 @@ export class UserDashboardComponent implements OnInit {
     private committeeService: CommitteeService,
     private auth: AuthService,
     private router: Router,
-    private supabaseService: SupabaseService
+    private supabaseService: SupabaseService,
+    private reviewService: ReviewService
   ) {
     this.supabase = this.supabaseService.client;
   }
@@ -78,6 +80,14 @@ export class UserDashboardComponent implements OnInit {
     await this.auth.ready;
     await this.loadDashboardData();
     await this.loadActivityFeed();
+    // Load real trust score
+    const user = this.auth.user();
+    if (user) {
+      const score = await this.reviewService.getTrustScore(user.id);
+      this.trustScore.set(score);
+      // 440 * (1 - score/100)
+      this.trustDashOffset.set(Math.round(440 * (1 - score / 100)));
+    }
   }
 
   private async loadActivityFeed(): Promise<void> {
