@@ -11,3 +11,292 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: #f7f9fb;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   TrustCom Auth Pages — Dark Glassmorphism Theme
+   Used by: signup.html, login.html
+   ═══════════════════════════════════════════════════════════ */
+
+/* Google Fonts loaded via index.html or here */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --tc-blue-deep:  #1A2FBE;
+  --tc-blue-mid:   #2F54EB;
+  --tc-blue-light: #5B8DEF;
+  --tc-blue-glow:  rgba(47,84,235,.35);
+  --tc-accent:     #00E5FF;
+  --tc-bg:         #0B0F2A;
+  --tc-border:     rgba(255,255,255,.10);
+  --tc-text:       #EEF0FF;
+  --tc-muted:      rgba(238,240,255,.45);
+  --tc-error:      #FF6B8A;
+  --tc-success:    #4DFFC3;
+  --tc-radius:     16px;
+}
+
+/* ── page wrapper ── */
+.tc-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--tc-bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--tc-text);
+  overflow-x: hidden;
+}
+
+/* animated background */
+.tc-page::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(47,84,235,.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,229,255,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(26,47,190,.15) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+  animation: tcBgShift 12s ease-in-out infinite alternate;
+}
+@keyframes tcBgShift { from { opacity:.8; } to { opacity:1; } }
+
+/* grid noise */
+.tc-page::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='1' height='1' x='0' y='0' fill='rgba(255,255,255,.018)'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+
+/* ── floating orbs ── */
+.orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(80px); pointer-events: none; z-index: 0;
+  animation: tcFloat 20s ease-in-out infinite;
+}
+.orb1 { width:420px; height:420px; top:-80px; left:-100px; background:rgba(47,84,235,.18); animation-delay:0s; }
+.orb2 { width:300px; height:300px; bottom:-60px; right:-60px; background:rgba(0,229,255,.10); animation-delay:-8s; }
+.orb3 { width:200px; height:200px; top:50%; left:70%; background:rgba(91,141,239,.12); animation-delay:-4s; }
+@keyframes tcFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(30px,-20px) scale(1.05); }
+  66%      { transform: translate(-15px,25px) scale(.97); }
+}
+
+/* ── logo ── */
+.tc-logo {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 32px;
+  animation: tcSlideDown .7s cubic-bezier(.22,1,.36,1) both;
+  position: relative; z-index: 1;
+}
+.tc-logo-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, var(--tc-blue-mid), var(--tc-blue-deep));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 30px var(--tc-blue-glow), 0 8px 24px rgba(0,0,0,.4);
+  position: relative; overflow: hidden;
+}
+.tc-logo-icon::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+}
+.tc-logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px; font-weight: 800;
+  background: linear-gradient(90deg, #fff 40%, var(--tc-accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -.5px;
+}
+
+/* ── card ── */
+.tc-card {
+  width: 100%; max-width: 480px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--tc-border);
+  border-radius: 28px;
+  padding: 44px 40px;
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.06) inset,
+    0 40px 80px rgba(0,0,0,.5),
+    0 0 60px rgba(47,84,235,.08);
+  animation: tcSlideUp .8s cubic-bezier(.22,1,.36,1) .1s both;
+  position: relative; z-index: 1;
+}
+.tc-card-header { text-align: center; margin-bottom: 36px; }
+.tc-card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 30px; font-weight: 800;
+  letter-spacing: -.5px; margin-bottom: 8px;
+  color: var(--tc-text);
+}
+.tc-card-sub { font-size: 14px; color: var(--tc-muted); font-weight: 300; }
+
+/* ── form ── */
+.tc-form { display: flex; flex-direction: column; gap: 0; }
+
+/* ── field ── */
+.tc-field {
+  margin-bottom: 20px;
+  animation: tcSlideUp .6s cubic-bezier(.22,1,.36,1) both;
+}
+.tc-field:nth-child(1) { animation-delay:.18s; }
+.tc-field:nth-child(2) { animation-delay:.26s; }
+.tc-field:nth-child(3) { animation-delay:.34s; }
+.tc-field:nth-child(4) { animation-delay:.42s; }
+
+.tc-label {
+  display: block; font-size: 13px; font-weight: 500;
+  color: var(--tc-muted); margin-bottom: 8px;
+  letter-spacing: .4px; text-transform: uppercase;
+}
+.tc-input-wrap { position: relative; }
+.tc-input {
+  width: 100%; padding: 14px 18px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius);
+  color: var(--tc-text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color .25s, background .25s, box-shadow .25s;
+}
+.tc-input::placeholder { color: rgba(238,240,255,.25); }
+.tc-input:focus {
+  border-color: var(--tc-blue-light);
+  background: rgba(47,84,235,.08);
+  box-shadow: 0 0 0 3px rgba(47,84,235,.18), 0 0 20px rgba(47,84,235,.1);
+}
+.tc-input.tc-valid   { border-color: var(--tc-success); box-shadow: 0 0 0 3px rgba(77,255,195,.12); }
+.tc-input.tc-invalid { border-color: var(--tc-error);   box-shadow: 0 0 0 3px rgba(255,107,138,.12); }
+
+.tc-eye-btn {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--tc-muted); transition: color .2s;
+  display: flex; align-items: center;
+}
+.tc-eye-btn:hover { color: var(--tc-text); }
+
+.tc-hint { font-size: 12px; margin-top: 6px; min-height: 16px; }
+.tc-hint-err { color: var(--tc-error); }
+.tc-hint-ok  { color: var(--tc-success); }
+
+/* ── checkbox ── */
+.tc-agree-row { display: flex; align-items: flex-start; gap: 12px; margin: 20px 0 28px; }
+.tc-check {
+  flex-shrink: 0; width: 20px; height: 20px;
+  border: 1.5px solid var(--tc-border); border-radius: 6px;
+  cursor: pointer; position: relative;
+  background: rgba(255,255,255,.04);
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.tc-check.tc-checked {
+  background: var(--tc-blue-mid);
+  border-color: var(--tc-blue-mid);
+  box-shadow: 0 0 12px var(--tc-blue-glow);
+}
+.tc-agree-text { font-size: 14px; color: var(--tc-muted); line-height: 1.5; }
+.tc-agree-text a { color: var(--tc-blue-light); text-decoration: none; font-weight: 500; }
+.tc-agree-text a:hover { color: var(--tc-accent); }
+
+/* ── forgot link ── */
+.tc-forgot { font-size: 12px; color: var(--tc-blue-light); text-decoration: none; font-weight: 500; }
+.tc-forgot:hover { color: var(--tc-accent); }
+
+/* ── alerts ── */
+.tc-alert {
+  display: flex; align-items: center; gap: 8px;
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 13px; margin-bottom: 16px;
+}
+.tc-alert-err { background: rgba(255,107,138,.12); border: 1px solid rgba(255,107,138,.3); color: var(--tc-error); }
+.tc-alert-ok  { background: rgba(77,255,195,.10);  border: 1px solid rgba(77,255,195,.3);  color: var(--tc-success); }
+
+/* ── button ── */
+.tc-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--tc-blue-mid), var(--tc-blue-deep));
+  border: none; border-radius: var(--tc-radius);
+  color: #fff; font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: .3px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform .2s, box-shadow .3s, opacity .2s;
+  box-shadow: 0 4px 30px rgba(47,84,235,.45);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.tc-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+  opacity: 0; transition: opacity .2s;
+}
+.tc-btn:hover:not(:disabled)::before { opacity: 1; }
+.tc-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(47,84,235,.6); }
+.tc-btn:active:not(:disabled) { transform: translateY(0); }
+.tc-btn:disabled { opacity: .45; cursor: not-allowed; }
+.tc-btn-arrow { font-size: 18px; transition: transform .3s; }
+.tc-btn:hover:not(:disabled) .tc-btn-arrow { transform: translateX(4px); }
+/* shimmer */
+.tc-btn::after {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  animation: tcShimmer 3s ease-in-out infinite;
+}
+@keyframes tcShimmer { to { left: 180%; } }
+
+/* ── divider ── */
+.tc-divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 28px 0 22px; color: var(--tc-muted); font-size: 13px;
+}
+.tc-divider::before, .tc-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--tc-border);
+}
+
+/* ── sign in row ── */
+.tc-signin-row { text-align: center; font-size: 14px; color: var(--tc-muted); margin-top: 4px; }
+.tc-signin-row a { color: var(--tc-blue-light); text-decoration: none; font-weight: 500; margin-left: 4px; }
+.tc-signin-row a:hover { color: var(--tc-accent); }
+
+/* ── trust badges ── */
+.tc-badges {
+  display: flex; gap: 20px; justify-content: center;
+  margin-top: 32px; flex-wrap: wrap;
+  animation: tcFadeIn 1s .5s both;
+  position: relative; z-index: 1;
+}
+.tc-badge { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--tc-muted); }
+.tc-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--tc-success);
+  box-shadow: 0 0 8px var(--tc-success);
+  animation: tcPulse 2s ease-in-out infinite;
+}
+@keyframes tcPulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.4); opacity: .7; }
+}
+
+/* ── spinner ── */
+.tc-spin { animation: tcSpin 1s linear infinite; }
+@keyframes tcSpin { to { transform: rotate(360deg); } }
+
+/* ── keyframes ── */
+@keyframes tcSlideDown { from { opacity:0; transform:translateY(-24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes tcSlideUp   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes tcFadeIn    { from { opacity:0; } to { opacity:1; } }
+
+/* ── responsive ── */
+@media (max-width:520px) {
+  .tc-card { padding: 32px 24px; border-radius: 20px; }
+  .tc-card-title { font-size: 24px; }
+}

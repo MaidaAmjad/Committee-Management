@@ -1,218 +1,155 @@
-<div class="min-h-screen flex items-center justify-center font-sans text-[#191c1e] p-6 relative overflow-hidden"
-  style="background-color:#f7f9fb; background-image: radial-gradient(at 0% 0%, rgba(0,74,198,0.05) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0,74,198,0.08) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(211,228,254,0.4) 0px, transparent 50%);">
+<!-- Floating orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
 
-  <main class="w-full max-w-[480px] relative z-10 py-8">
+<div class="tc-page">
 
-    <!-- Branding Header -->
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center gap-2 mb-4">
-        <div class="w-10 h-10 bg-[#2563eb] rounded-lg flex items-center justify-center text-white">
-          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">security</span>
-        </div>
-        <span class="text-2xl font-bold text-[#004ac6] tracking-tight">TrustCom</span>
-      </div>
-      <h1 class="text-[30px] font-semibold text-[#191c1e] mb-1 leading-[38px]">Create your account</h1>
-      <p class="text-base text-[#434655]">Join thousands of trusted committee members.</p>
+  <!-- Logo -->
+  <div class="tc-logo">
+    <div class="tc-logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;fill:white;position:relative;z-index:1;">
+        <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6L12 2zm-1 13l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/>
+      </svg>
     </div>
-
-    <!-- Signup Card -->
-    <div class="bg-white border border-[#c3c6d7] rounded-2xl p-8 mb-4"
-      style="box-shadow: 0 10px 25px -5px rgba(15,23,42,0.05), 0 8px 10px -6px rgba(15,23,42,0.05);">
-
-      <form (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-
-        <!-- Full Name -->
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold text-[#434655] px-1" for="fullName">Full name</label>
-          <input
-            id="fullName"
-            type="text"
-            [(ngModel)]="fullName"
-            name="fullName"
-            placeholder="John Doe"
-            required
-            class="w-full h-12 px-4 border border-[#c3c6d7] rounded-xl text-base text-[#191c1e] placeholder:text-[#737686] outline-none transition-all focus:border-[#004ac6] focus:ring-2 focus:ring-[#2563eb]/20"
-          />
-        </div>
-
-        <!-- Email -->
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold text-[#434655] px-1" for="email">Email address</label>
-          <input
-            id="email"
-            type="email"
-            [(ngModel)]="email"
-            name="email"
-            placeholder="name@organization.com"
-            required
-            class="w-full h-12 px-4 border border-[#c3c6d7] rounded-xl text-base text-[#191c1e] placeholder:text-[#737686] outline-none transition-all focus:border-[#004ac6] focus:ring-2 focus:ring-[#2563eb]/20"
-          />
-        </div>
-
-        <!-- Password -->
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold text-[#434655] px-1" for="password">Password</label>
-          <div class="relative">
-            <input
-              id="password"
-              [type]="showPassword ? 'text' : 'password'"
-              [(ngModel)]="password"
-              name="password"
-              placeholder="Min. 8 characters"
-              required
-              class="w-full h-12 px-4 border border-[#c3c6d7] rounded-xl text-base text-[#191c1e] placeholder:text-[#737686] outline-none transition-all focus:border-[#004ac6] focus:ring-2 focus:ring-[#2563eb]/20"
-            />
-            <button type="button" (click)="togglePassword()"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-[#c3c6d7] hover:text-[#434655] transition-colors">
-              <span class="material-symbols-outlined text-[20px]">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-semibold text-[#434655] px-1" for="confirmPassword">Confirm password</label>
-          <div class="relative">
-            <input
-              id="confirmPassword"
-              [type]="showConfirmPassword ? 'text' : 'password'"
-              [(ngModel)]="confirmPassword"
-              name="confirmPassword"
-              placeholder="Re-enter your password"
-              required
-              class="w-full h-12 px-4 rounded-xl text-base text-[#191c1e] placeholder:text-[#737686] outline-none transition-all focus:ring-2"
-              [class.border-[#ba1a1a]]="passwordMismatch"
-              [class.border-[#c3c6d7]]="!passwordMismatch"
-              [class.focus:border-[#ba1a1a]]="passwordMismatch"
-              [class.focus:ring-[#ba1a1a]/20]="passwordMismatch"
-              [class.focus:border-[#004ac6]]="!passwordMismatch"
-              [class.focus:ring-[#2563eb]/20]="!passwordMismatch"
-              [class.border]="true"
-            />
-            <button type="button" (click)="toggleConfirmPassword()"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-[#c3c6d7] hover:text-[#434655] transition-colors">
-              <span class="material-symbols-outlined text-[20px]">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
-            </button>
-          </div>
-          @if (passwordMismatch) {
-            <p class="text-xs text-[#ba1a1a] px-1 flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">error</span>
-              Passwords do not match
-            </p>
-          }
-        </div>
-
-        <!-- Terms -->
-        <div class="flex items-start gap-2 px-1">
-          <input
-            id="agreeTerms"
-            type="checkbox"
-            [(ngModel)]="agreeTerms"
-            name="agreeTerms"
-            class="w-4 h-4 mt-0.5 rounded border-[#c3c6d7] text-[#004ac6] focus:ring-[#2563eb] transition-all"
-          />
-          <label class="text-sm text-[#434655] select-none leading-relaxed" for="agreeTerms">
-            I agree to the
-            <a href="#" class="text-[#004ac6] font-semibold hover:underline">Terms of Service</a>
-            and
-            <a href="#" class="text-[#004ac6] font-semibold hover:underline">Privacy Policy</a>
-          </label>
-        </div>
-
-        <!-- Error Message -->
-        @if (errorMessage) {
-          <div class="flex items-center gap-2 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-xl px-4 py-3 text-sm">
-            <span class="material-symbols-outlined text-[18px]">error</span>
-            {{ errorMessage }}
-          </div>
-        }
-
-        <!-- Success Message -->
-        @if (successMessage) {
-          <div class="flex items-center gap-2 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-xl px-4 py-3 text-sm">
-            <span class="material-symbols-outlined text-[18px]">check_circle</span>
-            {{ successMessage }}
-          </div>
-        }
-
-        <!-- Create Account Button -->
-        <button
-          type="submit"
-          [disabled]="!isFormValid || loading"
-          class="w-full h-12 text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-[0.98]"
-          [class.bg-[#004ac6]]="isFormValid && !loading"
-          [class.bg-[#9ab0e0]]="!isFormValid || loading"
-          [class.cursor-not-allowed]="!isFormValid || loading"
-        >
-          @if (loading) {
-            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-            </svg>
-            Creating account...
-          } @else {
-            Create Account
-            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-          }
-        </button>
-      </form>
-
-      <!-- Divider -->
-      <div class="relative my-6">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-[#c3c6d7]"></div>
-        </div>
-        <div class="relative flex justify-center">
-          <span class="bg-white px-4 text-xs uppercase tracking-wider text-[#737686]">Or sign up with</span>
-        </div>
-      </div>
-
-      <!-- Social Signups -->
-      <div class="grid grid-cols-2 gap-4">
-        <button type="button" class="flex items-center justify-center gap-2 h-12 border border-[#c3c6d7] rounded-xl text-sm font-semibold text-[#434655] hover:bg-[#f2f4f6] active:bg-[#e6e8ea] transition-all">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-5 h-5" />
-          Google
-        </button>
-        <button type="button" class="flex items-center justify-center gap-2 h-12 border border-[#c3c6d7] rounded-xl text-sm font-semibold text-[#434655] hover:bg-[#f2f4f6] active:bg-[#e6e8ea] transition-all">
-          <img src="https://www.svgrepo.com/show/448234/linkedin.svg" alt="LinkedIn" class="w-5 h-5" />
-          LinkedIn
-        </button>
-      </div>
-    </div>
-
-    <!-- Already have account -->
-    <div class="text-center">
-      <p class="text-sm text-[#434655]">
-        Already have an account?
-        <a [routerLink]="['/login']" class="text-[#004ac6] text-sm font-semibold hover:underline ml-1">Sign In</a>
-      </p>
-    </div>
-
-    <!-- Trust Badges -->
-    <div class="mt-8 flex flex-col items-center gap-4">
-      <div class="flex items-center gap-8">
-        <div class="flex items-center gap-1 text-[#737686] opacity-60">
-          <span class="material-symbols-outlined text-[16px]">verified_user</span>
-          <span class="text-xs uppercase tracking-widest font-semibold">ISO 27001 Certified</span>
-        </div>
-        <div class="flex items-center gap-1 text-[#737686] opacity-60">
-          <span class="material-symbols-outlined text-[16px]">lock</span>
-          <span class="text-xs uppercase tracking-widest font-semibold">AES-256 Encrypted</span>
-        </div>
-      </div>
-      <div class="flex gap-4">
-        <a href="#" class="text-xs font-semibold text-[#737686] hover:text-[#434655] transition-colors">Privacy Policy</a>
-        <span class="text-[#c3c6d7]">•</span>
-        <a href="#" class="text-xs font-semibold text-[#737686] hover:text-[#434655] transition-colors">Terms of Service</a>
-        <span class="text-[#c3c6d7]">•</span>
-        <a href="#" class="text-xs font-semibold text-[#737686] hover:text-[#434655] transition-colors">Help Center</a>
-      </div>
-    </div>
-  </main>
-
-  <!-- Background Decorative Elements -->
-  <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
-    <div class="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] bg-[#d3e4fe] rounded-full blur-[100px] opacity-20"></div>
-    <div class="absolute bottom-[10%] left-[5%] w-[40vw] h-[40vw] bg-[#dbe1ff] rounded-full blur-[120px] opacity-20"></div>
+    <span class="tc-logo-name">TrustCom</span>
   </div>
+
+  <!-- Card -->
+  <div class="tc-card">
+    <div class="tc-card-header">
+      <h1 class="tc-card-title">Create your account</h1>
+      <p class="tc-card-sub">Join thousands of trusted committee members.</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="tc-form">
+
+      <!-- Full Name -->
+      <div class="tc-field">
+        <label class="tc-label" for="fullName">Full Name</label>
+        <div class="tc-input-wrap">
+          <input id="fullName" type="text" [(ngModel)]="fullName" name="fullName"
+            placeholder="John Doe" autocomplete="name" required
+            class="tc-input" [class.tc-valid]="fullName.trim().length >= 2"
+            [class.tc-invalid]="fullName.trim().length > 0 && fullName.trim().length < 2"/>
+        </div>
+        @if (fullName.trim().length > 0 && fullName.trim().length < 2) {
+          <p class="tc-hint tc-hint-err">Name too short</p>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="tc-field">
+        <label class="tc-label" for="email">Email Address</label>
+        <div class="tc-input-wrap">
+          <input id="email" type="email" [(ngModel)]="email" name="email"
+            placeholder="name@organization.com" autocomplete="email" required
+            class="tc-input"/>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="tc-field">
+        <label class="tc-label" for="password">Password</label>
+        <div class="tc-input-wrap">
+          <input id="password" [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="password" name="password"
+            placeholder="Min. 8 characters" autocomplete="new-password" required
+            class="tc-input" style="padding-right:48px"
+            [class.tc-valid]="password.length >= 8"
+            [class.tc-invalid]="password.length > 0 && password.length < 8"/>
+          <button type="button" (click)="togglePassword()" class="tc-eye-btn">
+            <span class="material-symbols-outlined" style="font-size:20px">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        @if (password.length > 0 && password.length < 8) {
+          <p class="tc-hint tc-hint-err">Too short — min 8 characters</p>
+        }
+        @if (password.length >= 8) {
+          <p class="tc-hint tc-hint-ok">Strong password ✓</p>
+        }
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="tc-field">
+        <label class="tc-label" for="confirmPassword">Confirm Password</label>
+        <div class="tc-input-wrap">
+          <input id="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'"
+            [(ngModel)]="confirmPassword" name="confirmPassword"
+            placeholder="Re-enter your password" autocomplete="new-password" required
+            class="tc-input" style="padding-right:48px"
+            [class.tc-valid]="confirmPassword.length > 0 && confirmPassword === password"
+            [class.tc-invalid]="passwordMismatch"/>
+          <button type="button" (click)="toggleConfirmPassword()" class="tc-eye-btn">
+            <span class="material-symbols-outlined" style="font-size:20px">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        @if (passwordMismatch) {
+          <p class="tc-hint tc-hint-err">Passwords don't match</p>
+        }
+        @if (confirmPassword.length > 0 && confirmPassword === password) {
+          <p class="tc-hint tc-hint-ok">Passwords match ✓</p>
+        }
+      </div>
+
+      <!-- Terms -->
+      <div class="tc-agree-row">
+        <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
+          <input type="checkbox" [(ngModel)]="agreeTerms" name="agreeTerms" style="display:none"/>
+          <div class="tc-check" [class.tc-checked]="agreeTerms" (click)="agreeTerms = !agreeTerms">
+            <svg viewBox="0 0 12 10" style="width:12px;fill:none;stroke:#fff;stroke-width:2.5;" [style.opacity]="agreeTerms ? 1 : 0">
+              <polyline points="1.5,5 4.5,8.5 10.5,1.5"/>
+            </svg>
+          </div>
+          <span class="tc-agree-text">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+        </label>
+      </div>
+
+      <!-- Error -->
+      @if (errorMessage) {
+        <div class="tc-alert tc-alert-err">
+          <span class="material-symbols-outlined" style="font-size:18px">error</span>
+          {{ errorMessage }}
+        </div>
+      }
+
+      <!-- Success -->
+      @if (successMessage) {
+        <div class="tc-alert tc-alert-ok">
+          <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
+          {{ successMessage }}
+        </div>
+      }
+
+      <!-- Submit -->
+      <button type="submit" class="tc-btn" [disabled]="!isFormValid || loading">
+        @if (loading) {
+          <svg class="tc-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="width:20px;height:20px">
+            <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+          Creating account...
+        } @else {
+          Create Account <span class="tc-btn-arrow">→</span>
+        }
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div class="tc-divider">or</div>
+
+    <!-- Sign in link -->
+    <div class="tc-signin-row">
+      Already have an account?
+      <a [routerLink]="['/login']">Sign in</a>
+    </div>
+  </div>
+
+  <!-- Trust badges -->
+  <div class="tc-badges">
+    <div class="tc-badge"><div class="tc-badge-dot"></div> 256-bit SSL Encrypted</div>
+    <div class="tc-badge"><div class="tc-badge-dot" style="animation-delay:.6s"></div> GDPR Compliant</div>
+    <div class="tc-badge"><div class="tc-badge-dot" style="animation-delay:1.2s"></div> SOC 2 Certified</div>
+  </div>
+
 </div>

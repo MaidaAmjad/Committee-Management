@@ -53,8 +53,17 @@ export class PaymentsComponent implements OnInit {
   cards    = signal<PaymentCard[]>([]);
   loading  = signal(true);
   errorMsg = signal('');
+  activeTab = signal<'active' | 'recent'>('active');
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
+
+  activeCards = computed(() =>
+    this.cards().filter(c => c.committee.status !== 'Completed')
+  );
+
+  recentCards = computed(() =>
+    this.cards().filter(c => c.committee.status === 'Completed')
+  );
 
   constructor(
     private paymentService: PaymentService,
@@ -173,6 +182,13 @@ export class PaymentsComponent implements OnInit {
     );
 
     this.cards.set(cardList);
+
+    // Auto-switch to Recent if no active committees
+    const hasActive = cardList.some(c => c.committee.status !== 'Completed');
+    const hasRecent = cardList.some(c => c.committee.status === 'Completed');
+    if (!hasActive && hasRecent) {
+      this.activeTab.set('recent');
+    }
   }
 
   isAdmin(card: PaymentCard): boolean {

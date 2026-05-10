@@ -25,6 +25,7 @@ export interface PaymentCommittee {
   payment_deadline_date: string | null;
   grace_period_days: number;
   payment_cycle_days: number;
+  status: string; // 'Recruiting' | 'Active' | 'Completed'
   // Derived fields
   due_day: number;
   winner_name: string;
