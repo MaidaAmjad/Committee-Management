@@ -10,6 +10,7 @@ import { WinnerSelectionComponent } from '../../shared/winner-selection/winner-s
 import { WinnerPaymentDetailsComponent } from '../../shared/winner-payment-details/winner-payment-details';
 import { CommitteeAnnouncementComponent } from '../../shared/committee-announcement/committee-announcement';
 import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
+import { SupabaseService } from '../../core/supabase.service';
 
 @Component({
   selector: 'app-committee-detail',
@@ -48,6 +49,21 @@ export class CommitteeDetailComponent implements OnInit {
   // Committee completion
   showCompletionModal = signal(false);
 
+  // Set of ALL winning member IDs (handles shared groups with 2 winners)
+  winnerMemberIds = computed<Set<string>>(() => {
+    const w = this.currentWinner();
+    if (!w) return new Set();
+    const ids = new Set<string>([w.member_id]);
+    // For shared groups, also include the other member from the shared group
+    if (w.is_shared_group && w.shared_group_id) {
+      // We'll populate this from the shared_groups table via loadSharedGroupWinnerIds
+    }
+    return ids;
+  });
+
+  // Extra winner IDs loaded from shared_groups table
+  private sharedGroupWinnerMemberIds = signal<string[]>([]);
+
   // Broadcast
   broadcastText    = '';
   sendingBroadcast = signal(false);
@@ -73,13 +89,18 @@ export class CommitteeDetailComponent implements OnInit {
     return c.monthly_amount * c.max_members * c.duration_months;
   });
 
+  private supabase;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private committeeService: CommitteeService,
     private winnerService: WinnerSelectionService,
-    public auth: AuthService
-  ) {}
+    public auth: AuthService,
+    private supabaseService: SupabaseService
+  ) {
+    this.supabase = this.supabaseService.client;
+  }
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -118,6 +139,36 @@ export class CommitteeDetailComponent implements OnInit {
 
     const { data } = await this.winnerService.getCurrentWinner(c.id);
     this.currentWinner.set(data);
+
+    // If shared group winner, load both member IDs from shared_groups table
+    if (data?.is_shared_group && data.shared_group_id) {
+      await this.loadSharedGroupWinnerIds(data.shared_group_id);
+    }
+  }
+
+  private async loadSharedGroupWinnerIds(sharedGroupId: string): Promise<void> {
+    const { data } = await this.supabase
+      .from('shared_groups')
+      .select('group_leader_member_id, group_member_member_id')
+      .eq('id', sharedGroupId)
+      .single();
+
+    if (data) {
+      const ids = [data.group_leader_member_id, data.group_member_member_id].filter(Boolean);
+      this.sharedGroupWinnerMemberIds.set(ids);
+    }
+  }
+
+  /** Returns true if the given committee_member.id is a winner (handles shared groups) */
+  isMemberWinner(memberId: string): boolean {
+    const w = this.currentWinner();
+    if (!w) return false;
+    if (w.member_id === memberId) return true;
+    // For shared groups, check the loaded member IDs
+    if (w.is_shared_group) {
+      return this.sharedGroupWinnerMemberIds().includes(memberId);
+    }
+    return false;
   }
 
   async join(): Promise<void> {
