@@ -1,4 +1,4 @@
-﻿
+﻿﻿
   :root {
     --blue-deep: #0a2463;
     --blue-mid: #1565c0;
@@ -479,3 +479,48 @@
   /* scroll animation */
   .lp-reveal { opacity:0; transform:translateY(24px); transition:opacity .6s ease, transform .6s ease; }
   .lp-reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ── Additional Mobile Optimizations ── */
+@media(max-width:480px) {
+  .lp-hero { padding: 60px 5vw 40px; min-height: auto; }
+  .lp-hero h1 { font-size: 1.8rem; letter-spacing: -0.5px; }
+  .lp-hero-desc { font-size: 0.95rem; }
+  .lp-hero-btns { flex-direction: column; align-items: stretch; gap: 10px; }
+  .lp-btn-hero-primary, .lp-btn-hero-outline { text-align: center; padding: 14px 20px; }
+  .lp-hero-stats { gap: 20px; }
+  .lp-hero-stat strong { font-size: 1.3rem; }
+  .lp-fc-payment, .lp-fc-notif { display: none; }
+  .lp-dashboard-mockup { max-width: 100%; }
+  .lp-mock-grid { grid-template-columns: 1fr; }
+  section { padding: 50px 5vw; }
+  .lp-section-title { font-size: 1.5rem; }
+  .lp-features-grid { grid-template-columns: 1fr; }
+  .lp-platform-grid { grid-template-columns: 1fr; }
+  .lp-profiles-grid { grid-template-columns: 1fr; }
+  .lp-testi-grid { grid-template-columns: 1fr; }
+  .lp-steps-container { flex-direction: column; align-items: center; gap: 16px; }
+  .lp-step-connector { display: none; }
+  .lp-step-card { max-width: 100%; width: 100%; }
+  .lp-db-row { grid-template-columns: 1fr; }
+  .lp-disclaimer-box { padding: 20px; }
+  .lp-footer-grid { grid-template-columns: 1fr; }
+  .lp-footer-bottom { flex-direction: column; text-align: center; }
+  .lp-footer-bottom-links { flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .lp-cta-band h2 { font-size: 1.5rem; }
+  .lp-cta-btns { flex-direction: column; align-items: center; }
+  .lp-btn-cta-white, .lp-btn-cta-outline { width: 100%; max-width: 280px; text-align: center; }
+  .lp-nav-actions .lp-btn-ghost { display: none; }
+  .lp-hero-badge { font-size: 0.75rem; }
+}
+
+@media(max-width:768px) {
+  .lp-hero-btns { flex-wrap: wrap; justify-content: center; }
+  .lp-hero-stats { gap: 16px; }
+  .lp-nav { padding: 0 4vw; }
+  .lp-section-header { margin-bottom: 40px; }
+  .lp-features-grid { grid-template-columns: 1fr; }
+  .lp-testi-grid { grid-template-columns: 1fr; }
+  .lp-profiles-grid { grid-template-columns: 1fr 1fr; }
+  .lp-db-row { grid-template-columns: 1fr 1fr; }
+  .lp-footer-grid { grid-template-columns: 1fr 1fr; }
+}
