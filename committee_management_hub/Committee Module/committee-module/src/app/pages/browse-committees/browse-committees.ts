@@ -73,7 +73,10 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
   }
 
   private async loadData(): Promise<void> {
-    await this.auth.ready;
+    // For guests, don't wait for auth — just load committees directly
+    if (!this.guestGuard.isGuest()) {
+      await this.auth.ready;
+    }
     this.loading.set(true);
     this.errorMsg.set('');
 
