@@ -9,6 +9,8 @@ import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee } from '../../core/committee.service';
 import { SharedGroupService } from '../../core/shared-group.service';
 import { AuthService } from '../../core/auth.service';
+import { GuestGuardService } from '../../core/guest-guard.service';
+import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
 
 // Per-card request state
 interface RequestState { requested: boolean; status: string | null; }
@@ -16,7 +18,7 @@ interface RequestState { requested: boolean; status: string | null; }
 @Component({
   selector: 'app-browse-committees',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent, SignInPopupComponent],
   templateUrl: './browse-committees.html',
   styleUrl: './browse-committees.scss'
 })
@@ -46,11 +48,14 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
 
   private routerSub?: Subscription;
 
+  isGuest = computed(() => !this.auth.user());
+
   constructor(
     private committeeService: CommitteeService,
     private sharedGroupService: SharedGroupService,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    public guestGuard: GuestGuardService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -72,10 +77,13 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.errorMsg.set('');
 
-    const [committeesRes, membershipMap] = await Promise.all([
-      this.committeeService.getAllCommittees(),
-      this.committeeService.getMyMembershipStatuses(),
-    ]);
+    // For guests, only load committees (no membership data)
+    const committeesRes = await this.committeeService.getAllCommittees();
+    let membershipMap: Record<string, string> = {};
+
+    if (!this.guestGuard.isGuest()) {
+      membershipMap = await this.committeeService.getMyMembershipStatuses();
+    }
 
     this.loading.set(false);
 
@@ -125,6 +133,12 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
    */
   async joinCommittee(c: Committee, event: Event): Promise<void> {
     event.stopPropagation();
+
+    // Guest users — show sign-in popup
+    if (this.guestGuard.isGuest()) {
+      this.guestGuard.requireAuth();
+      return;
+    }
 
     // Check if committee is full
     const slotsLeft = this.getSlotsLeft(c);

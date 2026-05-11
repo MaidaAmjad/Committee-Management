@@ -35,8 +35,11 @@ export const routes: Routes = [
   },
   {
     path: 'browse',
-    canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/browse-committees/browse-committees').then(m => m.BrowseCommitteesComponent)
+  },
+  {
+    path: 'users-preview',
+    loadComponent: () => import('./pages/users-preview/users-preview').then(m => m.UsersPreviewComponent)
   },
   {
     path: 'all-users',

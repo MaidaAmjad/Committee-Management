@@ -223,6 +223,18 @@
                         <span class="material-symbols-outlined text-[16px]">mark_email_unread</span>Requests
                       </button>
                     </div>
+                  } @else if (isGuest()) {
+                    <!-- Guest: read-only, show sign-in prompt -->
+                    <div class="flex gap-2">
+                      <button (click)="viewDetails(c)"
+                        class="flex-1 py-2.5 bg-[#f2f4f6] border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#e6e8ea] transition-all flex items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">info</span>Details
+                      </button>
+                      <button (click)="guestGuard.requireAuth()"
+                        class="flex-1 py-2.5 bg-[#004ac6] text-white rounded-xl text-sm font-semibold hover:bg-[#2563eb] transition-all flex items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">login</span>Sign In to Join
+                      </button>
+                    </div>
                   } @else {
                     <!-- Non-owner action area -->
                     @switch (getRequestState(c).status) {
@@ -355,3 +367,6 @@
     </div>
   </div>
 </div>
+
+<!-- Sign-in popup for guests -->
+<app-sign-in-popup></app-sign-in-popup>
