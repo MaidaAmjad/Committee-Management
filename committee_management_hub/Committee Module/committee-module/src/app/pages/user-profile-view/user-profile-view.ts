@@ -8,11 +8,13 @@ import { ProfileService, UserProfile } from '../../core/profile.service';
 import { AuthService } from '../../core/auth.service';
 import { VerificationService } from '../../core/verification.service';
 import { ReviewService, MemberReview } from '../../core/review.service';
+import { GuestGuardService } from '../../core/guest-guard.service';
+import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
 
 @Component({
   selector: 'app-user-profile-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent, SignInPopupComponent],
   templateUrl: './user-profile-view.html',
   styleUrl: './user-profile-view.scss'
 })
@@ -47,14 +49,20 @@ export class UserProfileViewComponent implements OnInit {
     private profileService: ProfileService,
     private auth: AuthService,
     private verificationService: VerificationService,
-    private reviewService: ReviewService
+    private reviewService: ReviewService,
+    public guestGuard: GuestGuardService
   ) {}
+
+  isGuest = computed(() => !this.auth.user());
 
   async ngOnInit(): Promise<void> {
     const userId = this.route.snapshot.paramMap.get('id');
     if (!userId) { this.router.navigate(['/browse']); return; }
 
-    await this.auth.ready;
+    // Don't wait for auth for guests
+    if (!this.guestGuard.isGuest()) {
+      await this.auth.ready;
+    }
     this.loading.set(true);
 
     const [profileRes, committeesRes] = await Promise.all([

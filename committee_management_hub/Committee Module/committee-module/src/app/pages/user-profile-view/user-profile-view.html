@@ -1,8 +1,31 @@
 <div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
-  <app-sidebar></app-sidebar>
+  @if (!isGuest()) {
+    <app-sidebar></app-sidebar>
+  }
 
-  <div class="flex flex-col flex-1 md:ml-64">
-    <app-topnav></app-topnav>
+  <div class="flex flex-col flex-1" [class.md:ml-64]="!isGuest()">
+    @if (isGuest()) {
+      <header class="sticky top-0 z-30 bg-white border-b border-[#e2e8f0] h-16 flex items-center justify-between px-6 shadow-sm">
+        <div class="flex items-center gap-3">
+          <a routerLink="/" class="flex items-center gap-2 text-[#004ac6] font-bold text-lg">
+            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">security</span>
+            TrustCom
+          </a>
+          <div class="w-px h-5 bg-[#c3c6d7]"></div>
+          <button (click)="router.navigate(['/users-preview'])" class="text-sm text-[#434655] hover:text-[#004ac6] flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+            Back
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-[#737686] bg-[#fef9c3] border border-[#fde68a] px-3 py-1 rounded-full font-semibold hidden sm:block">👁 Read-only</span>
+          <a routerLink="/login" class="px-4 py-2 border border-[#c3c6d7] text-[#434655] text-sm font-semibold rounded-xl hover:bg-[#f2f4f6] transition-all">Sign In</a>
+          <a routerLink="/signup" class="px-4 py-2 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all">Sign Up Free</a>
+        </div>
+      </header>
+    } @else {
+      <app-topnav></app-topnav>
+    }
 
     <main class="flex-1 p-6 max-w-[1100px] mx-auto w-full">
 
@@ -277,12 +300,19 @@
                     </span>
                   }
                 </div>
-                <!-- Write review button — only for other users -->
-                @if (!isOwnProfile()) {
+                <!-- Write review button — only for logged-in users viewing others' profiles -->
+                @if (!isOwnProfile() && !isGuest()) {
                   <button (click)="openReviewForm()"
                     class="flex items-center gap-1.5 px-3 py-1.5 bg-[#dbe1ff] text-[#004ac6] text-xs font-semibold rounded-lg hover:bg-[#004ac6] hover:text-white transition-all">
                     <span class="material-symbols-outlined text-[14px]">rate_review</span>
                     {{ myReview() ? 'Edit Review' : 'Write Review' }}
+                  </button>
+                }
+                @if (!isOwnProfile() && isGuest()) {
+                  <button (click)="guestGuard.requireAuth()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 bg-[#f2f4f6] text-[#737686] text-xs font-semibold rounded-lg hover:bg-[#004ac6] hover:text-white transition-all">
+                    <span class="material-symbols-outlined text-[14px]">login</span>
+                    Sign In to Review
                   </button>
                 }
               </div>
@@ -305,11 +335,18 @@
                   </div>
                   <p class="text-sm font-semibold text-[#191c1e]">No reviews yet</p>
                   <p class="text-xs text-[#737686] mt-1">Reviews will appear after committee interactions.</p>
-                  @if (!isOwnProfile()) {
+                  @if (!isOwnProfile() && !isGuest()) {
                     <button (click)="openReviewForm()"
                       class="mt-4 flex items-center gap-1.5 px-4 py-2 bg-[#004ac6] text-white text-xs font-semibold rounded-xl hover:bg-[#2563eb] transition-all">
                       <span class="material-symbols-outlined text-[14px]">star</span>
                       Be the first to review
+                    </button>
+                  }
+                  @if (!isOwnProfile() && isGuest()) {
+                    <button (click)="guestGuard.requireAuth()"
+                      class="mt-4 flex items-center gap-1.5 px-4 py-2 bg-[#f2f4f6] text-[#737686] text-xs font-semibold rounded-xl hover:bg-[#004ac6] hover:text-white transition-all">
+                      <span class="material-symbols-outlined text-[14px]">login</span>
+                      Sign In to Review
                     </button>
                   }
                 </div>
@@ -467,3 +504,6 @@
     </div>
   </div>
 }
+
+<!-- Sign-in popup for guests -->
+<app-sign-in-popup></app-sign-in-popup>
