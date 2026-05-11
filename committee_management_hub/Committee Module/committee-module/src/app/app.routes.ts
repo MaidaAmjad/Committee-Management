@@ -35,6 +35,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/browse-committees/browse-committees').then(m => m.BrowseCommitteesComponent)
   },
   {
+    path: 'all-users',
+    canActivate: [authGuard, paymentSetupGuard],
+    loadComponent: () => import('./pages/all-users/all-users').then(m => m.AllUsersComponent)
+  },
+  {
     path: 'my-committees',
     canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/my-committees/my-committees').then(m => m.MyCommitteesComponent)
