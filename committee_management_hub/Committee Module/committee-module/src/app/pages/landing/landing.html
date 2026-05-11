@@ -1,0 +1,469 @@
+﻿
+
+<!-- ── NAVBAR ── -->
+<nav class="nav" id="navbar">
+  <a href="#" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 20 20"><path d="M10 2L3 6v4c0 4.4 3 8.5 7 9.5C14 18.5 17 14.4 17 10V6L10 2z"/></svg>
+    </div>
+    Commitra
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#platform">Platform</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a class="btn-ghost" style="cursor:pointer" (click)="goToLogin()">Login</a>
+    <a class="btn-primary" style="cursor:pointer" (click)="goToSignup()">Sign Up Free</a>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge"><span></span> Trusted by 12,000+ Members</div>
+      <h1>Smart &amp; <span>Transparent</span> Committee Management</h1>
+      <p class="hero-desc">Create, manage, and track digital committees with trust scores, verification badges, payment tracking, and transparent member accountability — all in one platform.</p>
+      <div class="hero-btns">
+        <a href="#" class="btn-hero-primary">Get Started Free →</a>
+        <a href="#" class="btn-hero-outline">Browse Committees</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><strong>12K+</strong><span>Active Members</span></div>
+        <div class="hero-stat"><strong>4.8K</strong><span>Committees Run</span></div>
+        <div class="hero-stat"><strong>98%</strong><span>Payment Success</span></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <!-- Floating notification card -->
+      <div class="float-card fc-notif">
+        <div class="notif-dot"></div>
+        <div class="fc-notif-title">🎉 Winner Selected!</div>
+        <div class="fc-notif-text">Ahmed Khan received PKR 50,000</div>
+      </div>
+      <!-- Dashboard mockup -->
+      <div class="dashboard-mockup">
+        <div class="mock-topbar">
+          <div class="mock-dot" style="background:#ff5f57"></div>
+          <div class="mock-dot" style="background:#febc2e"></div>
+          <div class="mock-dot" style="background:#28c840"></div>
+          <div class="mock-topbar-title">My Dashboard</div>
+          <div class="mock-search">Search...</div>
+        </div>
+        <div class="mock-grid">
+          <div class="mock-stat-card">
+            <div class="mock-stat-label">Active Committees</div>
+            <div class="mock-stat-val">3</div>
+            <div class="mock-stat-sub">↑ 1 new this month</div>
+          </div>
+          <div class="mock-stat-card">
+            <div class="mock-stat-label">Trust Score</div>
+            <div class="mock-stat-val">94 ⭐</div>
+            <div class="mock-stat-sub">Excellent standing</div>
+          </div>
+        </div>
+        <div class="mock-committees">
+          <div class="mock-committee-card">
+            <div class="mock-avatar" style="background:linear-gradient(135deg,#1565c0,#42a5f5)">G</div>
+            <div class="mock-committee-info">
+              <div class="mock-committee-name">Gold Circle — 10 Members</div>
+              <div class="mock-committee-meta">Next draw: June 2026 · PKR 80K</div>
+            </div>
+            <div class="mock-trust-pill">Active ✓</div>
+          </div>
+          <div class="mock-committee-card">
+            <div class="mock-avatar" style="background:linear-gradient(135deg,#00838f,#00bcd4)">F</div>
+            <div class="mock-committee-info">
+              <div class="mock-committee-name">Family Savings — 6 Members</div>
+              <div class="mock-committee-meta">You're next · PKR 30K</div>
+            </div>
+            <div class="mock-trust-pill">Your Turn 🎉</div>
+          </div>
+          <div class="mock-committee-card">
+            <div class="mock-avatar" style="background:linear-gradient(135deg,#5e35b1,#7e57c2)">P</div>
+            <div class="mock-committee-info">
+              <div class="mock-committee-name">Premium Group — 12 Members</div>
+              <div class="mock-committee-meta">Round 3/12 · PKR 60K</div>
+            </div>
+            <div class="mock-trust-pill">On Track ✓</div>
+          </div>
+        </div>
+      </div>
+      <!-- Floating payment card -->
+      <div class="float-card fc-payment">
+        <div class="fc-icon" style="background:#e3f2fd;">💳</div>
+        <div>
+          <div class="fc-label">Payment Verified</div>
+          <div class="fc-val">PKR 5,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRUST FEATURES ── -->
+<section class="trust-section" id="features">
+  <div class="section-header reveal">
+    <div class="section-label">🛡️ Trust & Safety</div>
+    <h2 class="section-title">Built for <span>Accountability</span></h2>
+    <p class="section-desc">Every feature is designed to create maximum transparency between committee members and prevent disputes.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon">✅</div>
+      <div class="feature-title">Verified Users</div>
+      <p class="feature-desc">CNIC-based identity verification ensures every member is who they claim to be. No anonymous participation.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">⭐</div>
+      <div class="feature-title">Trust Scores</div>
+      <p class="feature-desc">Dynamic reputation scores reflect payment history, committee completion, and peer reviews. Build trust over time.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">📎</div>
+      <div class="feature-title">Payment Proof Uploads</div>
+      <p class="feature-desc">Members upload screenshots and receipts for every payment. Admins verify and timestamp each record.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Admin Monitoring</div>
+      <p class="feature-desc">Committee admins get a dedicated panel to track members, flag late payments, and resolve disputes.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Public Reviews</div>
+      <p class="feature-desc">Members can leave verified reviews for other participants, creating a community-driven trust network.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">Secure Transparency</div>
+      <p class="feature-desc">All financial records are immutably logged. Every transaction, every vote, every event — permanently visible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section" id="how-it-works">
+  <div class="section-header reveal">
+    <div class="section-label">🔄 Process</div>
+    <h2 class="section-title">How <span>Commitra</span> Works</h2>
+    <p class="section-desc">Four simple steps to transparent, accountable committee management for everyone.</p>
+  </div>
+  <div class="steps-container reveal" style="gap:0;align-items:stretch;">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-icon">🏛️</div>
+      <div class="step-title">Create or Join a Committee</div>
+      <p class="step-desc">Start your own committee or discover public ones. Set members, amount, and schedule in minutes.</p>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-icon">🎰</div>
+      <div class="step-title">Monthly Winner Selected</div>
+      <p class="step-desc">A fair, random (or admin-managed) draw selects the monthly recipient. Full transparency guaranteed.</p>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-icon">📤</div>
+      <div class="step-title">Members Upload Proofs</div>
+      <p class="step-desc">Each member uploads payment screenshots. Admin verifies and marks transactions complete.</p>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div class="step-icon">🌟</div>
+      <div class="step-title">Trust Builds Automatically</div>
+      <p class="step-desc">Your trust score grows with every completed committee. Build a reputation that opens new opportunities.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── PLATFORM FEATURES ── -->
+<section id="platform">
+  <div class="section-header reveal">
+    <div class="section-label">⚙️ Platform</div>
+    <h2 class="section-title">Everything You <span>Need</span></h2>
+    <p class="section-desc">A complete toolkit for running committees of any size — from family circles to large community groups.</p>
+  </div>
+  <div class="platform-grid">
+    <div class="pf-card reveal"><div class="pf-icon">🎲</div><div><div class="pf-title">Random Winner Selection</div><p class="pf-desc">Provably fair randomization ensures unbiased monthly draws every time.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">🤝</div><div><div class="pf-title">Manual Distribution</div><p class="pf-desc">Admins can manually assign turns based on committee rules and agreements.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">⏱️</div><div><div class="pf-title">Countdown Timers</div><p class="pf-desc">Live countdown to payment deadlines and draw dates keeps everyone accountable.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">🔗</div><div><div class="pf-title">Shared Participation</div><p class="pf-desc">Multiple people can share a single committee slot and split contributions.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">🏅</div><div><div class="pf-title">Verification Badges</div><p class="pf-desc">Display your verified status and completed committees proudly on your public profile.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">🔔</div><div><div class="pf-title">Real-Time Notifications</div><p class="pf-desc">Instant alerts for payment deadlines, winner announcements, and new messages.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">👤</div><div><div class="pf-title">Public Trust Profiles</div><p class="pf-desc">Shareable profiles showing your full history, score, and community endorsements.</p></div></div>
+    <div class="pf-card reveal"><div class="pf-icon">📊</div><div><div class="pf-title">Payment Dashboard</div><p class="pf-desc">Full payment timeline, history, and analytics for every committee you're in.</p></div></div>
+  </div>
+</section>
+
+<!-- ── DASHBOARD PREVIEW ── -->
+<section class="db-preview-section">
+  <div class="section-header reveal">
+    <div class="section-label">📱 Preview</div>
+    <h2 class="section-title">Your Command <span>Center</span></h2>
+    <p class="section-desc">A clean, powerful dashboard that makes running committees effortless.</p>
+  </div>
+  <div class="db-browser reveal">
+    <div class="db-browser-bar">
+      <div class="db-browser-dots">
+        <span style="background:#ff5f57"></span>
+        <span style="background:#febc2e"></span>
+        <span style="background:#28c840"></span>
+      </div>
+      <div class="db-url">app.commitra.com/dashboard</div>
+    </div>
+    <div class="db-screen">
+      <div class="db-sidebar">
+        <div class="db-sidebar-title">Navigation</div>
+        <div class="db-nav-item active">📊 Dashboard</div>
+        <div class="db-nav-item">👥 My Committees</div>
+        <div class="db-nav-item">💳 Payments</div>
+        <div class="db-nav-item">🏅 Trust Profile</div>
+        <div class="db-nav-item">🔔 Notifications</div>
+        <div class="db-nav-item">⚙️ Settings</div>
+      </div>
+      <div class="db-main">
+        <div class="db-row">
+          <div class="db-kpi"><div class="db-kpi-label">Total Saved</div><div class="db-kpi-val">PKR 2.4L</div><div class="db-kpi-trend">↑ +12% this month</div></div>
+          <div class="db-kpi"><div class="db-kpi-label">Active Committees</div><div class="db-kpi-val">3</div><div class="db-kpi-trend">↑ 1 new joined</div></div>
+          <div class="db-kpi"><div class="db-kpi-label">Trust Score</div><div class="db-kpi-val">94 ⭐</div><div class="db-kpi-trend">Excellent</div></div>
+        </div>
+        <div class="db-table">
+          <div class="db-table-head">
+            <div class="db-th">Committee</div>
+            <div class="db-th">Amount</div>
+            <div class="db-th">Round</div>
+            <div class="db-th">Status</div>
+          </div>
+          <div class="db-tr"><div class="db-td">Gold Circle</div><div class="db-td">PKR 80K</div><div class="db-td">4/10</div><div class="db-td"><span class="db-badge">Active</span></div></div>
+          <div class="db-tr"><div class="db-td">Family Savings</div><div class="db-td">PKR 30K</div><div class="db-td">Next</div><div class="db-td"><span class="db-badge">Your Turn</span></div></div>
+          <div class="db-tr"><div class="db-td">Premium Group</div><div class="db-td">PKR 60K</div><div class="db-td">3/12</div><div class="db-td"><span class="db-badge">On Track</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMMUNITY ── -->
+<section class="community-section" id="community">
+  <div class="section-header reveal">
+    <div class="section-label">✅ Community</div>
+    <h2 class="section-title">Verified <span>Members</span></h2>
+    <p class="section-desc">A growing community of verified, trusted members with publicly visible track records.</p>
+  </div>
+  <div class="profiles-grid">
+    <div class="profile-card reveal">
+      <div class="profile-avatar" style="background:linear-gradient(135deg,#1565c0,#42a5f5)">AK</div>
+      <div class="profile-name">Ahmed Khan</div>
+      <div class="verified-badge">✅ Identity Verified</div>
+      <div class="trust-bar-wrap">
+        <div class="trust-bar-label"><span>Trust Score</span><strong>92</strong></div>
+        <div class="trust-bar"><div class="trust-bar-fill" style="width:92%"></div></div>
+      </div>
+      <div class="profile-stat">Committees Completed: <strong>11</strong></div>
+      <div class="profile-stat">Member Since: <strong>Jan 2024</strong></div>
+    </div>
+    <div class="profile-card reveal">
+      <div class="profile-avatar" style="background:linear-gradient(135deg,#00838f,#00bcd4)">SR</div>
+      <div class="profile-name">Sara Raza</div>
+      <div class="verified-badge">✅ Identity Verified</div>
+      <div class="trust-bar-wrap">
+        <div class="trust-bar-label"><span>Trust Score</span><strong>87</strong></div>
+        <div class="trust-bar"><div class="trust-bar-fill" style="width:87%"></div></div>
+      </div>
+      <div class="profile-stat">Committees Completed: <strong>7</strong></div>
+      <div class="profile-stat">Member Since: <strong>Mar 2024</strong></div>
+    </div>
+    <div class="profile-card reveal">
+      <div class="profile-avatar" style="background:linear-gradient(135deg,#5e35b1,#9c27b0)">MF</div>
+      <div class="profile-name">Muhammad Farhan</div>
+      <div class="verified-badge">✅ Identity Verified</div>
+      <div class="trust-bar-wrap">
+        <div class="trust-bar-label"><span>Trust Score</span><strong>96</strong></div>
+        <div class="trust-bar"><div class="trust-bar-fill" style="width:96%"></div></div>
+      </div>
+      <div class="profile-stat">Committees Completed: <strong>15</strong></div>
+      <div class="profile-stat">Member Since: <strong>Sep 2023</strong></div>
+    </div>
+    <div class="profile-card reveal">
+      <div class="profile-avatar" style="background:linear-gradient(135deg,#c62828,#ef5350)">NA</div>
+      <div class="profile-name">Nadia Amin</div>
+      <div class="verified-badge">✅ Identity Verified</div>
+      <div class="trust-bar-wrap">
+        <div class="trust-bar-label"><span>Trust Score</span><strong>89</strong></div>
+        <div class="trust-bar"><div class="trust-bar-fill" style="width:89%"></div></div>
+      </div>
+      <div class="profile-stat">Committees Completed: <strong>9</strong></div>
+      <div class="profile-stat">Member Since: <strong>Jun 2024</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials-section">
+  <div class="section-header reveal">
+    <div class="section-label">💬 Reviews</div>
+    <h2 class="section-title">What Members <span>Say</span></h2>
+    <p class="section-desc">Real stories from real committee members who've transformed how they save money together.</p>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="testi-quote">"</div>
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">Finally a transparent way to manage committees online. No more WhatsApp confusion — everyone can see the full record.</p>
+      <div class="testi-author">
+        <div class="testi-ava" style="background:linear-gradient(135deg,#1565c0,#42a5f5)">ZH</div>
+        <div><div class="testi-name">Zainab Hassan</div><div class="testi-role">Completed 5 Committees</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-quote">"</div>
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">Trust scores make committee participation much safer. I only join committees with high-trust members now. Game changer.</p>
+      <div class="testi-author">
+        <div class="testi-ava" style="background:linear-gradient(135deg,#00838f,#00bcd4)">BI</div>
+        <div><div class="testi-name">Bilal Iqbal</div><div class="testi-role">Trust Score: 91</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-quote">"</div>
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">Payment proof uploads solved our biggest problem — no more disputes about whether someone paid or not. Pure transparency.</p>
+      <div class="testi-author">
+        <div class="testi-ava" style="background:linear-gradient(135deg,#5e35b1,#9c27b0)">FS</div>
+        <div><div class="testi-name">Fatima Sheikh</div><div class="testi-role">Committee Admin</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-quote">"</div>
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">As an admin, the monitoring panel saves hours every month. I can see who's paid, who hasn't, and send reminders instantly.</p>
+      <div class="testi-author">
+        <div class="testi-ava" style="background:linear-gradient(135deg,#c62828,#ef5350)">UM</div>
+        <div><div class="testi-name">Usman Malik</div><div class="testi-role">Manages 3 Committees</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq-section" id="faq">
+  <div class="section-header reveal">
+    <div class="section-label">❓ FAQ</div>
+    <h2 class="section-title">Common <span>Questions</span></h2>
+    <p class="section-desc">Everything you need to know before joining your first committee.</p>
+  </div>
+  <div class="faq-container">
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Is Commitra responsible for payments? <span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">No. Commitra is a tracking and management platform. All financial transactions happen directly between members. We provide tools for transparency and accountability, but we do not hold, transfer, or guarantee any funds.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">How are winners selected? <span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Committees can use our provably fair random draw system, or admins can manually assign turns based on pre-agreed rules. Every selection is logged and visible to all members for full transparency.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">How does the trust score work? <span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Your trust score is calculated based on your payment history (on-time payments), number of committees completed, peer reviews from other members, and identity verification status. Scores range from 0–100.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">Can I leave a committee mid-way? <span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Leaving a committee is subject to the admin's rules and committee agreement. Early exit may impact your trust score. Always communicate with your committee admin if you face issues.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-q" onclick="toggleFaq(this)">How does identity verification work? <span class="faq-arrow">▾</span></div>
+      <div class="faq-a"><div class="faq-a-inner">Members submit a CNIC (or equivalent ID) for verification. Our team reviews and confirms identity, then applies a verified badge to your profile. This badge signals to others that you're a real, accountable participant.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DISCLAIMER ── -->
+<section class="disclaimer-section">
+  <div class="disclaimer-box reveal">
+    <div class="disclaimer-icon">⚠️</div>
+    <div>
+      <div class="disclaimer-title">Important Disclaimer</div>
+      <p class="disclaimer-text">Commitra is a digital committee management and tracking platform. We are <strong>not</strong> responsible for any financial transactions that occur between members. The platform does not hold funds, act as a financial intermediary, or guarantee payments. All monetary arrangements are made directly between committee members at their own risk and agreement.</p>
+      <div class="disclaimer-pills">
+        <span class="dpill">Not a Bank</span>
+        <span class="dpill">Not a Financial Institution</span>
+        <span class="dpill">Peer-to-Peer Accountability Only</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA BAND ── -->
+<section class="cta-band">
+  <h2>Ready to Start Your Committee?</h2>
+  <p>Join 12,000+ members already managing their committees smarter, safer, and more transparently.</p>
+  <div class="cta-btns">
+    <a href="#" class="btn-cta-white">Create Your Committee →</a>
+    <a href="#" class="btn-cta-outline">Browse Committees</a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="logo">
+        <div class="logo-icon"><svg viewBox="0 0 20 20"><path d="M10 2L3 6v4c0 4.4 3 8.5 7 9.5C14 18.5 17 14.4 17 10V6L10 2z"/></svg></div>
+        Commitra
+      </a>
+      <p>Smart, transparent committee management for communities built on trust and accountability.</p>
+      <div class="social-links">
+        <a href="#" class="social-link">f</a>
+        <a href="#" class="social-link">in</a>
+        <a href="#" class="social-link">tw</a>
+        <a href="#" class="social-link">ig</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#">Features</a>
+      <a href="#">How It Works</a>
+      <a href="#">Browse Committees</a>
+      <a href="#">Trust Scores</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About Us</a>
+      <a href="#">Blog</a>
+      <a href="#">Careers</a>
+      <a href="#">Contact</a>
+      <a href="#">Press</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms & Conditions</a>
+      <a href="#">Disclaimer</a>
+      <a href="#">Cookie Policy</a>
+      <a href="#">Support</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Commitra. All rights reserved.</p>
+    <div class="footer-bottom-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+

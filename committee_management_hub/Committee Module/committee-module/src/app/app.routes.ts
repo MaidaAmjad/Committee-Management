@@ -4,7 +4,11 @@ import { paymentSetupGuard } from './core/payment-setup.guard';
 import { adminAuthGuard } from './core/admin-auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'signup', pathMatch: 'full' },
+  // Landing page — default route
+  {
+    path: '',
+    loadComponent: () => import('./pages/landing-page/landing-page').then(m => m.LandingPageComponent)
+  },
 
   // Public auth routes
   {
@@ -116,5 +120,5 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/admin-verification/admin-verification').then(m => m.AdminVerificationComponent)
   },
 
-  { path: '**', redirectTo: 'signup' }
+  { path: '**', redirectTo: '' }
 ];
