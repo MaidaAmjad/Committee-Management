@@ -1,8 +1,37 @@
 <div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
-  <app-sidebar></app-sidebar>
 
-  <div class="flex flex-col flex-1 md:ml-64">
-    <app-topnav></app-topnav>
+  <!-- Sidebar — only for logged-in users -->
+  @if (!isGuest()) {
+    <app-sidebar></app-sidebar>
+  }
+
+  <div class="flex flex-col flex-1" [class.md:ml-64]="!isGuest()">
+
+    <!-- Guest header -->
+    @if (isGuest()) {
+      <header class="sticky top-0 z-30 bg-white border-b border-[#e2e8f0] h-16 flex items-center justify-between px-6 shadow-sm">
+        <div class="flex items-center gap-3">
+          <a routerLink="/" class="flex items-center gap-2 text-[#004ac6] font-bold text-lg">
+            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">security</span>
+            TrustCom
+          </a>
+          <div class="w-px h-5 bg-[#c3c6d7]"></div>
+          <a routerLink="/browse" class="text-sm text-[#434655] hover:text-[#004ac6] flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+            Browse
+          </a>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-[#737686] bg-[#fef9c3] border border-[#fde68a] px-3 py-1 rounded-full font-semibold hidden sm:block">
+            👁 Read-only — Sign in to join
+          </span>
+          <a routerLink="/login" class="px-4 py-2 border border-[#c3c6d7] text-[#434655] text-sm font-semibold rounded-xl hover:bg-[#f2f4f6] transition-all">Sign In</a>
+          <a routerLink="/signup" class="px-4 py-2 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all">Sign Up Free</a>
+        </div>
+      </header>
+    } @else {
+      <app-topnav></app-topnav>
+    }
 
     <main class="flex-1 p-6 max-w-[1000px] mx-auto w-full">
 
@@ -89,7 +118,21 @@
               </div>
 
               <!-- Action Buttons -->
-              @if (!isOwner()) {
+              @if (isGuest()) {
+                <!-- Guest: show sign-in to join button -->
+                <div class="flex flex-col gap-3 w-full md:w-52 flex-shrink-0">
+                  <button (click)="guestGuard.requireAuth()"
+                    class="w-full h-12 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all flex items-center justify-center gap-2 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">login</span>
+                    Sign In to Join
+                  </button>
+                  <a routerLink="/signup"
+                    class="w-full h-10 bg-white border border-[#004ac6] text-[#004ac6] text-xs font-semibold rounded-xl hover:bg-[#dbe1ff] transition-all flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">person_add</span>
+                    Create Free Account
+                  </a>
+                </div>
+              } @else if (!isOwner()) {
                 <div class="flex flex-col gap-3 w-full md:w-52 flex-shrink-0">
 
                   @switch (requestStatus()) {
@@ -598,3 +641,6 @@
     </div>
   </div>
 }
+
+<!-- Sign-in popup for guests -->
+<app-sign-in-popup></app-sign-in-popup>

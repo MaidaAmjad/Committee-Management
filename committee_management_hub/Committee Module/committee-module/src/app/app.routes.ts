@@ -68,7 +68,6 @@ export const routes: Routes = [
   },
   {
     path: 'committee/:id',
-    canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/committee-detail/committee-detail').then(m => m.CommitteeDetailComponent)
   },
   {
@@ -78,7 +77,6 @@ export const routes: Routes = [
   },
   {
     path: 'user/:id',
-    canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/user-profile-view/user-profile-view').then(m => m.UserProfileViewComponent)
   },
   {

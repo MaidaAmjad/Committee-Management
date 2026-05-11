@@ -11,6 +11,8 @@ import { WinnerPaymentDetailsComponent } from '../../shared/winner-payment-detai
 import { CommitteeAnnouncementComponent } from '../../shared/committee-announcement/committee-announcement';
 import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
 import { SupabaseService } from '../../core/supabase.service';
+import { GuestGuardService } from '../../core/guest-guard.service';
+import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
 
 @Component({
   selector: 'app-committee-detail',
@@ -23,7 +25,8 @@ import { SupabaseService } from '../../core/supabase.service';
     TopnavComponent,
     WinnerSelectionComponent,
     WinnerPaymentDetailsComponent,
-    CommitteeAnnouncementComponent
+    CommitteeAnnouncementComponent,
+    SignInPopupComponent
   ],
   templateUrl: './committee-detail.html',
   styleUrl: './committee-detail.scss'
@@ -97,24 +100,35 @@ export class CommitteeDetailComponent implements OnInit {
     private committeeService: CommitteeService,
     private winnerService: WinnerSelectionService,
     public auth: AuthService,
-    private supabaseService: SupabaseService
+    private supabaseService: SupabaseService,
+    public guestGuard: GuestGuardService
   ) {
     this.supabase = this.supabaseService.client;
   }
+
+  isGuest = computed(() => !this.auth.user());
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/browse']); return; }
 
-    await this.auth.ready;
+    // For guests, skip auth wait
+    if (!this.guestGuard.isGuest()) {
+      await this.auth.ready;
+    }
     this.loading.set(true);
 
-    const [committeeRes, membersRes, reqState, broadcastsRes] = await Promise.all([
+    const [committeeRes, membersRes, broadcastsRes] = await Promise.all([
       this.committeeService.getCommitteeById(id),
       this.committeeService.getCommitteeMembers(id),
-      this.committeeService.hasRequested(id),
       this.committeeService.getBroadcasts(id),
     ]);
+
+    // Only fetch request state for logged-in users
+    let reqState = { requested: false, status: null as string | null };
+    if (!this.guestGuard.isGuest()) {
+      reqState = await this.committeeService.hasRequested(id);
+    }
 
     this.loading.set(false);
 
