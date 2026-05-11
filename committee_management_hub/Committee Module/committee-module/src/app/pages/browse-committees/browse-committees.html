@@ -1,8 +1,38 @@
 <div class="flex min-h-screen bg-[#f7f9fb] text-[#191c1e]">
-  <app-sidebar></app-sidebar>
 
-  <div class="flex flex-col flex-1 md:ml-64">
-    <app-topnav></app-topnav>
+  <!-- Sidebar — only for logged-in users -->
+  @if (!isGuest()) {
+    <app-sidebar></app-sidebar>
+  }
+
+  <div class="flex flex-col flex-1" [class.md:ml-64]="!isGuest()">
+
+    <!-- Guest header -->
+    @if (isGuest()) {
+      <header class="sticky top-0 z-30 bg-white border-b border-[#e2e8f0] h-16 flex items-center justify-between px-6 shadow-sm">
+        <div class="flex items-center gap-3">
+          <a routerLink="/" class="flex items-center gap-2 text-[#004ac6] font-bold text-lg">
+            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings:'FILL' 1;">security</span>
+            TrustCom
+          </a>
+          <div class="w-px h-5 bg-[#c3c6d7]"></div>
+          <span class="text-sm font-semibold text-[#191c1e]">Browse Committees</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-[#737686] bg-[#fef9c3] border border-[#fde68a] px-3 py-1 rounded-full font-semibold hidden sm:block">
+            👁 Read-only — Sign in to join
+          </span>
+          <a routerLink="/login" class="px-4 py-2 border border-[#c3c6d7] text-[#434655] text-sm font-semibold rounded-xl hover:bg-[#f2f4f6] transition-all">
+            Sign In
+          </a>
+          <a routerLink="/signup" class="px-4 py-2 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all">
+            Sign Up Free
+          </a>
+        </div>
+      </header>
+    } @else {
+      <app-topnav></app-topnav>
+    }
 
     <div class="flex flex-col lg:flex-row flex-grow max-w-[1440px] mx-auto w-full p-6 gap-6">
 
@@ -82,10 +112,10 @@
             }
           </div>
           <button
-            (click)="goToCreate()"
+            (click)="isGuest() ? guestGuard.requireAuth() : goToCreate()"
             class="flex items-center gap-2 px-4 py-2.5 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all shadow-sm">
-            <span class="material-symbols-outlined text-[18px]">add</span>
-            Create
+            <span class="material-symbols-outlined text-[18px]">{{ isGuest() ? 'login' : 'add' }}</span>
+            {{ isGuest() ? 'Sign In' : 'Create' }}
           </button>
         </div>
 
@@ -350,16 +380,28 @@
               </div>
             }
 
-            <!-- Create CTA card -->
-            <div
-              (click)="goToCreate()"
-              class="border-2 border-dashed border-[#c3c6d7] rounded-2xl flex flex-col items-center justify-center p-8 text-center group hover:bg-[#f7f9ff] hover:border-[#004ac6] transition-all cursor-pointer min-h-[280px]">
-              <div class="w-14 h-14 rounded-full bg-[#dbe1ff] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <span class="material-symbols-outlined text-[#004ac6] text-2xl">add</span>
+            <!-- Create CTA card — only for logged-in users -->
+            @if (!isGuest()) {
+              <div
+                (click)="goToCreate()"
+                class="border-2 border-dashed border-[#c3c6d7] rounded-2xl flex flex-col items-center justify-center p-8 text-center group hover:bg-[#f7f9ff] hover:border-[#004ac6] transition-all cursor-pointer min-h-[280px]">
+                <div class="w-14 h-14 rounded-full bg-[#dbe1ff] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <span class="material-symbols-outlined text-[#004ac6] text-2xl">add</span>
+                </div>
+                <h3 class="text-sm font-bold text-[#191c1e]">Create a Committee</h3>
+                <p class="text-xs text-[#737686] mt-1">Start your own savings circle</p>
               </div>
-              <h3 class="text-sm font-bold text-[#191c1e]">Create a Committee</h3>
-              <p class="text-xs text-[#737686] mt-1">Start your own savings circle</p>
-            </div>
+            } @else {
+              <!-- Guest: sign-up CTA card -->
+              <div (click)="guestGuard.goToSignup()"
+                class="border-2 border-dashed border-[#004ac6] rounded-2xl flex flex-col items-center justify-center p-8 text-center group hover:bg-[#f7f9ff] transition-all cursor-pointer min-h-[280px]">
+                <div class="w-14 h-14 rounded-full bg-[#dbe1ff] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <span class="material-symbols-outlined text-[#004ac6] text-2xl">login</span>
+                </div>
+                <h3 class="text-sm font-bold text-[#004ac6]">Sign Up to Join</h3>
+                <p class="text-xs text-[#737686] mt-1">Create a free account to join or create committees</p>
+              </div>
+            }
 
           </div>
         }
