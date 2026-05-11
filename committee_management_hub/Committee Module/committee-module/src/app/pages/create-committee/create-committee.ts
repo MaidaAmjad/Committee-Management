@@ -33,7 +33,7 @@ export class CreateCommitteeComponent {
       monthlyAmount:        [null, [Validators.required, Validators.min(1)]],
       maxMembers:           [null, [Validators.required, Validators.min(2), Validators.max(100)]],
       description:          ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
-      durationMonths:       [12], // default 12 months, hidden from user
+      durationMonths:       [null], // auto-set from maxMembers on submit
       paymentDeadlineDate:  ['', Validators.required],
       gracePeriodDays:      [3, [Validators.required, Validators.min(0), Validators.max(30)]],
       paymentCycleDays:     [30, [Validators.required, Validators.min(1), Validators.max(365)]],
@@ -72,6 +72,10 @@ export class CreateCommitteeComponent {
   async onSubmit(): Promise<void> {
     this.submitted = true;
     if (this.form.invalid) return;
+
+    // Auto-set duration = max members (1 month per member)
+    const maxMembers = this.f['maxMembers'].value;
+    this.form.patchValue({ durationMonths: maxMembers });
 
     this.loading  = true;
     this.errorMsg = '';
