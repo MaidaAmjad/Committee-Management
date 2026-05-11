@@ -30,7 +30,9 @@ export class AllUsersComponent implements OnInit {
   filteredUsers = computed(() => {
     const q = this.searchQuery().toLowerCase();
     return this.allUsers().filter(u =>
-      !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      !q || 
+      (u.full_name && u.full_name.toLowerCase().includes(q)) || 
+      (u.email && u.email.toLowerCase().includes(q))
     );
   });
 
@@ -87,6 +89,6 @@ export class AllUsersComponent implements OnInit {
   }
 
   viewProfile(id: string): void {
-    this.router.navigate(['/profile', id]);
+    this.router.navigate(['/user', id]);
   }
 }
