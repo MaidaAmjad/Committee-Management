@@ -20,10 +20,6 @@ export interface WinnerSelection {
   selected_at: string;
   selection_method: DistributionMethod;
   selected_by: string;
-  is_shared_group?: boolean;
-  shared_group_id?: string;
-  shared_group_member_ids?: string[];
-  payment_details_user_id?: string;
 }
 
 /**
@@ -48,19 +44,7 @@ export interface EligibleMember {
   user_id: string;
   full_name: string;
   email: string;
-  slot_type: 'full' | 'shared';
-  shared_group_id?: string; // If part of shared group
-}
-
-/**
- * Shared group info for winner selection
- */
-export interface SharedGroupInfo {
-  id: string;
-  group_leader_user_id: string;
-  group_leader_name: string;
-  group_member_user_id: string;
-  group_member_name: string;
+  slot_type: 'full';
 }
 
 /**
@@ -79,9 +63,7 @@ export class WinnerSelectionService {
 
   /**
    * Get eligible members for winner selection.
-   * Excludes:
-   * - Individual members who have already won
-   * - BOTH members of a shared group if that group has already won
+   * Excludes members who have already won.
    */
   async getEligibleMembers(committeeId: string): Promise<{ data: EligibleMember[]; error: string | null }> {
     // Get all approved members
@@ -97,7 +79,7 @@ export class WinnerSelectionService {
     // Get all past winner selections for this committee
     const { data: winners, error: winnersError } = await this.supabase
       .from('winner_selections')
-      .select('member_id, is_shared_group, shared_group_id')
+      .select('member_id')
       .eq('committee_id', committeeId);
 
     if (winnersError) {
@@ -107,27 +89,7 @@ export class WinnerSelectionService {
 
     // Build set of excluded member IDs
     const excludedMemberIds = new Set<string>();
-
-    // Add directly selected member IDs
     (winners || []).forEach((w: any) => excludedMemberIds.add(w.member_id));
-
-    // For shared group wins, also exclude the OTHER member of the group
-    const wonSharedGroupIds = (winners || [])
-      .filter((w: any) => w.is_shared_group && w.shared_group_id)
-      .map((w: any) => w.shared_group_id as string);
-
-    if (wonSharedGroupIds.length > 0) {
-      // Fetch both members of each won shared group
-      const { data: sharedGroups } = await this.supabase
-        .from('shared_groups')
-        .select('group_leader_member_id, group_member_member_id')
-        .in('id', wonSharedGroupIds);
-
-      (sharedGroups || []).forEach((sg: any) => {
-        if (sg.group_leader_member_id) excludedMemberIds.add(sg.group_leader_member_id);
-        if (sg.group_member_member_id) excludedMemberIds.add(sg.group_member_member_id);
-      });
-    }
 
     console.log('🚫 Excluded member IDs (already won):', [...excludedMemberIds]);
 
@@ -138,62 +100,7 @@ export class WinnerSelectionService {
   }
 
   /**
-   * Get shared group information for a member
-   * Returns null if member is not part of an active shared group
-   */
-  async getSharedGroupForMember(
-    committeeId: string,
-    memberId: string
-  ): Promise<{ data: SharedGroupInfo | null; error: string | null }> {
-    const { data, error } = await this.supabase
-      .rpc('get_shared_group_for_member', {
-        p_committee_id: committeeId,
-        p_member_id: memberId
-      });
-
-    if (error) {
-      console.error('Failed to get shared group:', error);
-      return { data: null, error: error.message };
-    }
-
-    if (!data || data.length === 0) {
-      return { data: null, error: null };
-    }
-
-    const group = data[0];
-
-    // Get member details for both leader and member
-    const { data: leaderData } = await this.supabase
-      .from('committee_members')
-      .select('user_id, full_name')
-      .eq('id', group.group_leader_member_id)
-      .single();
-
-    const { data: memberData } = await this.supabase
-      .from('committee_members')
-      .select('user_id, full_name')
-      .eq('id', group.group_member_member_id)
-      .single();
-
-    if (!leaderData || !memberData) {
-      return { data: null, error: 'Could not fetch member details' };
-    }
-
-    return {
-      data: {
-        id: group.id,
-        group_leader_user_id: leaderData.user_id,
-        group_leader_name: leaderData.full_name,
-        group_member_user_id: memberData.user_id,
-        group_member_name: memberData.full_name
-      },
-      error: null
-    };
-  }
-
-  /**
    * Select a random winner from eligible members
-   * If selected member is part of a shared group, both members are selected as winners
    */
   async selectRandomWinner(committeeId: string): Promise<{ data: WinnerSelection | null; error: string | null }> {
     const user = this.auth.user();
@@ -225,59 +132,28 @@ export class WinnerSelectionService {
     // Clear all previous payment proofs for this committee
     await this.clearPreviousPaymentProofs(committeeId);
 
-    // Check if selected member is part of a shared group
-    const { data: sharedGroup } = await this.getSharedGroupForMember(committeeId, selectedMember.id);
+    // Insert winner directly
+    const { data: winner, error: insertError } = await this.supabase
+      .from('winner_selections')
+      .insert({
+        committee_id: committeeId,
+        member_id: selectedMember.id,
+        member_name: selectedMember.full_name,
+        member_email: selectedMember.email,
+        cycle_number: cycleNumber,
+        selection_method: 'random',
+        selected_by: 'system',
+      })
+      .select()
+      .single();
 
-    if (sharedGroup) {
-      // Both members of shared group are winners
-      console.log('🎯 Selected member is part of shared group, selecting both members as winners');
-      
-      const { data: winner, error: insertError } = await this.supabase
-        .from('winner_selections')
-        .insert({
-          committee_id: committeeId,
-          member_id: selectedMember.id,
-          member_name: `${sharedGroup.group_leader_name} & ${sharedGroup.group_member_name} (Shared Group)`,
-          member_email: selectedMember.email,
-          cycle_number: cycleNumber,
-          selection_method: 'random',
-          selected_by: 'system',
-          is_shared_group: true,
-          shared_group_id: sharedGroup.id,
-          shared_group_member_ids: [selectedMember.id], // Will be updated to include both member IDs
-          payment_details_user_id: sharedGroup.group_leader_user_id
-        })
-        .select()
-        .single();
+    if (insertError) return { data: null, error: insertError.message };
 
-      if (insertError) return { data: null, error: insertError.message };
-
-      return { data: winner as WinnerSelection, error: null };
-    } else {
-      // Single member winner
-      const { data: winner, error: insertError } = await this.supabase
-        .from('winner_selections')
-        .insert({
-          committee_id: committeeId,
-          member_id: selectedMember.id,
-          member_name: selectedMember.full_name,
-          member_email: selectedMember.email,
-          cycle_number: cycleNumber,
-          selection_method: 'random',
-          selected_by: 'system',
-        })
-        .select()
-        .single();
-
-      if (insertError) return { data: null, error: insertError.message };
-
-      return { data: winner as WinnerSelection, error: null };
-    }
+    return { data: winner as WinnerSelection, error: null };
   }
 
   /**
    * Manually select a winner
-   * If selected member is part of a shared group, both members are selected as winners
    */
   async selectManualWinner(
     committeeId: string, 
@@ -310,54 +186,24 @@ export class WinnerSelectionService {
     // Clear all previous payment proofs for this committee
     await this.clearPreviousPaymentProofs(committeeId);
 
-    // Check if selected member is part of a shared group
-    const { data: sharedGroup } = await this.getSharedGroupForMember(committeeId, selectedMember.id);
+    // Insert winner directly
+    const { data: winner, error: insertError } = await this.supabase
+      .from('winner_selections')
+      .insert({
+        committee_id: committeeId,
+        member_id: selectedMember.id,
+        member_name: selectedMember.full_name,
+        member_email: selectedMember.email,
+        cycle_number: cycleNumber,
+        selection_method: 'manual',
+        selected_by: user.id,
+      })
+      .select()
+      .single();
 
-    if (sharedGroup) {
-      // Both members of shared group are winners
-      console.log('🎯 Selected member is part of shared group, selecting both members as winners');
-      
-      const { data: winner, error: insertError } = await this.supabase
-        .from('winner_selections')
-        .insert({
-          committee_id: committeeId,
-          member_id: selectedMember.id,
-          member_name: `${sharedGroup.group_leader_name} & ${sharedGroup.group_member_name} (Shared Group)`,
-          member_email: selectedMember.email,
-          cycle_number: cycleNumber,
-          selection_method: 'manual',
-          selected_by: user.id,
-          is_shared_group: true,
-          shared_group_id: sharedGroup.id,
-          shared_group_member_ids: [selectedMember.id], // Will be updated to include both member IDs
-          payment_details_user_id: sharedGroup.group_leader_user_id
-        })
-        .select()
-        .single();
+    if (insertError) return { data: null, error: insertError.message };
 
-      if (insertError) return { data: null, error: insertError.message };
-
-      return { data: winner as WinnerSelection, error: null };
-    } else {
-      // Single member winner
-      const { data: winner, error: insertError } = await this.supabase
-        .from('winner_selections')
-        .insert({
-          committee_id: committeeId,
-          member_id: selectedMember.id,
-          member_name: selectedMember.full_name,
-          member_email: selectedMember.email,
-          cycle_number: cycleNumber,
-          selection_method: 'manual',
-          selected_by: user.id,
-        })
-        .select()
-        .single();
-
-      if (insertError) return { data: null, error: insertError.message };
-
-      return { data: winner as WinnerSelection, error: null };
-    }
+    return { data: winner as WinnerSelection, error: null };
   }
 
   /**

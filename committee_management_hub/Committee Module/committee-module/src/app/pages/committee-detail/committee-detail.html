@@ -331,16 +331,16 @@
               <!-- Owner sees all members with status badges -->
               @for (member of (isOwner() ? members() : approvedMembers()); track member.id) {
                 <div class="relative flex items-center gap-3 p-4 rounded-xl border transition-all"
-                  [class.bg-gradient-to-br]="isMemberWinner(member.id)"
-                  [class.from-[#fff7ed]]="isMemberWinner(member.id)"
-                  [class.to-[#ffedd5]]="isMemberWinner(member.id)"
-                  [class.border-[#fed7aa]]="isMemberWinner(member.id)"
-                  [class.shadow-md]="isMemberWinner(member.id)"
-                  [class.bg-[#f7f9fb]]="!isMemberWinner(member.id)"
-                  [class.border-[#f2f4f6]]="!isMemberWinner(member.id)">
+                  [class.bg-gradient-to-br]="currentWinner()?.member_id === member.id"
+                  [class.from-[#fff7ed]]="currentWinner()?.member_id === member.id"
+                  [class.to-[#ffedd5]]="currentWinner()?.member_id === member.id"
+                  [class.border-[#fed7aa]]="currentWinner()?.member_id === member.id"
+                  [class.shadow-md]="currentWinner()?.member_id === member.id"
+                  [class.bg-[#f7f9fb]]="currentWinner()?.member_id !== member.id"
+                  [class.border-[#f2f4f6]]="currentWinner()?.member_id !== member.id">
                   
                   <!-- Winner Trophy Badge -->
-                  @if (isMemberWinner(member.id)) {
+                  @if (currentWinner()?.member_id === member.id) {
                     <div class="absolute -top-2 -right-2 w-8 h-8 bg-[#943700] rounded-full flex items-center justify-center shadow-lg z-10">
                       <span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings:'FILL' 1;">emoji_events</span>
                     </div>
@@ -348,15 +348,15 @@
                   
                   <a [routerLink]="['/user', member.user_id]"
                     class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
-                    [class.bg-[#943700]]="isMemberWinner(member.id)"
-                    [class.bg-[#004ac6]]="!isMemberWinner(member.id)">
+                    [class.bg-[#943700]]="currentWinner()?.member_id === member.id"
+                    [class.bg-[#004ac6]]="currentWinner()?.member_id !== member.id">
                     {{ getInitials(member.full_name) }}
                   </a>
                   <div class="flex-1 min-w-0">
                     <a [routerLink]="['/user', member.user_id]"
                       class="text-sm font-semibold truncate hover:text-[#004ac6] transition-colors cursor-pointer block"
-                      [class.text-[#943700]]="isMemberWinner(member.id)"
-                      [class.text-[#191c1e]]="!isMemberWinner(member.id)">
+                      [class.text-[#943700]]="currentWinner()?.member_id === member.id"
+                      [class.text-[#191c1e]]="currentWinner()?.member_id !== member.id">
                       <span class="inline-flex items-center gap-1 flex-wrap">
                         {{ member.full_name }}
                         @if (member.is_verified) {
@@ -364,7 +364,7 @@
                             <svg viewBox="0 0 24 24" fill="white" width="10" height="10"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                           </span>
                         }
-                        @if (isMemberWinner(member.id)) {
+                        @if (currentWinner()?.member_id === member.id) {
                           <span class="text-[10px] font-bold bg-[#943700] text-white px-2 py-0.5 rounded-full">🏆 WINNER</span>
                         }
                       </span>

@@ -7,7 +7,6 @@ import { filter } from 'rxjs/operators';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee } from '../../core/committee.service';
-import { SharedGroupService } from '../../core/shared-group.service';
 import { AuthService } from '../../core/auth.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
@@ -33,8 +32,6 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
   maxAmount      = signal(10000);
   amountFilter   = signal(10000);
 
-  sharedGroupToggles = signal<Record<string, boolean>>({});
-
   currentUserId = computed(() => this.auth.user()?.id ?? '');
 
   filteredCommittees = computed(() => {
@@ -52,7 +49,6 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
 
   constructor(
     private committeeService: CommitteeService,
-    private sharedGroupService: SharedGroupService,
     private auth: AuthService,
     private router: Router,
     public guestGuard: GuestGuardService
@@ -119,20 +115,8 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
     return this.requestStates()[c.id] ?? { requested: false, status: null };
   }
 
-  /** Returns true if the "Join as Shared Group" toggle is on for this committee. */
-  isSharedToggleOn(c: Committee): boolean {
-    return this.sharedGroupToggles()[c.id] ?? false;
-  }
-
-  /** Flips the shared group toggle for a specific committee card. */
-  toggleSharedGroup(c: Committee): void {
-    this.sharedGroupToggles.update(t => ({ ...t, [c.id]: !t[c.id] }));
-  }
-
   /**
-   * Handles the join action.
-   * - If "Join as Shared Group" is enabled: creates a shared group and navigates to /shared-groups.
-   * - Otherwise: sends a normal join request (pending approval).
+   * Handles the join action — sends a normal join request (pending approval).
    */
   async joinCommittee(c: Committee, event: Event): Promise<void> {
     event.stopPropagation();
@@ -147,76 +131,6 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
     const slotsLeft = this.getSlotsLeft(c);
     if (slotsLeft === 0) {
       this.errorMsg.set('This committee is full. No slots available.');
-      return;
-    }
-
-    // If only 0.5 slot remains, force shared group joining
-    if (slotsLeft === 0.5 && !this.isSharedToggleOn(c)) {
-      this.errorMsg.set('Only 0.5 slot remains. You must join as a Shared Group.');
-      // Auto-enable shared toggle
-      this.toggleSharedGroup(c);
-      return;
-    }
-
-    // If trying to join as full member but less than 1 slot available
-    if (!this.isSharedToggleOn(c) && slotsLeft < 1) {
-      this.errorMsg.set('Not enough slots for a full member. Please join as a Shared Group.');
-      return;
-    }
-
-    if (this.isSharedToggleOn(c)) {
-      this.joiningId.set(c.id);
-
-      // 1. Submit a join request with slot_type = 'shared' (creates committee_member record)
-      const { error: joinError } = await this.committeeService.joinCommitteeAsShared(c.id);
-      if (joinError) { 
-        this.joiningId.set(null);
-        this.errorMsg.set(joinError); 
-        return; 
-      }
-
-      // 2. Check if there's an existing pending shared group for this committee
-      const { data: pendingGroup, error: findError } = await this.sharedGroupService.findPendingSharedGroup(c.id);
-      if (findError) {
-        this.joiningId.set(null);
-        this.errorMsg.set(findError);
-        return;
-      }
-
-      if (pendingGroup) {
-        // Join existing shared group as second member
-        console.log('👥 Found pending shared group, joining as second member');
-        const { error: joinGroupError } = await this.sharedGroupService.joinExistingSharedGroup(
-          pendingGroup.id,
-          c.id
-        );
-        this.joiningId.set(null);
-        if (joinGroupError) {
-          this.errorMsg.set(joinGroupError);
-          return;
-        }
-        console.log('✅ Successfully joined existing shared group');
-      } else {
-        // Create new shared group as leader
-        console.log('👤 No pending group found, creating new shared group as leader');
-        const { error: sgError } = await this.sharedGroupService.createSharedGroup(
-          c.id,
-          c.name,
-          c.monthly_amount
-        );
-        this.joiningId.set(null);
-        if (sgError) { 
-          this.errorMsg.set(sgError); 
-          return; 
-        }
-        console.log('✅ Successfully created new shared group');
-      }
-
-      // Mark card as pending
-      this.requestStates.update(s => ({ ...s, [c.id]: { requested: true, status: 'pending' } }));
-
-      // Navigate to the shared groups page
-      this.router.navigate(['/shared-groups']);
       return;
     }
 
@@ -260,22 +174,6 @@ export class BrowseCommitteesComponent implements OnInit, OnDestroy {
     if (s <= 2) return { bg: '#ffdbcd', color: '#7d2d00' }; // Orange for limited
     if (s <= 5) return { bg: '#fef9c3', color: '#854d0e' }; // Yellow for moderate
     return { bg: '#d0e1fb', color: '#54647a' }; // Blue for plenty
-  }
-
-  /**
-   * Check if only shared joining is allowed (when 0.5 slot remains)
-   */
-  canOnlyJoinAsShared(c: Committee): boolean {
-    const slotsLeft = this.getSlotsLeft(c);
-    return slotsLeft === 0.5;
-  }
-
-  /**
-   * Check if full joining is disabled
-   */
-  isFullJoinDisabled(c: Committee): boolean {
-    const slotsLeft = this.getSlotsLeft(c);
-    return slotsLeft < 1; // Disable if less than 1 full slot available
   }
 
   getStatusBadge(c: Committee): { bg: string; color: string } {

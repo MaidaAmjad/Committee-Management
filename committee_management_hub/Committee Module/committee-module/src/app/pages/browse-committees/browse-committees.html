@@ -302,49 +302,7 @@
                         </div>
                       }
                       @default {
-                        <!-- Warning for partial slot -->
-                        @if (canOnlyJoinAsShared(c)) {
-                          <div class="bg-[#fff7ed] border border-[#c2410c] rounded-xl px-3 py-2 mb-2">
-                            <div class="flex items-start gap-2">
-                              <span class="material-symbols-outlined text-[#c2410c] text-[16px] flex-shrink-0 mt-0.5">info</span>
-                              <p class="text-[10px] text-[#7c2d12] leading-tight">
-                                <strong>Only 0.5 slot remains.</strong> You must join as a Shared Group to fill this slot.
-                              </p>
-                            </div>
-                          </div>
-                        }
-
-                        <!-- Row 1: Join as Shared Group toggle -->
-                        <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-xl bg-[#f2f4f6] hover:bg-[#e6e8ea] transition-colors mb-2"
-                          [class.opacity-50]="isFullJoinDisabled(c) && !isSharedToggleOn(c)"
-                          (click)="$event.stopPropagation()">
-                          <div class="relative flex-shrink-0">
-                            <input type="checkbox" class="sr-only"
-                              [checked]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
-                              [disabled]="canOnlyJoinAsShared(c)"
-                              (change)="toggleSharedGroup(c)" />
-                            <div class="w-9 h-5 rounded-full transition-colors duration-200"
-                              [class.bg-[#004ac6]]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
-                              [class.bg-[#c3c6d7]]="!isSharedToggleOn(c) && !canOnlyJoinAsShared(c)">
-                              <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
-                                [class.translate-x-4]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"></div>
-                            </div>
-                          </div>
-                          <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-semibold text-[#191c1e] leading-tight">
-                              Join as Shared Group
-                              @if (canOnlyJoinAsShared(c)) {
-                                <span class="text-[#c2410c]">(Required)</span>
-                              }
-                            </p>
-                            <p class="text-[10px] text-[#737686] leading-tight">Pay {{ c.monthly_amount / 2 | number }} PKR with a partner</p>
-                          </div>
-                          <span class="material-symbols-outlined text-[18px] flex-shrink-0 transition-colors"
-                            [class.text-[#004ac6]]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
-                            [class.text-[#c3c6d7]]="!isSharedToggleOn(c) && !canOnlyJoinAsShared(c)">group_work</span>
-                        </label>
-
-                        <!-- Row 2: Details + Join -->
+                        <!-- Row: Details + Join -->
                         <div class="flex gap-2">
                           <button (click)="viewDetails(c)"
                             class="py-2.5 px-4 bg-white border border-[#c3c6d7] text-[#434655] rounded-xl text-sm font-semibold hover:bg-[#f2f4f6] transition-all flex items-center justify-center gap-1.5 flex-shrink-0">
@@ -353,9 +311,7 @@
                           <button
                             (click)="joinCommittee(c, $event)"
                             [disabled]="joiningId() === c.id || getSlotsLeft(c) === 0"
-                            class="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60"
-                            [class.bg-[#004ac6]]="!isSharedToggleOn(c) && !canOnlyJoinAsShared(c)"
-                            [class.bg-[#505f76]]="isSharedToggleOn(c) || canOnlyJoinAsShared(c)"
+                            class="flex-1 py-2.5 bg-[#004ac6] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60"
                             [class.cursor-not-allowed]="getSlotsLeft(c) === 0">
                             @if (joiningId() === c.id) {
                               <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -366,10 +322,8 @@
                               <span class="material-symbols-outlined text-[16px]">block</span>
                               Full
                             } @else {
-                              <span class="material-symbols-outlined text-[16px]">
-                                {{ isSharedToggleOn(c) || canOnlyJoinAsShared(c) ? 'group_work' : 'group_add' }}
-                              </span>
-                              {{ isSharedToggleOn(c) || canOnlyJoinAsShared(c) ? 'Join as Shared' : 'Join' }}
+                              <span class="material-symbols-outlined text-[16px]">group_add</span>
+                              Join
                             }
                           </button>
                         </div>

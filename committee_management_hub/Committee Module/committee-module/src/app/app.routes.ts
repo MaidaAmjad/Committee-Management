@@ -52,11 +52,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/my-committees/my-committees').then(m => m.MyCommitteesComponent)
   },
   {
-    path: 'shared-groups',
-    canActivate: [authGuard, paymentSetupGuard],
-    loadComponent: () => import('./pages/shared-group/shared-group').then(m => m.SharedGroupComponent)
-  },
-  {
     path: 'payments',
     canActivate: [authGuard, paymentSetupGuard],
     loadComponent: () => import('./pages/payments/payments').then(m => m.PaymentsComponent)

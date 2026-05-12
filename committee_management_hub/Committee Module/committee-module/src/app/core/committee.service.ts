@@ -42,8 +42,7 @@ export interface CommitteeMember {
   email: string;
   status: 'pending' | 'approved' | 'rejected';
   slot_type?: 'full' | 'shared';
-  shared_group_id?: string | null;
-  is_verified?: boolean; // From profiles table join
+  is_verified?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -198,25 +197,6 @@ export class CommitteeService {
       email:        user.email,
       status:       'pending',
       slot_type:    'full', // Full member
-    });
-
-    if (error) return { error: error.message };
-    return { error: null };
-  }
-
-  /** Join a committee as a shared group member — creates a PENDING request with slot_type = 'shared' */
-  async joinCommitteeAsShared(committeeId: string): Promise<{ error: string | null }> {
-    const user = this.auth.user();
-    if (!user) return { error: 'Not authenticated' };
-
-    const { error } = await this.supabase.from('committee_members').insert({
-      committee_id:    committeeId,
-      user_id:         user.id,
-      full_name:       user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User',
-      email:           user.email,
-      status:          'pending',
-      slot_type:       'shared', // Shared member (occupies 0.5 slot)
-      // Note: shared_group_id will be added after database migration
     });
 
     if (error) return { error: error.message };

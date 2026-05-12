@@ -134,7 +134,6 @@ export class WinnerSelectionComponent implements OnInit {
    * Get member display name with slot type
    */
   getMemberDisplay(member: EligibleMember): string {
-    const slotBadge = member.slot_type === 'shared' ? ' (Shared)' : '';
-    return `${member.full_name}${slotBadge}`;
+    return member.full_name;
   }
 }

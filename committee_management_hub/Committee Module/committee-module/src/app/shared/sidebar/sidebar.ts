@@ -77,7 +77,6 @@ export class SidebarComponent implements OnInit {
     { label: 'Browse',         icon: 'search',           route: '/browse' },
     { label: 'My Committees',  icon: 'groups',           route: '/my-committees' },
     { label: 'Payments',       icon: 'payments',         route: '/payments' },
-    { label: 'Shared Groups',  icon: 'group_work',       route: '/shared-groups' },
     { label: 'Profile',        icon: 'person',           route: '/profile' },
   ];
 }
