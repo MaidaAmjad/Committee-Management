@@ -45,4 +45,72 @@ CREATE POLICY "Users can update own reliability"
 ON public.payment_reliability FOR UPDATE TO authenticated
 USING (user_id = auth.uid());
 
+CREATE POLICY "Committee approvers can insert reliability"
+ON public.payment_reliability
+FOR INSERT TO authenticated
+WITH CHECK (
+  user_id = auth.uid()
+  OR committee_id IN (
+    SELECT id FROM public.committees WHERE created_by = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM public.winner_selections ws
+    INNER JOIN public.committee_members cm ON cm.id = ws.member_id
+    WHERE ws.committee_id = payment_reliability.committee_id
+      AND cm.user_id = auth.uid()
+      AND ws.id = (
+        SELECT id
+        FROM public.winner_selections
+        WHERE committee_id = payment_reliability.committee_id
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+  )
+);
+
+CREATE POLICY "Committee approvers can update reliability"
+ON public.payment_reliability
+FOR UPDATE TO authenticated
+USING (
+  user_id = auth.uid()
+  OR committee_id IN (
+    SELECT id FROM public.committees WHERE created_by = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM public.winner_selections ws
+    INNER JOIN public.committee_members cm ON cm.id = ws.member_id
+    WHERE ws.committee_id = payment_reliability.committee_id
+      AND cm.user_id = auth.uid()
+      AND ws.id = (
+        SELECT id
+        FROM public.winner_selections
+        WHERE committee_id = payment_reliability.committee_id
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+  )
+)
+WITH CHECK (
+  user_id = auth.uid()
+  OR committee_id IN (
+    SELECT id FROM public.committees WHERE created_by = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1
+    FROM public.winner_selections ws
+    INNER JOIN public.committee_members cm ON cm.id = ws.member_id
+    WHERE ws.committee_id = payment_reliability.committee_id
+      AND cm.user_id = auth.uid()
+      AND ws.id = (
+        SELECT id
+        FROM public.winner_selections
+        WHERE committee_id = payment_reliability.committee_id
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+  )
+);
+
 SELECT 'payment_reliability table ready!' AS status;
