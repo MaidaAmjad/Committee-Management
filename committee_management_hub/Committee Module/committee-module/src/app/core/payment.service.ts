@@ -191,7 +191,7 @@ export class PaymentService {
         .eq('id', proofId);
     }
 
-    if (updateResult.error) return { error: updateResult.error.message };
+    if (updateResult.error) return { error: this.getPaymentProofSchemaError(updateResult.error.message) };
 
     const deadlineDate = committee?.payment_deadline_date ?? this.getFallbackDeadline(proof.month_year);
     const submittedDate = new Date(proof.created_at).toISOString().split('T')[0];
@@ -348,6 +348,13 @@ export class PaymentService {
 
   private getFallbackDeadline(monthYear: string): string {
     return /^\d{4}-\d{2}$/.test(monthYear) ? `${monthYear}-10` : new Date().toISOString().split('T')[0];
+  }
+
+  private getPaymentProofSchemaError(message: string): string {
+    if (message.includes('updated_at') || message.includes('accepted_at') || message.includes('accepted_by')) {
+      return 'Payment proof tracking columns are missing in Supabase. Run database-migrations/add-payment-approval-tracking.sql, then try accepting the payment again.';
+    }
+    return message;
   }
 
   /** Format due date e.g. "10 May 2026" */

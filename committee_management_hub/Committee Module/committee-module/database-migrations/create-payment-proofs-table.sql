@@ -37,6 +37,12 @@ ON public.payment_proofs(committee_id, month_year);
 CREATE INDEX IF NOT EXISTS idx_payment_proofs_status 
 ON public.payment_proofs(status);
 
+-- Existing deployments may have been created before these tracking columns.
+ALTER TABLE public.payment_proofs
+ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS accepted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
 -- Enable Row Level Security
 ALTER TABLE public.payment_proofs ENABLE ROW LEVEL SECURITY;
 
