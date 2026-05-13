@@ -175,11 +175,12 @@ export class PaymentReliabilityService {
   // ── Labels ────────────────────────────────────────────────────────────────
 
   getReliabilityLabel(score: number): { label: string; labelColor: string; labelBg: string; emoji: string } {
-    if (score >= 90) return { label: 'Highly Reliable', labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
-    if (score >= 75) return { label: 'Reliable',        labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
-    if (score >= 60) return { label: 'Moderate',        labelColor: '#854d0e', labelBg: '#fef9c3', emoji: '⚠️' };
-    if (score >= 40) return { label: 'Risky',           labelColor: '#c2410c', labelBg: '#fff7ed', emoji: '⚠️' };
-    return                  { label: 'High Risk',       labelColor: '#ba1a1a', labelBg: '#ffdad6', emoji: '❌' };
+    if (score === 0)   return { label: 'No History',      labelColor: '#737686', labelBg: '#f2f4f6', emoji: '—' };
+    if (score >= 90)   return { label: 'Highly Reliable', labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
+    if (score >= 75)   return { label: 'Reliable',        labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
+    if (score >= 60)   return { label: 'Moderate',        labelColor: '#854d0e', labelBg: '#fef9c3', emoji: '⚠️' };
+    if (score >= 40)   return { label: 'Risky',           labelColor: '#c2410c', labelBg: '#fff7ed', emoji: '⚠️' };
+    return                    { label: 'High Risk',       labelColor: '#ba1a1a', labelBg: '#ffdad6', emoji: '❌' };
   }
 
   getStatusInfo(status: PaymentStatus): { label: string; color: string; bg: string; icon: string } {
@@ -201,8 +202,8 @@ export class PaymentReliabilityService {
 
   private defaultStats(): ReliabilityStats {
     return {
-      score: 100, label: 'Highly Reliable',
-      labelColor: '#15803d', labelBg: '#d4edda',
+      score: 0, label: 'No History',
+      labelColor: '#737686', labelBg: '#f2f4f6',
       totalPayments: 0, onTime: 0, slightlyLate: 0,
       late: 0, gracePeriod: 0, missed: 0,
       totalPoints: 0, maxPoints: 0,

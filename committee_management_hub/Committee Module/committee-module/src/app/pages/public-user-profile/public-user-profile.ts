@@ -8,6 +8,7 @@ import { SupabaseService } from '../../core/supabase.service';
 import { PaymentMethodService, PaymentMethod } from '../../core/payment-method.service';
 import { VerificationService, VerificationRequest } from '../../core/verification.service';
 import { ReviewService, MemberReview } from '../../core/review.service';
+import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { VerifiedBadgeComponent } from '../../shared/verified-badge/verified-badge';
@@ -29,7 +30,8 @@ export class PublicUserProfileComponent implements OnInit {
   reviews        = signal<MemberReview[]>([]);
   myReview       = signal<MemberReview | null>(null);
   reviewsLoading = signal(false);
-  trustScore     = signal(95);
+  trustScore     = signal(0);
+  reliabilityStats = signal<ReliabilityStats | null>(null);
   showReviewForm = signal(false);
   reviewRating   = 0;
   hoverRating    = 0;

@@ -19,7 +19,7 @@ export interface NavItem {
   styleUrl: './sidebar.scss'
 })
 export class SidebarComponent implements OnInit {
-  trustScore = signal(95);
+  trustScore = signal(0);
   pendingCount = signal(0);
 
   displayName = computed(() => {

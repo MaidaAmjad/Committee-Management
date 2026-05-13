@@ -156,8 +156,8 @@ export class ReviewService {
       return Math.round((sum / maxPossible) * 100);
     }
 
-    // No reviews — return default 95
-    return 95;
+    // No reviews — return 0 (not 95, user must earn their score)
+    return 0;
   }
 
   /** Calculate average rating */
