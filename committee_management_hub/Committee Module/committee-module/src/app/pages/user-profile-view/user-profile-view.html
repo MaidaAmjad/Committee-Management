@@ -81,9 +81,11 @@
                 <div class="w-20 h-20 rounded-full bg-[#004ac6] border-4 border-white shadow-lg flex items-center justify-center">
                   <span class="text-2xl font-bold text-white">{{ getInitials(profile()!.full_name) }}</span>
                 </div>
-                <div class="absolute -bottom-1 -right-1 bg-[#28a745] text-white p-1 rounded-full shadow-md">
-                  <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">verified</span>
-                </div>
+                @if (isVerified()) {
+                  <div class="absolute -bottom-1 -right-1 bg-[#28a745] text-white p-1 rounded-full shadow-md">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1;">verified</span>
+                  </div>
+                }
               </div>
 
               <!-- Actions — only contact buttons for other users, edit for own -->
@@ -137,6 +139,11 @@
                   @if (isOwnProfile()) {
                     <span class="bg-[#dbe1ff] text-[#004ac6] px-3 py-0.5 rounded-full text-xs font-semibold">You</span>
                   }
+                  <span class="px-3 py-0.5 rounded-full text-xs font-bold"
+                    [style.color]="trustColor()"
+                    [style.background-color]="trustBg()">
+                    {{ trustEmoji() }} {{ trustLabel() }}
+                  </span>
                 </div>
                 <p class="text-sm text-[#737686] mb-1 flex items-center gap-1">
                   <span class="material-symbols-outlined text-[16px]">mail</span>
@@ -163,8 +170,8 @@
                 </div>
                 <div class="w-px bg-[#c3c6d7]"></div>
                 <div class="flex flex-col items-center">
-                  <span class="text-2xl font-bold text-[#191c1e]">{{ trustScore() }}%</span>
-                  <span class="text-xs text-[#737686] uppercase tracking-wide mt-0.5">Success</span>
+                  <span class="text-2xl font-bold text-[#191c1e]">{{ reliabilityStats()?.score ?? 0 }}%</span>
+                  <span class="text-xs text-[#737686] uppercase tracking-wide mt-0.5">Payment Reliability</span>
                 </div>
               </div>
             </div>
@@ -226,17 +233,21 @@
               </div>
             </section>
 
-            <!-- Committees Created -->
+            <!-- Committee History -->
             <section class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
               <div class="flex items-center gap-3 mb-4">
                 <h3 class="text-base font-bold text-[#191c1e] flex items-center gap-2">
                   <span class="material-symbols-outlined text-[#004ac6] text-[20px]">groups</span>
-                  Committees Created
+                  Committee History
                 </h3>
                 <span class="bg-[#dbe1ff] text-[#004ac6] text-xs font-bold px-2 py-0.5 rounded-full">{{ committees().length }}</span>
               </div>
               @if (committees().length === 0) {
-                <p class="text-sm text-[#737686] text-center py-4">No committees created yet.</p>
+                <div class="text-center py-6 border border-dashed border-[#c3c6d7] rounded-xl bg-[#f8fafc]">
+                  <span class="material-symbols-outlined text-[#94a3b8] text-3xl">groups</span>
+                  <p class="text-sm font-semibold text-[#191c1e] mt-2">No committee history yet</p>
+                  <p class="text-xs text-[#737686] mt-1">Joined and completed committees will appear here.</p>
+                </div>
               } @else {
                 <div class="space-y-3">
                   @for (c of committees(); track c.id) {
@@ -247,7 +258,7 @@
                       </div>
                       <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold text-[#191c1e] group-hover:text-[#004ac6] truncate transition-colors">{{ c.name }}</p>
-                        <p class="text-[10px] text-[#737686]">Rs. {{ c.monthly_amount | number }} · {{ c.duration_months }}mo</p>
+                        <p class="text-[10px] text-[#737686]">Rs. {{ c.monthly_amount | number }} · {{ c.duration_months }}mo · {{ c.member_role || 'Member' }}</p>
                       </div>
                       <span class="material-symbols-outlined text-[#c3c6d7] text-[16px] group-hover:text-[#004ac6] transition-colors">chevron_right</span>
                     </div>
@@ -269,13 +280,12 @@
                     <span class="text-5xl font-bold">{{ trustScore() }}</span>
                     <span class="text-lg opacity-70 mb-1">/ 100</span>
                   </div>
-                  @if (reviews().length > 0) {
+                  @if (hasTrustHistory()) {
                     <p class="text-sm opacity-80 mt-2">
-                      Based on {{ reviews().length }} review{{ reviews().length !== 1 ? 's' : '' }}
-                      · Avg {{ averageRating() }}/5 stars
+                      Earned from verification, reviews, payments, and committee participation.
                     </p>
                   } @else {
-                    <p class="text-sm opacity-80 mt-2">No reviews yet — default score.</p>
+                    <p class="text-sm opacity-80 mt-2">New user — no trust history yet.</p>
                   }
                 </div>
                 <div class="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center">
@@ -286,6 +296,69 @@
                 <div class="bg-white h-full rounded-full transition-all duration-500"
                   [style.width]="trustScore() + '%'"></div>
               </div>
+            </section>
+
+            <!-- Trust Analytics -->
+            <section class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-[#191c1e] flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[#004ac6] text-[20px]">analytics</span>
+                  Public Trust Analytics
+                </h3>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold"
+                  [style.color]="trustColor()"
+                  [style.background-color]="trustBg()">
+                  {{ trustEmoji() }} {{ trustLabel() }}
+                </span>
+              </div>
+
+              @if (!hasTrustHistory()) {
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="rounded-xl border border-dashed border-[#c3c6d7] bg-[#f8fafc] p-4 text-center">
+                    <span class="material-symbols-outlined text-[#94a3b8] mb-2">groups</span>
+                    <p class="text-sm font-bold text-[#191c1e]">No Committees</p>
+                    <p class="text-xs text-[#737686] mt-1">Participation has not started.</p>
+                  </div>
+                  <div class="rounded-xl border border-dashed border-[#c3c6d7] bg-[#f8fafc] p-4 text-center">
+                    <span class="material-symbols-outlined text-[#94a3b8] mb-2">payments</span>
+                    <p class="text-sm font-bold text-[#191c1e]">No Payments</p>
+                    <p class="text-xs text-[#737686] mt-1">No installment history yet.</p>
+                  </div>
+                  <div class="rounded-xl border border-dashed border-[#c3c6d7] bg-[#f8fafc] p-4 text-center">
+                    <span class="material-symbols-outlined text-[#94a3b8] mb-2">rate_review</span>
+                    <p class="text-sm font-bold text-[#191c1e]">No Feedback</p>
+                    <p class="text-xs text-[#737686] mt-1">Reviews will appear publicly.</p>
+                  </div>
+                </div>
+              } @else if (trustBreakdown()) {
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                  <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0]">
+                    <p class="text-2xl font-bold text-[#004ac6]">{{ trustBreakdown()!.verificationPoints }}</p>
+                    <p class="text-[10px] text-[#64748b] font-semibold uppercase">Verification</p>
+                  </div>
+                  <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0]">
+                    <p class="text-2xl font-bold text-[#f59e0b]">{{ trustBreakdown()!.reviewPoints }}</p>
+                    <p class="text-[10px] text-[#64748b] font-semibold uppercase">Feedback</p>
+                  </div>
+                  <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0]">
+                    <p class="text-2xl font-bold text-[#15803d]">{{ trustBreakdown()!.paymentPoints }}</p>
+                    <p class="text-[10px] text-[#64748b] font-semibold uppercase">Payments</p>
+                  </div>
+                  <div class="bg-[#f8fafc] rounded-xl p-3 border border-[#e2e8f0]">
+                    <p class="text-2xl font-bold text-[#943700]">{{ trustBreakdown()!.participationPoints }}</p>
+                    <p class="text-[10px] text-[#64748b] font-semibold uppercase">Committees</p>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="font-semibold text-[#475569]">Overall Trust</span>
+                    <span class="font-bold" [style.color]="trustColor()">{{ trustScore() }}/100</span>
+                  </div>
+                  <div class="h-2 bg-[#e2e8f0] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all" [style.width]="trustScore() + '%'" [style.background-color]="trustColor()"></div>
+                  </div>
+                </div>
+              }
             </section>
 
             <!-- Payment Reliability Card -->
@@ -299,13 +372,13 @@
                   <span class="text-xs font-bold px-2.5 py-1 rounded-full"
                     [style.color]="reliabilityStats()!.labelColor"
                     [style.background-color]="reliabilityStats()!.labelBg">
-                    {{ reliabilityStats()!.label }}
+                    {{ reliabilityStats()!.emoji }} {{ reliabilityStats()!.label }}
                   </span>
                 </div>
                 <!-- Score bar -->
                 <div class="mb-4">
                   <div class="flex justify-between text-xs mb-1.5">
-                    <span class="text-[#737686] font-semibold">Payment Punctuality</span>
+                    <span class="text-[#737686] font-semibold">Payment Reliability</span>
                     <span class="font-bold text-[#191c1e]">{{ reliabilityStats()!.score }}%</span>
                   </div>
                   <div class="h-3 bg-[#e6e8ea] rounded-full overflow-hidden">
@@ -324,11 +397,11 @@
                     </div>
                     <div class="bg-[#fef9c3] rounded-xl p-2.5 text-center">
                       <p class="text-lg font-bold text-[#854d0e]">{{ reliabilityStats()!.slightlyLate + reliabilityStats()!.late }}</p>
-                      <p class="text-[10px] text-[#854d0e] font-semibold">Late ⚠️</p>
+                      <p class="text-[10px] text-[#854d0e] font-semibold">Late</p>
                     </div>
                     <div class="bg-[#ffdad6] rounded-xl p-2.5 text-center">
                       <p class="text-lg font-bold text-[#ba1a1a]">{{ reliabilityStats()!.missed }}</p>
-                      <p class="text-[10px] text-[#ba1a1a] font-semibold">Missed 🚫</p>
+                      <p class="text-[10px] text-[#ba1a1a] font-semibold">Missed</p>
                     </div>
                   </div>
                   <p class="text-[10px] text-[#737686] text-center">
@@ -336,7 +409,11 @@
                     · {{ reliabilityStats()!.totalPoints }}/{{ reliabilityStats()!.maxPoints }} pts
                   </p>
                 } @else {
-                  <p class="text-xs text-[#737686] text-center py-2">No payment history yet.</p>
+                  <div class="rounded-xl border border-dashed border-[#c3c6d7] bg-[#f8fafc] p-5 text-center">
+                    <span class="material-symbols-outlined text-[#94a3b8] text-3xl mb-2">receipt_long</span>
+                    <p class="text-sm font-bold text-[#191c1e]">No payment history yet</p>
+                    <p class="text-xs text-[#737686] mt-1">Payment reliability will grow after committee installments are recorded.</p>
+                  </div>
                 }
               </section>
             }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { ReviewService } from './review.service';
 
 export type PaymentStatus = 'on_time' | 'slightly_late' | 'late' | 'grace_period' | 'missed' | 'pending';
 
@@ -24,6 +25,7 @@ export interface ReliabilityStats {
   label: string;           // Highly Reliable, Reliable, etc.
   labelColor: string;
   labelBg: string;
+  emoji: string;
   totalPayments: number;
   onTime: number;
   slightlyLate: number;
@@ -40,7 +42,8 @@ export class PaymentReliabilityService {
 
   constructor(
     private supabaseService: SupabaseService,
-    private auth: AuthService
+    private auth: AuthService,
+    private reviewService: ReviewService
   ) {
     this.supabase = this.supabaseService.client;
   }
@@ -123,6 +126,7 @@ export class PaymentReliabilityService {
 
     // Recalculate and save reliability score
     await this.recalculateReliabilityScore(userId);
+    await this.reviewService.recalculateTrustScore(userId);
     return { error: null };
   }
 
@@ -158,7 +162,9 @@ export class PaymentReliabilityService {
 
     const { label, labelColor, labelBg } = this.getReliabilityLabel(score);
 
-    return { score, label, labelColor, labelBg, ...stats };
+    const { emoji } = this.getReliabilityLabel(score);
+
+    return { score, label, labelColor, labelBg, emoji, ...stats };
   }
 
   async recalculateReliabilityScore(userId: string): Promise<void> {
@@ -175,12 +181,11 @@ export class PaymentReliabilityService {
   // ── Labels ────────────────────────────────────────────────────────────────
 
   getReliabilityLabel(score: number): { label: string; labelColor: string; labelBg: string; emoji: string } {
-    if (score === 0)   return { label: 'No History',      labelColor: '#737686', labelBg: '#f2f4f6', emoji: '—' };
-    if (score >= 90)   return { label: 'Highly Reliable', labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
-    if (score >= 75)   return { label: 'Reliable',        labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
-    if (score >= 60)   return { label: 'Moderate',        labelColor: '#854d0e', labelBg: '#fef9c3', emoji: '⚠️' };
-    if (score >= 40)   return { label: 'Risky',           labelColor: '#c2410c', labelBg: '#fff7ed', emoji: '⚠️' };
-    return                    { label: 'High Risk',       labelColor: '#ba1a1a', labelBg: '#ffdad6', emoji: '❌' };
+    if (score <= 20) return { label: 'New User',         labelColor: '#475569', labelBg: '#f1f5f9', emoji: '🆕' };
+    if (score <= 40) return { label: 'Low Reliability',  labelColor: '#ba1a1a', labelBg: '#ffdad6', emoji: '⚠️' };
+    if (score <= 60) return { label: 'Moderate',         labelColor: '#854d0e', labelBg: '#fef9c3', emoji: '⚠️' };
+    if (score <= 80) return { label: 'Reliable',         labelColor: '#15803d', labelBg: '#d4edda', emoji: '✅' };
+    return                  { label: 'Highly Reliable',  labelColor: '#065f46', labelBg: '#d1fae5', emoji: '🏆' };
   }
 
   getStatusInfo(status: PaymentStatus): { label: string; color: string; bg: string; icon: string } {
@@ -202,8 +207,8 @@ export class PaymentReliabilityService {
 
   private defaultStats(): ReliabilityStats {
     return {
-      score: 0, label: 'No History',
-      labelColor: '#737686', labelBg: '#f2f4f6',
+      score: 0, label: 'New User',
+      labelColor: '#475569', labelBg: '#f1f5f9', emoji: '🆕',
       totalPayments: 0, onTime: 0, slightlyLate: 0,
       late: 0, gracePeriod: 0, missed: 0,
       totalPoints: 0, maxPoints: 0,

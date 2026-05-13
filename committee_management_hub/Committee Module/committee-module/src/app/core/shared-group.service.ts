@@ -256,7 +256,7 @@ export class SharedGroupService {
             user_id: memberMember.user_id,
             full_name: memberMember.full_name,
             email: memberMember.email,
-            trust_score: 95,
+            trust_score: 0,
             payment_status: 'Unpaid' as IndividualPaymentStatus
           };
         } else {
@@ -278,7 +278,7 @@ export class SharedGroupService {
           user_id: leaderMember.user_id,
           full_name: leaderMember.full_name,
           email: leaderMember.email,
-          trust_score: 95,
+          trust_score: 0,
           payment_status: 'Unpaid'
         },
         group_member: memberInfo,
@@ -389,7 +389,7 @@ export class SharedGroupService {
         user_id: leaderMember.user_id,
         full_name: leaderMember.full_name,
         email: leaderMember.email,
-        trust_score: 95,
+        trust_score: 0,
         payment_status: 'Unpaid'
       },
       group_member: null,
@@ -522,7 +522,7 @@ export class SharedGroupService {
         user_id: user.id,
         full_name: user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'Leader',
         email: user.email ?? '',
-        trust_score: 95,
+        trust_score: 0,
         payment_status: 'Unpaid',
       },
       group_member: null,

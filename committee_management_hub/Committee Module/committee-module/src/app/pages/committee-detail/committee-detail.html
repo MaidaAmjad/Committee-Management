@@ -386,7 +386,7 @@
                       <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                         [style.color]="getMemberReliability(member.user_id)!.labelColor"
                         [style.background-color]="getMemberReliability(member.user_id)!.labelBg">
-                        {{ getMemberReliability(member.user_id)!.score }}% reliable
+                        {{ getMemberReliability(member.user_id)!.emoji }} {{ getMemberReliability(member.user_id)!.label }} · {{ getMemberReliability(member.user_id)!.score }}%
                       </span>
                     }
                     <p class="text-[10px] text-[#737686]">{{ member.joined_at | date:'MMM d' }}</p>

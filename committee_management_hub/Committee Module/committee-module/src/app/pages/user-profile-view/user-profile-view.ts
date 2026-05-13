@@ -7,7 +7,7 @@ import { TopnavComponent } from '../../shared/topnav/topnav';
 import { ProfileService, UserProfile } from '../../core/profile.service';
 import { AuthService } from '../../core/auth.service';
 import { VerificationService } from '../../core/verification.service';
-import { ReviewService, MemberReview } from '../../core/review.service';
+import { ReviewService, MemberReview, TrustScoreBreakdown } from '../../core/review.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
 import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
@@ -37,7 +37,8 @@ export class UserProfileViewComponent implements OnInit {
   reviewSubmitting = signal(false);
   reviewError    = signal('');
   reviewSuccess  = signal(false);
-  trustScore     = signal(95);
+  trustScore     = signal(0);
+  trustBreakdown = signal<TrustScoreBreakdown | null>(null);
   reliabilityStats = signal<ReliabilityStats | null>(null);
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
@@ -99,10 +100,10 @@ export class UserProfileViewComponent implements OnInit {
 
   private async loadReviews(userId: string): Promise<void> {
     this.reviewsLoading.set(true);
-    const [reviewsRes, myReviewRes, score, reliability] = await Promise.all([
+    const [reviewsRes, myReviewRes, breakdown, reliability] = await Promise.all([
       this.reviewService.getReviewsForUser(userId),
       this.reviewService.getMyReviewFor(userId),
-      this.reviewService.getTrustScore(userId),
+      this.reviewService.getTrustScoreBreakdown(userId),
       this.reliabilityService.getReliabilityStats(userId),
     ]);
     this.reviewsLoading.set(false);
@@ -114,7 +115,8 @@ export class UserProfileViewComponent implements OnInit {
         this.reviewComment = myReviewRes.data.comment;
       }
     }
-    this.trustScore.set(score);
+    this.trustScore.set(breakdown.score);
+    this.trustBreakdown.set(breakdown);
     this.reliabilityStats.set(reliability);
   }
 
@@ -195,5 +197,25 @@ export class UserProfileViewComponent implements OnInit {
 
   goToCommittee(id: string): void {
     this.router.navigate(['/committee', id]);
+  }
+
+  trustLabel(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).label;
+  }
+
+  trustEmoji(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).emoji;
+  }
+
+  trustColor(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).labelColor;
+  }
+
+  trustBg(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).labelBg;
+  }
+
+  hasTrustHistory(): boolean {
+    return this.trustBreakdown()?.hasActivity ?? false;
   }
 }

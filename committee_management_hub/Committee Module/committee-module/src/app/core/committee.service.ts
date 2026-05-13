@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { ReviewService } from './review.service';
 
 export interface CommitteeFormData {
   name: string;
@@ -51,7 +52,8 @@ export class CommitteeService {
 
   constructor(
     private supabaseService: SupabaseService,
-    private auth: AuthService
+    private auth: AuthService,
+    private reviewService: ReviewService
   ) {
     this.supabase = this.supabaseService.client;
   }
@@ -90,6 +92,8 @@ export class CommitteeService {
     if (memberError) {
       console.warn('Auto-member insert failed:', memberError.message);
       // Don't fail the whole operation — committee was created
+    } else {
+      await this.reviewService.recalculateTrustScore(user.id);
     }
 
     return { error: null };
@@ -306,12 +310,19 @@ export class CommitteeService {
 
   /** Approve a join request */
   async approveRequest(memberId: string): Promise<{ error: string | null }> {
+    const { data: member } = await this.supabase
+      .from('committee_members')
+      .select('user_id')
+      .eq('id', memberId)
+      .maybeSingle();
+
     const { error } = await this.supabase
       .from('committee_members')
       .update({ status: 'approved' })
       .eq('id', memberId);
 
     if (error) return { error: error.message };
+    if (member?.user_id) await this.reviewService.recalculateTrustScore(member.user_id);
     return { error: null };
   }
 

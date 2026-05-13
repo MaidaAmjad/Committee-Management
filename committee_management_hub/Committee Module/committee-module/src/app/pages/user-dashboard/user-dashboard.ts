@@ -46,8 +46,9 @@ export interface SuggestedCommittee {
   styleUrl: './user-dashboard.scss'
 })
 export class UserDashboardComponent implements OnInit {
-  trustScore = signal(95);
-  trustDashOffset = signal(22); // 440 * (1 - 0.95) = 22
+  trustScore = signal(0);
+  trustDashOffset = signal(440);
+  trustLabel = signal('New User');
   loading = signal(true);
   errorMsg = signal('');
 
@@ -85,6 +86,7 @@ export class UserDashboardComponent implements OnInit {
     if (user) {
       const score = await this.reviewService.getTrustScore(user.id);
       this.trustScore.set(score);
+      this.trustLabel.set(this.getReliabilityLabel(score));
       // 440 * (1 - score/100)
       this.trustDashOffset.set(Math.round(440 * (1 - score / 100)));
     }
@@ -258,6 +260,14 @@ export class UserDashboardComponent implements OnInit {
     if (nameLower.includes('budget')) return 'payments';
     if (nameLower.includes('strategic') || nameLower.includes('planning')) return 'corporate_fare';
     return 'groups';
+  }
+
+  private getReliabilityLabel(score: number): string {
+    if (score <= 20) return 'New User';
+    if (score <= 40) return 'Low Reliability';
+    if (score <= 60) return 'Moderate';
+    if (score <= 80) return 'Reliable';
+    return 'Highly Reliable';
   }
 
   viewCommittee(id: string): void {

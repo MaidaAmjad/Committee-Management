@@ -77,14 +77,21 @@
             <div class="mb-3">
               <div class="flex justify-between text-xs mb-1">
                 <span class="text-[#64748b] font-semibold">Trust Score</span>
-                <span class="font-bold" [style.color]="getTrustColor(user.trust_score || 95)">
-                  {{ user.trust_score || 95 }}%
+                <span class="font-bold" [style.color]="getTrustColor(user.trust_score)">
+                  {{ user.trust_score }}%
                 </span>
               </div>
               <div class="h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all"
-                  [style.width]="(user.trust_score || 95) + '%'"
-                  [style.background-color]="getTrustColor(user.trust_score || 95)"></div>
+                  [style.width]="user.trust_score + '%'"
+                  [style.background-color]="getTrustColor(user.trust_score)"></div>
+              </div>
+              <div class="mt-2 flex justify-center">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  [style.color]="user.reliability_color"
+                  [style.background-color]="user.reliability_bg">
+                  {{ user.reliability_emoji }} {{ user.reliability_label }}
+                </span>
               </div>
             </div>
 

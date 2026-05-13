@@ -52,13 +52,39 @@ export class ProfileService {
   }
 
   async getCommitteesByUser(userId: string): Promise<{ data: any[]; error: string | null }> {
-    const { data, error } = await this.supabase
+    const { data: created, error } = await this.supabase
       .from('committees')
       .select('*')
       .eq('created_by', userId)
       .order('created_at', { ascending: false });
 
     if (error) return { data: [], error: error.message };
-    return { data: data ?? [], error: null };
+
+    const { data: memberships } = await this.supabase
+      .from('committee_members')
+      .select('committee_id')
+      .eq('user_id', userId)
+      .eq('status', 'approved');
+
+    const memberCommitteeIds = (memberships ?? [])
+      .map((m: any) => m.committee_id)
+      .filter((id: string) => !(created ?? []).some((c: any) => c.id === id));
+
+    let joined: any[] = [];
+    if (memberCommitteeIds.length > 0) {
+      const { data } = await this.supabase
+        .from('committees')
+        .select('*')
+        .in('id', memberCommitteeIds);
+      joined = data ?? [];
+    }
+
+    return {
+      data: [
+        ...(created ?? []).map((c: any) => ({ ...c, member_role: 'Admin' })),
+        ...joined.map((c: any) => ({ ...c, member_role: 'Member' })),
+      ],
+      error: null
+    };
   }
 }

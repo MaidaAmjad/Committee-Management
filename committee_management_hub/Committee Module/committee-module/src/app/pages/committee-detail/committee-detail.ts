@@ -6,9 +6,6 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { CommitteeService, Committee, CommitteeMember } from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
-import { WinnerSelectionComponent } from '../../shared/winner-selection/winner-selection';
-import { WinnerPaymentDetailsComponent } from '../../shared/winner-payment-details/winner-payment-details';
-import { CommitteeAnnouncementComponent } from '../../shared/committee-announcement/committee-announcement';
 import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
@@ -23,9 +20,6 @@ import { PaymentReliabilityService } from '../../core/payment-reliability.servic
     RouterLink, 
     SidebarComponent, 
     TopnavComponent,
-    WinnerSelectionComponent,
-    WinnerPaymentDetailsComponent,
-    CommitteeAnnouncementComponent,
     SignInPopupComponent
   ],
   templateUrl: './committee-detail.html',
@@ -52,8 +46,8 @@ export class CommitteeDetailComponent implements OnInit {
   // Committee completion
   showCompletionModal = signal(false);
 
-  // Member reliability map: user_id -> { score, label, labelColor, labelBg }
-  memberReliability = signal<Record<string, { score: number; label: string; labelColor: string; labelBg: string }>>({});
+  // Member reliability map: user_id -> public score and label.
+  memberReliability = signal<Record<string, { score: number; label: string; labelColor: string; labelBg: string; emoji: string }>>({});
 
   // Broadcast
   broadcastText    = '';
@@ -143,7 +137,7 @@ export class CommitteeDetailComponent implements OnInit {
   }
 
   private async loadMemberReliability(members: any[]): Promise<void> {
-    const map: Record<string, { score: number; label: string; labelColor: string; labelBg: string }> = {};
+    const map: Record<string, { score: number; label: string; labelColor: string; labelBg: string; emoji: string }> = {};
     await Promise.all(
       members.map(async (m) => {
         const stats = await this.reliabilityService.getReliabilityStats(m.user_id);
@@ -153,6 +147,7 @@ export class CommitteeDetailComponent implements OnInit {
           label: labelInfo.label,
           labelColor: labelInfo.labelColor,
           labelBg: labelInfo.labelBg,
+          emoji: labelInfo.emoji,
         };
       })
     );

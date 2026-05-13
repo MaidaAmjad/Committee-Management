@@ -147,7 +147,7 @@ export class AdminService {
       id:                     p.id,
       full_name:              p.full_name || p.email?.split('@')[0] || 'Unknown',
       email:                  p.email || '',
-      trust_score:            p.trust_score ?? 100,
+      trust_score:            p.trust_score ?? 0,
       status:                 p.is_suspended ? 'suspended' : (p.payment_setup_complete ? 'active' : 'pending'),
       committee_count:        countMap[p.id] ?? 0,
       created_at:             p.created_at,
@@ -387,10 +387,11 @@ export class AdminService {
   // ── Style helpers ─────────────────────────────────────────────────────────
 
   getTrustScoreStyle(score: number): { color: string; bg: string; label: string } {
-    if (score >= 80) return { color: '#15803d', bg: '#f0fdf4', label: 'High Trust' };
-    if (score >= 50) return { color: '#854d0e', bg: '#fef9c3', label: 'Moderate' };
-    if (score >= 25) return { color: '#c2410c', bg: '#fff7ed', label: 'At Risk' };
-    return { color: '#ba1a1a', bg: '#ffdad6', label: 'Compromised' };
+    if (score <= 20) return { color: '#475569', bg: '#f1f5f9', label: 'New User' };
+    if (score <= 40) return { color: '#ba1a1a', bg: '#ffdad6', label: 'Low Reliability' };
+    if (score <= 60) return { color: '#854d0e', bg: '#fef9c3', label: 'Moderate' };
+    if (score <= 80) return { color: '#15803d', bg: '#f0fdf4', label: 'Reliable' };
+    return { color: '#065f46', bg: '#d1fae5', label: 'Highly Reliable' };
   }
 
   getUserStatusStyle(status: string): { color: string; bg: string; border: string } {

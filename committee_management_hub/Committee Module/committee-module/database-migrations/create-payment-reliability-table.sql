@@ -33,7 +33,7 @@ ADD COLUMN IF NOT EXISTS payment_reliability_label TEXT DEFAULT NULL;
 ALTER TABLE public.payment_reliability ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can read payment reliability"
-ON public.payment_reliability FOR SELECT TO authenticated USING (true);
+ON public.payment_reliability FOR SELECT TO anon, authenticated USING (true);
 
 CREATE POLICY "Users can insert own reliability"
 ON public.payment_reliability FOR INSERT TO authenticated

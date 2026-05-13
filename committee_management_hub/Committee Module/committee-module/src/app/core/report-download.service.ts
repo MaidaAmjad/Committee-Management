@@ -36,7 +36,7 @@ export class ReportDownloadService {
       'User Name':            p.full_name || '—',
       'Email':                p.email || '—',
       'Phone Number':         p.phone || '—',
-      'Trust Score':          `${p.trust_score ?? 95}%`,
+      'Trust Score':          `${p.trust_score ?? 0}%`,
       'Verification Status':  p.is_verified ? 'Verified' : (p.verification_status === 'pending' ? 'Pending' : 'Not Verified'),
       'Total Committees':     countMap[p.id] || 0,
       'Account Status':       'Active',

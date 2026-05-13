@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { ReviewService } from './review.service';
 
 export interface VerificationRequest {
   id: string;
@@ -27,7 +28,8 @@ export class VerificationService {
 
   constructor(
     private supabaseService: SupabaseService,
-    private auth: AuthService
+    private auth: AuthService,
+    private reviewService: ReviewService
   ) {
     this.supabase = this.supabaseService.client;
   }
@@ -170,6 +172,7 @@ export class VerificationService {
       .eq('id', userId);
 
     if (profileError) console.error('Failed to update profile:', profileError);
+    await this.reviewService.recalculateTrustScore(userId);
 
     return { error: null };
   }
@@ -200,6 +203,7 @@ export class VerificationService {
       .from('profiles')
       .update({ is_verified: false, verification_status: 'rejected' })
       .eq('id', userId);
+    await this.reviewService.recalculateTrustScore(userId);
 
     return { error: null };
   }

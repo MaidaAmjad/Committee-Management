@@ -7,18 +7,17 @@ import { AuthService } from '../../core/auth.service';
 import { SupabaseService } from '../../core/supabase.service';
 import { PaymentMethodService, PaymentMethod } from '../../core/payment-method.service';
 import { VerificationService, VerificationRequest } from '../../core/verification.service';
-import { ReviewService, MemberReview } from '../../core/review.service';
+import { ReviewService, MemberReview, TrustScoreBreakdown } from '../../core/review.service';
 import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
-import { VerifiedBadgeComponent } from '../../shared/verified-badge/verified-badge';
 
 export interface PaymentRecord { label: string; date: string; }
 
 @Component({
   selector: 'app-public-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent, VerifiedBadgeComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SidebarComponent, TopnavComponent],
   templateUrl: './public-user-profile.html',
   styleUrl: './public-user-profile.scss'
 })
@@ -31,6 +30,7 @@ export class PublicUserProfileComponent implements OnInit {
   myReview       = signal<MemberReview | null>(null);
   reviewsLoading = signal(false);
   trustScore     = signal(0);
+  trustBreakdown = signal<TrustScoreBreakdown | null>(null);
   reliabilityStats = signal<ReliabilityStats | null>(null);
   showReviewForm = signal(false);
   reviewRating   = 0;
@@ -148,7 +148,8 @@ export class PublicUserProfileComponent implements OnInit {
     private fb: FormBuilder,
     private paymentMethodService: PaymentMethodService,
     private verificationService: VerificationService,
-    private reviewService: ReviewService
+    private reviewService: ReviewService,
+    private reliabilityService: PaymentReliabilityService
   ) {
     this.editForm = this.fb.group({
       full_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -173,10 +174,11 @@ export class PublicUserProfileComponent implements OnInit {
 
   private async loadReviews(userId: string): Promise<void> {
     this.reviewsLoading.set(true);
-    const [reviewsRes, myReviewRes, score] = await Promise.all([
+    const [reviewsRes, myReviewRes, breakdown, reliability] = await Promise.all([
       this.reviewService.getReviewsForUser(userId),
       this.reviewService.getMyReviewFor(userId),
-      this.reviewService.getTrustScore(userId),
+      this.reviewService.getTrustScoreBreakdown(userId),
+      this.reliabilityService.getReliabilityStats(userId),
     ]);
     this.reviewsLoading.set(false);
     if (!reviewsRes.error) this.reviews.set(reviewsRes.data);
@@ -187,7 +189,9 @@ export class PublicUserProfileComponent implements OnInit {
         this.reviewComment = myReviewRes.data.comment;
       }
     }
-    this.trustScore.set(score);
+    this.trustScore.set(breakdown.score);
+    this.trustBreakdown.set(breakdown);
+    this.reliabilityStats.set(reliability);
   }
 
   // ── Review form (own profile — can't review yourself, but can see reviews) ──
@@ -391,14 +395,27 @@ export class PublicUserProfileComponent implements OnInit {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   }
 
-  // ── Static data ───────────────────────────────────────────────────────────
-  paymentHistory: PaymentRecord[] = [
-    { label: 'May Payout - Rs. 2,500',   date: 'Completed on May 15, 2024'   },
-    { label: 'April Contribution',        date: 'Completed on April 01, 2024' },
-    { label: 'March Contribution',        date: 'Completed on March 01, 2024' },
-  ];
-
   getMethodInfo(type: string) {
     return this.paymentMethodService.getMethodInfo(type as any);
+  }
+
+  trustLabel(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).label;
+  }
+
+  trustEmoji(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).emoji;
+  }
+
+  trustColor(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).labelColor;
+  }
+
+  trustBg(): string {
+    return this.reliabilityService.getReliabilityLabel(this.trustScore()).labelBg;
+  }
+
+  hasTrustHistory(): boolean {
+    return this.trustBreakdown()?.hasActivity ?? false;
   }
 }

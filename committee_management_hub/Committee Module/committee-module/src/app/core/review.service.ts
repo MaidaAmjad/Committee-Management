@@ -15,6 +15,21 @@ export interface MemberReview {
   reviewer_initials?: string;
 }
 
+export interface TrustScoreBreakdown {
+  score: number;
+  verificationPoints: number;
+  reviewPoints: number;
+  paymentPoints: number;
+  participationPoints: number;
+  reviewCount: number;
+  averageRating: number;
+  paymentCount: number;
+  paymentReliability: number;
+  approvedCommittees: number;
+  completedCommittees: number;
+  hasActivity: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
   private supabase;
@@ -114,37 +129,116 @@ export class ReviewService {
     return { error: null };
   }
 
-  /**
-   * Recalculate trust score from all reviews.
-   * Formula: (sum of ratings / max possible stars) × 100
-   * e.g. ratings [3,5,4] → 12/15 × 100 = 80
-   */
+  /** Recalculate and persist the earned composite trust score. */
   async recalculateTrustScore(userId: string): Promise<void> {
-    const { data: reviews } = await this.supabase
-      .from('member_reviews')
-      .select('rating')
-      .eq('reviewed_id', userId);
+    const trustScore = await this.getTrustScore(userId);
 
-    let trustScore = 95; // default when no reviews
-
-    if (reviews && reviews.length > 0) {
-      const sum = reviews.reduce((acc: number, r: any) => acc + r.rating, 0);
-      const maxPossible = reviews.length * 5;
-      trustScore = Math.round((sum / maxPossible) * 100);
-    }
-
-    // Save to profiles table
     await this.supabase
       .from('profiles')
       .update({ trust_score: trustScore })
       .eq('id', userId);
-
-    console.log(`✅ Trust score updated for ${userId}: ${trustScore}`);
   }
 
-  /** Get trust score for a user — calculated from reviews, falls back to DB */
+  /** Get the public earned trust score for a user. New accounts start at 0. */
   async getTrustScore(userId: string): Promise<number> {
-    // Calculate directly from reviews (most accurate)
+    const breakdown = await this.getTrustScoreBreakdown(userId);
+    return breakdown.score;
+  }
+
+  /**
+   * Composite trust model:
+   * - Verification: small capped boost.
+   * - Reviews: grows with average rating and review count.
+   * - Payments: grows with reliability and repeated payments.
+   * - Committees: capped credit for approved and completed participation.
+   */
+  async getTrustScoreBreakdown(userId: string): Promise<TrustScoreBreakdown> {
+    const [profileRes, reviewsRes, paymentsRes, membershipsRes] = await Promise.all([
+      this.supabase
+        .from('profiles')
+        .select('is_verified')
+        .eq('id', userId)
+        .maybeSingle(),
+      this.supabase
+        .from('member_reviews')
+        .select('rating')
+        .eq('reviewed_id', userId),
+      this.supabase
+        .from('payment_reliability')
+        .select('status, points_earned')
+        .eq('user_id', userId)
+        .neq('status', 'pending'),
+      this.supabase
+        .from('committee_members')
+        .select('committee_id, status')
+        .eq('user_id', userId),
+    ]);
+
+    const reviews = reviewsRes.data ?? [];
+    const reviewCount = reviews.length;
+    const averageRating = reviewCount
+      ? reviews.reduce((sum: number, r: any) => sum + (r.rating ?? 0), 0) / reviewCount
+      : 0;
+    const reviewConfidence = Math.min(reviewCount / 5, 1);
+    const reviewPoints = Math.round((averageRating / 5) * 35 * reviewConfidence);
+
+    const payments = paymentsRes.data ?? [];
+    const paymentCount = payments.length;
+    const paymentTotalPoints = payments.reduce((sum: number, p: any) => sum + (p.points_earned ?? 0), 0);
+    const paymentMaxPoints = paymentCount * 10;
+    const paymentReliability = paymentMaxPoints
+      ? Math.max(0, Math.min(100, Math.round((paymentTotalPoints / paymentMaxPoints) * 100)))
+      : 0;
+    const paymentConfidence = Math.min(paymentCount / 6, 1);
+    const paymentPoints = Math.round(paymentReliability * 0.35 * paymentConfidence);
+
+    const memberships = membershipsRes.data ?? [];
+    const approvedMemberships = memberships.filter((m: any) => m.status === 'approved');
+    const committeeIds = [...new Set(approvedMemberships.map((m: any) => m.committee_id).filter(Boolean))];
+    let completedCommittees = 0;
+
+    if (committeeIds.length > 0) {
+      const { data: completed } = await this.supabase
+        .from('committees')
+        .select('id')
+        .in('id', committeeIds)
+        .eq('status', 'Completed');
+      completedCommittees = completed?.length ?? 0;
+    }
+
+    const approvedCommittees = approvedMemberships.length;
+    const participationPoints = Math.min(20, approvedCommittees * 4 + completedCommittees * 8);
+    const verificationPoints = profileRes.data?.is_verified ? 10 : 0;
+    const hasActivity = Boolean(
+      verificationPoints ||
+      reviewCount ||
+      paymentCount ||
+      approvedCommittees ||
+      completedCommittees
+    );
+
+    const score = hasActivity
+      ? Math.max(0, Math.min(100, verificationPoints + reviewPoints + paymentPoints + participationPoints))
+      : 0;
+
+    return {
+      score,
+      verificationPoints,
+      reviewPoints,
+      paymentPoints,
+      participationPoints,
+      reviewCount,
+      averageRating: Math.round(averageRating * 10) / 10,
+      paymentCount,
+      paymentReliability,
+      approvedCommittees,
+      completedCommittees,
+      hasActivity,
+    };
+  }
+
+  /** Get the review-only score for places that specifically need ratings. */
+  async getReviewScore(userId: string): Promise<number> {
     const { data: reviews } = await this.supabase
       .from('member_reviews')
       .select('rating')
@@ -156,7 +250,6 @@ export class ReviewService {
       return Math.round((sum / maxPossible) * 100);
     }
 
-    // No reviews — return 0 (not 95, user must earn their score)
     return 0;
   }
 
