@@ -389,10 +389,28 @@ export class PublicUserProfileComponent implements OnInit {
 
   // ── Share via WhatsApp ────────────────────────────────────────────────────
   shareViaWhatsApp(): void {
-    const text = encodeURIComponent(
-      `Hi! Check out my TrustCom profile 👋\n\nName: ${this.displayName()}\nEmail: ${this.email()}\n\nJoin me on TrustCom — the trusted platform for committee savings.\nhttps://trustcom.app`
-    );
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    const url = this.whatsappChatUrl();
+    if (!url) return;
+    window.open(url, '_blank');
+  }
+
+  whatsappChatUrl(): string | null {
+    const number = this.normalizeWhatsAppNumber(this.phone());
+    if (!number) return null;
+
+    const message = encodeURIComponent(`Hi ${this.displayName()}, I found your TrustCom profile and would like to connect.`);
+    return `https://wa.me/${number}?text=${message}`;
+  }
+
+  private normalizeWhatsAppNumber(phone: string): string | null {
+    const trimmed = phone.trim();
+    if (!trimmed) return null;
+
+    let digits = trimmed.replace(/\D/g, '');
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    if (digits.startsWith('0')) digits = `92${digits.slice(1)}`;
+
+    return digits.length >= 10 ? digits : null;
   }
 
   getMethodInfo(type: string) {

@@ -199,6 +199,26 @@ export class UserProfileViewComponent implements OnInit {
     this.router.navigate(['/committee', id]);
   }
 
+  whatsappChatUrl(): string | null {
+    const p = this.profile();
+    const number = this.normalizeWhatsAppNumber(p?.phone ?? '');
+    if (!number || !p) return null;
+
+    const message = encodeURIComponent(`Hi ${p.full_name}, I found your TrustCom profile and would like to connect.`);
+    return `https://wa.me/${number}?text=${message}`;
+  }
+
+  private normalizeWhatsAppNumber(phone: string): string | null {
+    const trimmed = phone.trim();
+    if (!trimmed) return null;
+
+    let digits = trimmed.replace(/\D/g, '');
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    if (digits.startsWith('0')) digits = `92${digits.slice(1)}`;
+
+    return digits.length >= 10 ? digits : null;
+  }
+
   trustLabel(): string {
     return this.reliabilityService.getReliabilityLabel(this.trustScore()).label;
   }
