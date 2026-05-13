@@ -20,6 +20,7 @@
         </div>
       </div>
       @if (errorMsg()) { <div class="flex items-center gap-3 bg-[#ffdad6] border border-[#ba1a1a] text-[#ba1a1a] rounded-2xl px-5 py-4 mb-6 text-sm"><span class="material-symbols-outlined">error</span>{{ errorMsg() }}</div> }
+      @if (successMsg()) { <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-2xl px-5 py-4 mb-6 text-sm"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>{{ successMsg() }}</div> }
       @if (loading()) {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           @for (i of [1,2,3,4]; track i) {

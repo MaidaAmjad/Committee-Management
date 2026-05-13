@@ -189,8 +189,7 @@ export class ReviewService {
     const paymentReliability = paymentMaxPoints
       ? Math.max(0, Math.min(100, Math.round((paymentTotalPoints / paymentMaxPoints) * 100)))
       : 0;
-    const paymentConfidence = Math.min(paymentCount / 6, 1);
-    const paymentPoints = Math.round(paymentReliability * 0.35 * paymentConfidence);
+    const paymentPoints = Math.max(-35, Math.min(35, paymentTotalPoints));
 
     const memberships = membershipsRes.data ?? [];
     const approvedMemberships = memberships.filter((m: any) => m.status === 'approved');

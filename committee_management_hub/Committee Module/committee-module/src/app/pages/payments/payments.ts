@@ -5,10 +5,8 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { PaymentService, PaymentCommittee, PaymentProof } from '../../core/payment.service';
 import { AuthService } from '../../core/auth.service';
-import { CommitteeCycleService } from '../../core/committee-cycle.service';
 import { WinnerSelectionService } from '../../core/winner-selection.service';
 import { CommitteeService } from '../../core/committee.service';
-import { PaymentReliabilityService } from '../../core/payment-reliability.service';
 
 /** Winner payment details */
 export interface WinnerPaymentInfo {
@@ -53,6 +51,7 @@ export class PaymentsComponent implements OnInit {
   cards    = signal<PaymentCard[]>([]);
   loading  = signal(true);
   errorMsg = signal('');
+  successMsg = signal('');
   activeTab = signal<'active' | 'recent'>('active');
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
@@ -68,10 +67,8 @@ export class PaymentsComponent implements OnInit {
   constructor(
     private paymentService: PaymentService,
     private auth: AuthService,
-    private cycleService: CommitteeCycleService,
     private winnerService: WinnerSelectionService,
-    private committeeService: CommitteeService,
-    private reliabilityService: PaymentReliabilityService
+    private committeeService: CommitteeService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -252,22 +249,6 @@ export class PaymentsComponent implements OnInit {
       // If table doesn't exist yet, store locally
     }
 
-    // Record payment reliability
-    const deadlineDate = card.committee.payment_deadline_date;
-    if (deadlineDate) {
-      const submittedDate = new Date().toISOString().split('T')[0];
-      const proofId = crypto.randomUUID();
-      await this.reliabilityService.recordPayment(
-        user.id,
-        card.committee.id,
-        proofId,
-        deadlineDate,
-        card.committee.grace_period_days ?? 3,
-        submittedDate,
-        card.monthYear
-      );
-    }
-
     // Update card with proof
     const proof: PaymentProof = { ...proofData, id: crypto.randomUUID(), created_at: new Date().toISOString() };
     this.updateCard(card, { myProof: proof, uploading: false, showUploadModal: false });
@@ -290,8 +271,17 @@ export class PaymentsComponent implements OnInit {
   }
 
   async acceptProof(card: PaymentCard, proof: PaymentProof): Promise<void> {
-    await this.paymentService.acceptProof(proof.id);
+    this.errorMsg.set('');
+    this.successMsg.set('');
+    const { error, trustImpact, reliabilityLabel } = await this.paymentService.acceptProof(proof.id);
+    if (error) {
+      this.errorMsg.set(error);
+      return;
+    }
     this.updateProofStatus(card, proof.id, 'accepted');
+    const pointsText = trustImpact && trustImpact > 0 ? `+${trustImpact}` : `${trustImpact ?? 0}`;
+    this.successMsg.set(`Payment accepted. Trust ${pointsText}, reliability updated to ${reliabilityLabel ?? 'current label'}.`);
+    setTimeout(() => this.successMsg.set(''), 4500);
   }
 
   async rejectProof(card: PaymentCard, proof: PaymentProof): Promise<void> {
@@ -314,7 +304,8 @@ export class PaymentsComponent implements OnInit {
         if (c.committee.id !== card.committee.id) return c;
         return {
           ...c,
-          proofs: c.proofs.map(p => p.id === proofId ? { ...p, status: status as any } : p)
+          proofs: c.proofs.map(p => p.id === proofId ? { ...p, status: status as any, accepted_at: status === 'accepted' ? new Date().toISOString() : p.accepted_at } : p),
+          myProof: c.myProof?.id === proofId ? { ...c.myProof, status: status as any, accepted_at: status === 'accepted' ? new Date().toISOString() : c.myProof.accepted_at } : c.myProof
         };
       })
     );

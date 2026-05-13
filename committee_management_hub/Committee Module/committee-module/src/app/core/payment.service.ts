@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { PaymentReliabilityService } from './payment-reliability.service';
 
 export interface PaymentProof {
   id: string;
@@ -12,6 +13,8 @@ export interface PaymentProof {
   file_url: string;
   month_year: string;      // e.g. "2026-05"
   status: 'submitted' | 'accepted' | 'rejected';
+  accepted_at?: string | null;
+  accepted_by?: string | null;
   created_at: string;
 }
 
@@ -38,7 +41,8 @@ export class PaymentService {
 
   constructor(
     private supabaseService: SupabaseService,
-    private auth: AuthService
+    private auth: AuthService,
+    private reliabilityService: PaymentReliabilityService
   ) {
     this.supabase = this.supabaseService.client;
   }
@@ -155,12 +159,65 @@ export class PaymentService {
   }
 
   /** Accept a payment proof (admin only) */
-  async acceptProof(proofId: string): Promise<{ error: string | null }> {
-    const { error } = await this.supabase
+  async acceptProof(proofId: string): Promise<{ error: string | null; trustImpact?: number; reliabilityLabel?: string }> {
+    const admin = this.auth.user();
+    const { data: proof, error: proofError } = await this.supabase
       .from('payment_proofs')
-      .update({ status: 'accepted' })
+      .select('*')
+      .eq('id', proofId)
+      .maybeSingle();
+
+    if (proofError) return { error: proofError.message };
+    if (!proof) return { error: 'Payment proof not found' };
+
+    const { data: committee, error: committeeError } = await this.supabase
+      .from('committees')
+      .select('payment_deadline_date, grace_period_days')
+      .eq('id', proof.committee_id)
+      .maybeSingle();
+
+    if (committeeError) return { error: committeeError.message };
+
+    const acceptedAt = new Date().toISOString();
+    let updateResult = await this.supabase
+      .from('payment_proofs')
+      .update({ status: 'accepted', accepted_at: acceptedAt, accepted_by: admin?.id ?? null })
       .eq('id', proofId);
-    return { error: error?.message ?? null };
+
+    if (updateResult.error?.message.includes('accepted_at') || (updateResult.error as any)?.code === '42703') {
+      updateResult = await this.supabase
+        .from('payment_proofs')
+        .update({ status: 'accepted' })
+        .eq('id', proofId);
+    }
+
+    if (updateResult.error) return { error: updateResult.error.message };
+
+    const deadlineDate = committee?.payment_deadline_date ?? this.getFallbackDeadline(proof.month_year);
+    const submittedDate = new Date(proof.created_at).toISOString().split('T')[0];
+    const acceptedDate = acceptedAt.split('T')[0];
+    const graceDays = committee?.grace_period_days ?? 3;
+    const statusInfo = this.reliabilityService.calculatePaymentStatus(deadlineDate, graceDays, submittedDate);
+
+    const { error: reliabilityError } = await this.reliabilityService.recordPayment(
+      proof.uploader_id,
+      proof.committee_id,
+      proof.id,
+      deadlineDate,
+      graceDays,
+      submittedDate,
+      proof.month_year,
+      acceptedDate
+    );
+
+    if (reliabilityError) return { error: reliabilityError };
+
+    const stats = await this.reliabilityService.getReliabilityStats(proof.uploader_id);
+    return {
+      error: null,
+      trustImpact: statusInfo.points,
+      reliabilityLabel: stats.label,
+    };
   }
 
   /** Reject a payment proof (admin only) */
@@ -287,6 +344,10 @@ export class PaymentService {
   getCurrentMonthYear(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  private getFallbackDeadline(monthYear: string): string {
+    return /^\d{4}-\d{2}$/.test(monthYear) ? `${monthYear}-10` : new Date().toISOString().split('T')[0];
   }
 
   /** Format due date e.g. "10 May 2026" */

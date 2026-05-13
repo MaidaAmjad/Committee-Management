@@ -11,10 +11,12 @@ CREATE TABLE IF NOT EXISTS public.payment_reliability (
   deadline_date   DATE NOT NULL,
   grace_end_date  DATE NOT NULL,
   submitted_date  DATE,           -- NULL = missed payment
+  accepted_date   DATE,           -- Admin acceptance date
   days_late       INTEGER,        -- 0 = on time, negative = early, positive = late
   status          TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('on_time','slightly_late','late','grace_period','missed','pending')),
   points_earned   INTEGER NOT NULL DEFAULT 0,
+  trust_impact    INTEGER NOT NULL DEFAULT 0,
   month_year      TEXT NOT NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

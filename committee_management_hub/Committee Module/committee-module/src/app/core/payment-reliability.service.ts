@@ -13,6 +13,7 @@ export interface PaymentReliabilityRecord {
   deadline_date: string;
   grace_end_date: string;
   submitted_date?: string;
+  accepted_date?: string;
   days_late?: number;
   status: PaymentStatus;
   points_earned: number;
@@ -97,7 +98,8 @@ export class PaymentReliabilityService {
     deadlineDate: string,
     graceDays: number,
     submittedDate: string,
-    monthYear: string
+    monthYear: string,
+    acceptedDate?: string
   ): Promise<{ error: string | null }> {
     const { status, daysLate, points } = this.calculatePaymentStatus(
       deadlineDate, graceDays, submittedDate
@@ -115,9 +117,11 @@ export class PaymentReliabilityService {
         deadline_date: deadlineDate,
         grace_end_date: graceEnd.toISOString().split('T')[0],
         submitted_date: submittedDate,
+        accepted_date: acceptedDate ?? new Date().toISOString().split('T')[0],
         days_late: daysLate,
         status,
         points_earned: points,
+        trust_impact: points,
         month_year: monthYear,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id,committee_id,month_year' });

@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS public.payment_proofs (
   file_url TEXT NOT NULL,
   month_year TEXT NOT NULL, -- Format: "2026-05"
   status TEXT NOT NULL DEFAULT 'submitted' CHECK (status IN ('submitted', 'accepted', 'rejected')),
+  accepted_at TIMESTAMPTZ,
+  accepted_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
