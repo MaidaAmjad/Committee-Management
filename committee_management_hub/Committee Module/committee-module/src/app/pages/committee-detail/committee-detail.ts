@@ -12,6 +12,7 @@ import { CommitteeAnnouncementComponent } from '../../shared/committee-announcem
 import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
+import { PaymentReliabilityService } from '../../core/payment-reliability.service';
 
 @Component({
   selector: 'app-committee-detail',
@@ -51,6 +52,9 @@ export class CommitteeDetailComponent implements OnInit {
   // Committee completion
   showCompletionModal = signal(false);
 
+  // Member reliability map: user_id -> { score, label, labelColor, labelBg }
+  memberReliability = signal<Record<string, { score: number; label: string; labelColor: string; labelBg: string }>>({});
+
   // Broadcast
   broadcastText    = '';
   sendingBroadcast = signal(false);
@@ -82,7 +86,8 @@ export class CommitteeDetailComponent implements OnInit {
     private committeeService: CommitteeService,
     private winnerService: WinnerSelectionService,
     public auth: AuthService,
-    public guestGuard: GuestGuardService
+    public guestGuard: GuestGuardService,
+    private reliabilityService: PaymentReliabilityService
   ) {}
 
   isGuest = computed(() => !this.auth.user());
@@ -124,6 +129,9 @@ export class CommitteeDetailComponent implements OnInit {
 
     // Load current winner
     await this.loadCurrentWinner();
+
+    // Load reliability scores for all members (non-blocking)
+    this.loadMemberReliability(membersRes.data);
   }
 
   async loadCurrentWinner(): Promise<void> {
@@ -132,6 +140,27 @@ export class CommitteeDetailComponent implements OnInit {
 
     const { data } = await this.winnerService.getCurrentWinner(c.id);
     this.currentWinner.set(data);
+  }
+
+  private async loadMemberReliability(members: any[]): Promise<void> {
+    const map: Record<string, { score: number; label: string; labelColor: string; labelBg: string }> = {};
+    await Promise.all(
+      members.map(async (m) => {
+        const stats = await this.reliabilityService.getReliabilityStats(m.user_id);
+        const labelInfo = this.reliabilityService.getReliabilityLabel(stats.score);
+        map[m.user_id] = {
+          score: stats.score,
+          label: labelInfo.label,
+          labelColor: labelInfo.labelColor,
+          labelBg: labelInfo.labelBg,
+        };
+      })
+    );
+    this.memberReliability.set(map);
+  }
+
+  getMemberReliability(userId: string) {
+    return this.memberReliability()[userId] ?? null;
   }
 
   /** Returns true if the given committee_member.id is the current winner */

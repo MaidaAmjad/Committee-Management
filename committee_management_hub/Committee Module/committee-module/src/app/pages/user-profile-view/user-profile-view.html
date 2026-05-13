@@ -288,6 +288,59 @@
               </div>
             </section>
 
+            <!-- Payment Reliability Card -->
+            @if (reliabilityStats()) {
+              <section class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-base font-bold text-[#191c1e] flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#004ac6] text-[20px]" style="font-variation-settings:'FILL' 1;">payments</span>
+                    Payment Reliability
+                  </h3>
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-full"
+                    [style.color]="reliabilityStats()!.labelColor"
+                    [style.background-color]="reliabilityStats()!.labelBg">
+                    {{ reliabilityStats()!.label }}
+                  </span>
+                </div>
+                <!-- Score bar -->
+                <div class="mb-4">
+                  <div class="flex justify-between text-xs mb-1.5">
+                    <span class="text-[#737686] font-semibold">Payment Punctuality</span>
+                    <span class="font-bold text-[#191c1e]">{{ reliabilityStats()!.score }}%</span>
+                  </div>
+                  <div class="h-3 bg-[#e6e8ea] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-700"
+                      [style.width]="reliabilityStats()!.score + '%'"
+                      [style.background]="reliabilityStats()!.score >= 75 ? 'linear-gradient(90deg,#15803d,#22c55e)' : reliabilityStats()!.score >= 50 ? 'linear-gradient(90deg,#d97706,#f59e0b)' : 'linear-gradient(90deg,#ba1a1a,#ef4444)'">
+                    </div>
+                  </div>
+                </div>
+                <!-- Stats grid -->
+                @if (reliabilityStats()!.totalPayments > 0) {
+                  <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="bg-[#d4edda] rounded-xl p-2.5 text-center">
+                      <p class="text-lg font-bold text-[#15803d]">{{ reliabilityStats()!.onTime }}</p>
+                      <p class="text-[10px] text-[#15803d] font-semibold">On Time ✅</p>
+                    </div>
+                    <div class="bg-[#fef9c3] rounded-xl p-2.5 text-center">
+                      <p class="text-lg font-bold text-[#854d0e]">{{ reliabilityStats()!.slightlyLate + reliabilityStats()!.late }}</p>
+                      <p class="text-[10px] text-[#854d0e] font-semibold">Late ⚠️</p>
+                    </div>
+                    <div class="bg-[#ffdad6] rounded-xl p-2.5 text-center">
+                      <p class="text-lg font-bold text-[#ba1a1a]">{{ reliabilityStats()!.missed }}</p>
+                      <p class="text-[10px] text-[#ba1a1a] font-semibold">Missed 🚫</p>
+                    </div>
+                  </div>
+                  <p class="text-[10px] text-[#737686] text-center">
+                    Based on {{ reliabilityStats()!.totalPayments }} payment{{ reliabilityStats()!.totalPayments !== 1 ? 's' : '' }}
+                    · {{ reliabilityStats()!.totalPoints }}/{{ reliabilityStats()!.maxPoints }} pts
+                  </p>
+                } @else {
+                  <p class="text-xs text-[#737686] text-center py-2">No payment history yet.</p>
+                }
+              </section>
+            }
+
             <!-- Member Reviews -->
             <section class="bg-white rounded-2xl border border-[#c3c6d7] shadow-sm p-6">
               <div class="flex items-center justify-between mb-5">

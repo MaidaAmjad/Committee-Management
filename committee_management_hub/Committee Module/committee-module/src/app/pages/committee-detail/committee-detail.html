@@ -381,6 +381,14 @@
                         <span class="text-[10px] font-bold bg-[#ffdad6] text-[#ba1a1a] px-2 py-0.5 rounded-full">Rejected</span>
                       }
                     }
+                    <!-- Reliability badge -->
+                    @if (getMemberReliability(member.user_id)) {
+                      <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                        [style.color]="getMemberReliability(member.user_id)!.labelColor"
+                        [style.background-color]="getMemberReliability(member.user_id)!.labelBg">
+                        {{ getMemberReliability(member.user_id)!.score }}% reliable
+                      </span>
+                    }
                     <p class="text-[10px] text-[#737686]">{{ member.joined_at | date:'MMM d' }}</p>
                     @if (member.user_id === currentUserId()) {
                       <span class="text-[10px] font-bold text-[#004ac6] bg-[#dbe1ff] px-2 py-0.5 rounded-full">You</span>

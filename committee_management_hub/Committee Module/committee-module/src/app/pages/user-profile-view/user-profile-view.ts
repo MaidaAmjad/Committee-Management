@@ -10,6 +10,7 @@ import { VerificationService } from '../../core/verification.service';
 import { ReviewService, MemberReview } from '../../core/review.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
+import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
 
 @Component({
   selector: 'app-user-profile-view',
@@ -37,6 +38,7 @@ export class UserProfileViewComponent implements OnInit {
   reviewError    = signal('');
   reviewSuccess  = signal(false);
   trustScore     = signal(95);
+  reliabilityStats = signal<ReliabilityStats | null>(null);
 
   currentUserId = computed(() => this.auth.user()?.id ?? '');
   isOwnProfile  = computed(() => this.profile()?.id === this.currentUserId());
@@ -50,7 +52,8 @@ export class UserProfileViewComponent implements OnInit {
     private auth: AuthService,
     private verificationService: VerificationService,
     private reviewService: ReviewService,
-    public guestGuard: GuestGuardService
+    public guestGuard: GuestGuardService,
+    private reliabilityService: PaymentReliabilityService
   ) {}
 
   isGuest = computed(() => !this.auth.user());
@@ -96,10 +99,11 @@ export class UserProfileViewComponent implements OnInit {
 
   private async loadReviews(userId: string): Promise<void> {
     this.reviewsLoading.set(true);
-    const [reviewsRes, myReviewRes, score] = await Promise.all([
+    const [reviewsRes, myReviewRes, score, reliability] = await Promise.all([
       this.reviewService.getReviewsForUser(userId),
       this.reviewService.getMyReviewFor(userId),
       this.reviewService.getTrustScore(userId),
+      this.reliabilityService.getReliabilityStats(userId),
     ]);
     this.reviewsLoading.set(false);
     if (!reviewsRes.error) this.reviews.set(reviewsRes.data);
@@ -111,6 +115,7 @@ export class UserProfileViewComponent implements OnInit {
       }
     }
     this.trustScore.set(score);
+    this.reliabilityStats.set(reliability);
   }
 
   // ── Review form ───────────────────────────────────────────────────────────

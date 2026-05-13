@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth.service';
 import { CommitteeCycleService } from '../../core/committee-cycle.service';
 import { WinnerSelectionService } from '../../core/winner-selection.service';
 import { CommitteeService } from '../../core/committee.service';
+import { PaymentReliabilityService } from '../../core/payment-reliability.service';
 
 /** Winner payment details */
 export interface WinnerPaymentInfo {
@@ -69,7 +70,8 @@ export class PaymentsComponent implements OnInit {
     private auth: AuthService,
     private cycleService: CommitteeCycleService,
     private winnerService: WinnerSelectionService,
-    private committeeService: CommitteeService
+    private committeeService: CommitteeService,
+    private reliabilityService: PaymentReliabilityService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -248,6 +250,22 @@ export class PaymentsComponent implements OnInit {
 
     if (saveErr && !saveErr.includes('does not exist')) {
       // If table doesn't exist yet, store locally
+    }
+
+    // Record payment reliability
+    const deadlineDate = card.committee.payment_deadline_date;
+    if (deadlineDate) {
+      const submittedDate = new Date().toISOString().split('T')[0];
+      const proofId = crypto.randomUUID();
+      await this.reliabilityService.recordPayment(
+        user.id,
+        card.committee.id,
+        proofId,
+        deadlineDate,
+        card.committee.grace_period_days ?? 3,
+        submittedDate,
+        card.monthYear
+      );
     }
 
     // Update card with proof
