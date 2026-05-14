@@ -38,6 +38,24 @@
         }
       </div>
 
+      <!-- Phone (+92 Pakistan) -->
+      <div class="tc-field">
+        <label class="tc-label" for="phoneNational">Mobile number</label>
+        <div class="tc-phone-row">
+          <span class="tc-phone-prefix" aria-hidden="true">+92</span>
+          <input id="phoneNational" type="tel" name="phoneNational" [(ngModel)]="phoneNational"
+            (ngModelChange)="onPhoneNationalInput()" inputmode="numeric" autocomplete="tel-national"
+            placeholder="3001234567" maxlength="10" required
+            class="tc-input tc-phone-input"
+            [class.tc-valid]="phoneValid"
+            [class.tc-invalid]="phoneNational.length > 0 && !phoneValid"/>
+        </div>
+        <p class="tc-hint" [class.tc-hint-err]="phoneNational.length > 0 && !phoneValid"
+          [style.visibility]="phoneNational.length > 0 && !phoneValid ? 'visible' : 'hidden'">
+          Enter 10 digits starting with 3 (e.g. 3001234567)
+        </p>
+      </div>
+
       <!-- Email -->
       <div class="tc-field">
         <label class="tc-label" for="email">Email Address</label>

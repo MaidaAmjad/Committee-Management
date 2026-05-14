@@ -9,6 +9,7 @@ import { PaymentMethodService, PaymentMethod } from '../../core/payment-method.s
 import { VerificationService, VerificationRequest } from '../../core/verification.service';
 import { ReviewService, MemberReview, TrustScoreBreakdown } from '../../core/review.service';
 import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
+import { ProfileService } from '../../core/profile.service';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 
@@ -149,7 +150,8 @@ export class PublicUserProfileComponent implements OnInit {
     private paymentMethodService: PaymentMethodService,
     private verificationService: VerificationService,
     private reviewService: ReviewService,
-    private reliabilityService: PaymentReliabilityService
+    private reliabilityService: PaymentReliabilityService,
+    private profileService: ProfileService
   ) {
     this.editForm = this.fb.group({
       full_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -160,6 +162,7 @@ export class PublicUserProfileComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
+    await this.profileService.syncMetadataToProfile();
     const user = this.auth.user();
     const { data } = await this.paymentMethodService.getMyMethods();
     this.paymentMethods.set(data);
@@ -364,13 +367,22 @@ export class PublicUserProfileComponent implements OnInit {
       }
     });
 
-    this.saving.set(false);
-
     if (error) {
+      this.saving.set(false);
       this.saveError.set(error.message);
       return;
     }
 
+    const uid = this.auth.user()?.id;
+    if (uid) {
+      const { error: pe } = await this.supabaseService.client.from('profiles').update({
+        full_name: (this.editForm.value.full_name || '').trim(),
+        phone:     (this.editForm.value.phone || '').trim() || null,
+      }).eq('id', uid);
+      if (pe) console.warn('profiles update after save:', pe.message);
+    }
+
+    this.saving.set(false);
     this.saveSuccess.set(true);
     setTimeout(() => {
       this.showEditModal.set(false);

@@ -41,13 +41,30 @@ export class AuthService {
     });
   }
 
-  async signUp(email: string, password: string, fullName: string): Promise<AuthResult> {
-    const { error } = await this.supabase.auth.signUp({
+  async signUp(email: string, password: string, fullName: string, phone?: string): Promise<AuthResult> {
+    const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: {
+          full_name: fullName,
+          ...(phone?.trim() ? { phone: phone.trim() } : {}),
+        },
+      },
     });
-    return { error };
+    if (error) return { error };
+
+    // If email confirmation is off, session exists — mirror contact fields to profiles for /user/:id & WhatsApp.
+    if (data.user?.id && data.session) {
+      const updates: Record<string, string> = {};
+      if (fullName?.trim()) updates['full_name'] = fullName.trim();
+      if (phone?.trim()) updates['phone'] = phone.trim();
+      if (Object.keys(updates).length > 0) {
+        const { error: pe } = await this.supabase.from('profiles').update(updates).eq('id', data.user.id);
+        if (pe) console.warn('Profile sync after signup:', pe.message);
+      }
+    }
+    return { error: null };
   }
 
   async signIn(email: string, password: string): Promise<AuthResult> {

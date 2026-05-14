@@ -29,6 +29,25 @@ export class ProfileService {
     return { data: data as UserProfile, error: null };
   }
 
+  /** Copy phone / name from auth user_metadata into public.profiles (WhatsApp uses profiles.phone). */
+  async syncMetadataToProfile(): Promise<void> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user?.id) return;
+
+    const phone =
+      typeof user.user_metadata?.['phone'] === 'string' ? user.user_metadata['phone'].trim() : '';
+    const full_name =
+      typeof user.user_metadata?.['full_name'] === 'string' ? user.user_metadata['full_name'].trim() : '';
+
+    const updates: Record<string, string> = {};
+    if (phone) updates['phone'] = phone;
+    if (full_name) updates['full_name'] = full_name;
+    if (Object.keys(updates).length === 0) return;
+
+    const { error } = await this.supabase.from('profiles').update(updates).eq('id', user.id);
+    if (error) console.warn('syncMetadataToProfile:', error.message);
+  }
+
   /** Fallback: build a minimal profile from committee_members data */
   async getProfileFromMembers(userId: string): Promise<UserProfile | null> {
     const { data } = await this.supabase

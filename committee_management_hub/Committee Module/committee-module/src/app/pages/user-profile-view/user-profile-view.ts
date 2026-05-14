@@ -201,8 +201,13 @@ export class UserProfileViewComponent implements OnInit {
 
   whatsappChatUrl(): string | null {
     const p = this.profile();
-    const number = this.normalizeWhatsAppNumber(p?.phone ?? '');
-    if (!number || !p) return null;
+    if (!p) return null;
+    const ownMeta = this.isOwnProfile()
+      ? (this.auth.user()?.user_metadata?.['phone'] as string | undefined)
+      : undefined;
+    const raw = ((p.phone || ownMeta || '') as string).trim();
+    const number = this.normalizeWhatsAppNumber(raw);
+    if (!number) return null;
 
     const message = encodeURIComponent(`Hi ${p.full_name}, I found your TrustCom profile and would like to connect.`);
     return `https://wa.me/${number}?text=${message}`;

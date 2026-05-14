@@ -1,1 +1,54 @@
-// signup styles
+/* Phone row: +92 prefix + national digits (matches auth light inputs) */
+.tc-phone-row {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: var(--tc-radius, 16px);
+  overflow: hidden;
+  background: #f8fafc;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.tc-phone-row:focus-within {
+  border-color: var(--tc-blue-light, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: #ffffff;
+}
+
+.tc-phone-prefix {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 14px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tc-text, #0f172a);
+  background: #eef2f6;
+  border-right: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.tc-phone-row .tc-phone-input {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-phone-row .tc-phone-input:focus {
+  box-shadow: none !important;
+}
+
+.tc-phone-row .tc-input.tc-valid,
+.tc-phone-row .tc-input.tc-invalid {
+  box-shadow: none !important;
+}
+
+.tc-phone-row:has(.tc-phone-input.tc-invalid) {
+  border-color: var(--tc-error, #dc2626);
+}
+
+.tc-phone-row:has(.tc-phone-input.tc-valid) {
+  border-color: var(--tc-success, #059669);
+}

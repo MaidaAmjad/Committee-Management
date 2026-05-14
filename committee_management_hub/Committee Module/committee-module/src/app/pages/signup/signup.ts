@@ -14,6 +14,8 @@ import { PaymentMethodService } from '../../core/payment-method.service';
 })
 export class SignupComponent {
   fullName = '';
+  /** National mobile without country code: 10 digits starting with 3 (e.g. 3001234567) → stored as +923001234567 */
+  phoneNational = '';
   email = '';
   password = '';
   confirmPassword = '';
@@ -31,9 +33,25 @@ export class SignupComponent {
     return this.confirmPassword.length > 0 && this.password !== this.confirmPassword;
   }
 
+  /** E.164 Pakistan mobile, e.g. +923001234567 */
+  get phoneE164(): string {
+    const d = this.phoneNational.replace(/\D/g, '').slice(0, 10);
+    if (d.length !== 10 || !d.startsWith('3')) return '';
+    return `+92${d}`;
+  }
+
+  get phoneValid(): boolean {
+    return this.phoneE164.length === 13;
+  }
+
+  onPhoneNationalInput(): void {
+    this.phoneNational = this.phoneNational.replace(/\D/g, '').slice(0, 10);
+  }
+
   get isFormValid(): boolean {
     return (
       this.fullName.trim().length > 0 &&
+      this.phoneValid &&
       this.email.trim().length > 0 &&
       this.password.length >= 8 &&
       this.confirmPassword === this.password &&
@@ -51,7 +69,7 @@ export class SignupComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const { error } = await this.auth.signUp(this.email, this.password, this.fullName);
+    const { error } = await this.auth.signUp(this.email, this.password, this.fullName, this.phoneE164);
 
     this.loading = false;
 

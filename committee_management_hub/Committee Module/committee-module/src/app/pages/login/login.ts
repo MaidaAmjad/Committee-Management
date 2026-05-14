@@ -5,6 +5,7 @@ import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { NotificationService } from '../../core/notification.service';
 import { PaymentMethodService } from '../../core/payment-method.service';
+import { ProfileService } from '../../core/profile.service';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,8 @@ export class LoginComponent {
     private auth: AuthService,
     private router: Router,
     private notificationService: NotificationService,
-    private paymentMethodService: PaymentMethodService
+    private paymentMethodService: PaymentMethodService,
+    private profileService: ProfileService
   ) {}
 
   togglePassword(): void { this.showPassword = !this.showPassword; }
@@ -46,6 +48,8 @@ export class LoginComponent {
       }
       return;
     }
+
+    await this.profileService.syncMetadataToProfile();
 
     // Check payment setup
     const setupComplete = await this.paymentMethodService.isSetupComplete();
