@@ -52,3 +52,7 @@
 .tc-phone-row:has(.tc-phone-input.tc-valid) {
   border-color: var(--tc-success, #059669);
 }
+
+.tc-country-select {
+  max-height: 200px;
+}

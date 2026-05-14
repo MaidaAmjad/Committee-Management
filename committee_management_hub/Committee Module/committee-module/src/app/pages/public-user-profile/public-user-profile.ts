@@ -10,6 +10,7 @@ import { VerificationService, VerificationRequest } from '../../core/verificatio
 import { ReviewService, MemberReview, TrustScoreBreakdown } from '../../core/review.service';
 import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
 import { ProfileService } from '../../core/profile.service';
+import { isPlausibleE164, normalizeWhatsAppDigits } from '../../core/phone.utils';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 
@@ -64,9 +65,7 @@ export class PublicUserProfileComponent implements OnInit {
 
   // Validation helpers
   private isValidPhone(phone: string): boolean {
-    // Accepts: 03XX-XXXXXXX, 03XXXXXXXXX, +923XXXXXXXXX, 923XXXXXXXXX
-    const cleaned = phone.replace(/[\s\-]/g, '');
-    return /^(03\d{9}|\+923\d{9}|923\d{9})$/.test(cleaned);
+    return isPlausibleE164(phone.trim());
   }
 
   private isValidCnic(cnic: string): boolean {
@@ -97,7 +96,7 @@ export class PublicUserProfileComponent implements OnInit {
 
   onPhoneInput(): void {
     if (this.vPhone.length > 0 && !this.isValidPhone(this.vPhone)) {
-      this.phoneError.set('Format: 03XX-XXXXXXX or +923XXXXXXXXX');
+      this.phoneError.set('Use international format with + and country code (8–15 digits).');
     } else {
       this.phoneError.set('');
     }
@@ -238,8 +237,8 @@ export class PublicUserProfileComponent implements OnInit {
       return;
     }
     if (!this.isValidPhone(this.vPhone)) {
-      this.phoneError.set('Format: 03XX-XXXXXXX or +923XXXXXXXXX');
-      this.verifyError.set('Please enter a valid Pakistani phone number.');
+      this.phoneError.set('Use international format with + and country code (8–15 digits).');
+      this.verifyError.set('Please enter a valid phone number.');
       return;
     }
     if (!this.vCnic.trim()) {
@@ -356,6 +355,11 @@ export class PublicUserProfileComponent implements OnInit {
 
   async saveProfile(): Promise<void> {
     if (this.editForm.invalid) return;
+    const phoneTrim = (this.editForm.value.phone || '').trim();
+    if (!isPlausibleE164(phoneTrim)) {
+      this.saveError.set('Enter a valid international phone number starting with + (8–15 digits).');
+      return;
+    }
     this.saving.set(true);
     this.saveError.set('');
 
@@ -407,22 +411,11 @@ export class PublicUserProfileComponent implements OnInit {
   }
 
   whatsappChatUrl(): string | null {
-    const number = this.normalizeWhatsAppNumber(this.phone());
+    const number = normalizeWhatsAppDigits(this.phone());
     if (!number) return null;
 
     const message = encodeURIComponent(`Hi ${this.displayName()}, I found your TrustCom profile and would like to connect.`);
     return `https://wa.me/${number}?text=${message}`;
-  }
-
-  private normalizeWhatsAppNumber(phone: string): string | null {
-    const trimmed = phone.trim();
-    if (!trimmed) return null;
-
-    let digits = trimmed.replace(/\D/g, '');
-    if (digits.startsWith('00')) digits = digits.slice(2);
-    if (digits.startsWith('0')) digits = `92${digits.slice(1)}`;
-
-    return digits.length >= 10 ? digits : null;
   }
 
   getMethodInfo(type: string) {

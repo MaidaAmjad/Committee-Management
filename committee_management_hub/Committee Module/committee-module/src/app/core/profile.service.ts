@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { isPlausibleE164 } from './phone.utils';
 
 export interface UserProfile {
   id: string;
@@ -46,6 +47,24 @@ export class ProfileService {
 
     const { error } = await this.supabase.from('profiles').update(updates).eq('id', user.id);
     if (error) console.warn('syncMetadataToProfile:', error.message);
+  }
+
+  /** True if not logged in, or current user has a plausible E.164 phone in metadata or profiles. */
+  async currentUserHasValidPhone(): Promise<boolean> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) return true;
+
+    const meta = typeof user.user_metadata?.['phone'] === 'string' ? user.user_metadata['phone'].trim() : '';
+    if (isPlausibleE164(meta)) return true;
+
+    const { data } = await this.supabase
+      .from('profiles')
+      .select('phone')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const row = typeof data?.phone === 'string' ? data.phone.trim() : '';
+    return isPlausibleE164(row);
   }
 
   /** Fallback: build a minimal profile from committee_members data */

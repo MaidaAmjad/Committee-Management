@@ -11,6 +11,7 @@ import { ReviewService, MemberReview, TrustScoreBreakdown } from '../../core/rev
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
 import { PaymentReliabilityService, ReliabilityStats } from '../../core/payment-reliability.service';
+import { normalizeWhatsAppDigits } from '../../core/phone.utils';
 
 @Component({
   selector: 'app-user-profile-view',
@@ -206,22 +207,11 @@ export class UserProfileViewComponent implements OnInit {
       ? (this.auth.user()?.user_metadata?.['phone'] as string | undefined)
       : undefined;
     const raw = ((p.phone || ownMeta || '') as string).trim();
-    const number = this.normalizeWhatsAppNumber(raw);
+    const number = normalizeWhatsAppDigits(raw);
     if (!number) return null;
 
     const message = encodeURIComponent(`Hi ${p.full_name}, I found your TrustCom profile and would like to connect.`);
     return `https://wa.me/${number}?text=${message}`;
-  }
-
-  private normalizeWhatsAppNumber(phone: string): string | null {
-    const trimmed = phone.trim();
-    if (!trimmed) return null;
-
-    let digits = trimmed.replace(/\D/g, '');
-    if (digits.startsWith('00')) digits = digits.slice(2);
-    if (digits.startsWith('0')) digits = `92${digits.slice(1)}`;
-
-    return digits.length >= 10 ? digits : null;
   }
 
   trustLabel(): string {

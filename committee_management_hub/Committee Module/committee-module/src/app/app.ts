@@ -3,13 +3,15 @@ import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/auth.service';
 import { NotificationService } from './core/notification.service';
+import { PhoneRequiredGateComponent } from './shared/phone-required-gate/phone-required-gate';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, CommonModule, PhoneRequiredGateComponent],
   template: `
     <router-outlet></router-outlet>
+    <app-phone-required-gate />
 
     <!-- Global Broadcast Popup -->
     @if (notificationService.currentPopup()) {

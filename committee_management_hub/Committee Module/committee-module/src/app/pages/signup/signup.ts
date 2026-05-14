@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { PaymentMethodService } from '../../core/payment-method.service';
+import { COUNTRY_DIAL_CODES } from '../../data/country-dial-codes';
+import { buildE164, isPlausibleE164 } from '../../core/phone.utils';
 
 @Component({
   selector: 'app-signup',
@@ -14,7 +15,10 @@ import { PaymentMethodService } from '../../core/payment-method.service';
 })
 export class SignupComponent {
   fullName = '';
-  /** National mobile without country code: 10 digits starting with 3 (e.g. 3001234567) → stored as +923001234567 */
+  countries = COUNTRY_DIAL_CODES;
+  /** ISO 3166-1 alpha-2; default Pakistan */
+  countryIso2 = 'PK';
+  /** National number digits only (no country code) */
   phoneNational = '';
   email = '';
   password = '';
@@ -27,25 +31,26 @@ export class SignupComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private auth: AuthService, private router: Router, private paymentMethodService: PaymentMethodService) {}
+  constructor(private auth: AuthService, private router: Router) {}
+
+  get selectedDial(): string {
+    return this.countries.find(c => c.iso2 === this.countryIso2)?.dial ?? '92';
+  }
 
   get passwordMismatch(): boolean {
     return this.confirmPassword.length > 0 && this.password !== this.confirmPassword;
   }
 
-  /** E.164 Pakistan mobile, e.g. +923001234567 */
   get phoneE164(): string {
-    const d = this.phoneNational.replace(/\D/g, '').slice(0, 10);
-    if (d.length !== 10 || !d.startsWith('3')) return '';
-    return `+92${d}`;
+    return buildE164(this.selectedDial, this.phoneNational);
   }
 
   get phoneValid(): boolean {
-    return this.phoneE164.length === 13;
+    return isPlausibleE164(this.phoneE164);
   }
 
   onPhoneNationalInput(): void {
-    this.phoneNational = this.phoneNational.replace(/\D/g, '').slice(0, 10);
+    this.phoneNational = this.phoneNational.replace(/\D/g, '').slice(0, 15);
   }
 
   get isFormValid(): boolean {

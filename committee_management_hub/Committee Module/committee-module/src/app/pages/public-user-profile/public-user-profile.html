@@ -532,7 +532,7 @@
               <label class="block text-xs font-semibold text-[#737686] uppercase tracking-wide mb-1.5">
                 Phone Number <span class="text-[#ba1a1a]">*</span>
               </label>
-              <input type="tel" [(ngModel)]="vPhone" (input)="onPhoneInput()" placeholder="03XX-XXXXXXX"
+              <input type="tel" [(ngModel)]="vPhone" (input)="onPhoneInput()" placeholder="+92 300 1234567"
                 class="w-full px-4 py-3 border rounded-xl text-sm outline-none focus:ring-2 transition-all"
                 [class.border-[#ba1a1a]]="phoneError()"
                 [class.bg-[#fff5f5]]="phoneError()"
@@ -545,7 +545,7 @@
                   {{ phoneError() }}
                 </p>
               } @else {
-                <p class="text-[10px] text-[#737686] mt-1">e.g. 0312-3456789 or +923123456789</p>
+                <p class="text-[10px] text-[#737686] mt-1">International format with + and country code (8–15 digits).</p>
               }
             </div>
 
