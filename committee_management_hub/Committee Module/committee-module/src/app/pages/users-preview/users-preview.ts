@@ -17,6 +17,7 @@ interface PublicUser {
   reliability_color: string;
   reliability_bg: string;
   is_verified: boolean;
+  payment_reliability_score?: number | null;
   created_at: string;
 }
 
@@ -52,11 +53,11 @@ export class UsersPreviewComponent implements OnInit {
     this.loading.set(true);
     const { data } = await this.supabase
       .from('profiles')
-      .select('id, full_name, email, trust_score, is_verified, created_at')
+      .select('id, full_name, email, trust_score, is_verified, payment_reliability_score, created_at')
       .order('trust_score', { ascending: false });
     this.loading.set(false);
     const users = (data || []).map((user: any) => {
-      const trustScore = this.normalizeTrustScore(user.trust_score);
+      const trustScore = this.normalizeTrustScore(user);
       const label = this.reliabilityService.getReliabilityLabel(trustScore);
       return {
         ...user,
@@ -67,13 +68,22 @@ export class UsersPreviewComponent implements OnInit {
         reliability_bg: label.labelBg,
       } as PublicUser;
     });
-    this.users.set(users);
+    this.users.set(users.sort((a, b) =>
+      b.trust_score - a.trust_score || a.full_name.localeCompare(b.full_name)
+    ));
   }
 
-  private normalizeTrustScore(score: unknown): number {
-    const numericScore = Number(score ?? 0);
+  private normalizeTrustScore(user: any): number {
+    const numericScore = Number(user?.trust_score ?? 0);
     if (Number.isNaN(numericScore)) return 0;
-    return Math.max(0, Math.min(100, Math.round(numericScore)));
+    const score = Math.max(0, Math.min(100, Math.round(numericScore)));
+    const reliabilityScore = Number(user?.payment_reliability_score ?? 0);
+    const hasReliabilityHistory = !Number.isNaN(reliabilityScore) && reliabilityScore > 0;
+
+    // Older profile rows used 95 as the default. If there is no public evidence
+    // of earned trust, keep those users as new users until the DB migration runs.
+    if (score === 95 && !user?.is_verified && !hasReliabilityHistory) return 0;
+    return score;
   }
 
   getInitials(name: string): string {

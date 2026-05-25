@@ -16,6 +16,8 @@ export interface UserProfile {
   reliability_emoji: string;
   reliability_color: string;
   reliability_bg: string;
+  is_verified?: boolean;
+  payment_reliability_score?: number | null;
   bio: string | null;
 }
 
@@ -64,13 +66,13 @@ export class AllUsersComponent implements OnInit {
     try {
       const { data, error } = await this.supabase
         .from('profiles')
-        .select('id, full_name, email, trust_score, bio')
+        .select('id, full_name, email, trust_score, is_verified, payment_reliability_score, bio')
         .order('full_name', { ascending: true });
 
       if (error) throw error;
 
       const users: UserProfile[] = (data || []).map((p: any) => {
-        const trustScore = this.normalizeTrustScore(p.trust_score);
+        const trustScore = this.normalizeTrustScore(p);
         const label = this.reliabilityService.getReliabilityLabel(trustScore);
         return {
           id: p.id,
@@ -81,6 +83,8 @@ export class AllUsersComponent implements OnInit {
           reliability_emoji: label.emoji,
           reliability_color: label.labelColor,
           reliability_bg: label.labelBg,
+          is_verified: p.is_verified,
+          payment_reliability_score: p.payment_reliability_score,
           bio: p.bio ?? 'No bio provided.'
         };
       });
@@ -98,10 +102,17 @@ export class AllUsersComponent implements OnInit {
     this.searchQuery.set(val);
   }
 
-  private normalizeTrustScore(score: unknown): number {
-    const numericScore = Number(score ?? 0);
+  private normalizeTrustScore(user: any): number {
+    const numericScore = Number(user?.trust_score ?? 0);
     if (Number.isNaN(numericScore)) return 0;
-    return Math.max(0, Math.min(100, Math.round(numericScore)));
+    const score = Math.max(0, Math.min(100, Math.round(numericScore)));
+    const reliabilityScore = Number(user?.payment_reliability_score ?? 0);
+    const hasReliabilityHistory = !Number.isNaN(reliabilityScore) && reliabilityScore > 0;
+
+    // Older profile rows used 95 as the default. If there is no public evidence
+    // of earned trust, keep those users as new users until the DB migration runs.
+    if (score === 95 && !user?.is_verified && !hasReliabilityHistory) return 0;
+    return score;
   }
 
   initials(name: string): string {

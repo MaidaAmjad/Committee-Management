@@ -92,7 +92,7 @@ export class UserProfileViewComponent implements OnInit {
     this.committees.set(committeesRes.data);
 
     // Load verification + reviews in parallel
-    const storedTrustScore = this.normalizeTrustScore(this.profile()?.trust_score);
+    const storedTrustScore = this.normalizeTrustScore(this.profile());
     const [verStatus] = await Promise.all([
       this.verificationService.getUserVerificationStatus(userId),
       this.loadReviews(userId, this.isGuest() ? storedTrustScore : undefined),
@@ -235,9 +235,14 @@ export class UserProfileViewComponent implements OnInit {
     return this.trustBreakdown()?.hasActivity ?? false;
   }
 
-  private normalizeTrustScore(score: unknown): number {
-    const numericScore = Number(score ?? 0);
+  private normalizeTrustScore(profile: UserProfile | null): number {
+    const numericScore = Number(profile?.trust_score ?? 0);
     if (Number.isNaN(numericScore)) return 0;
-    return Math.max(0, Math.min(100, Math.round(numericScore)));
+    const score = Math.max(0, Math.min(100, Math.round(numericScore)));
+    const reliabilityScore = Number(profile?.payment_reliability_score ?? 0);
+    const hasReliabilityHistory = !Number.isNaN(reliabilityScore) && reliabilityScore > 0;
+
+    if (score === 95 && !profile?.is_verified && !hasReliabilityHistory) return 0;
+    return score;
   }
 }

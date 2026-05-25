@@ -9,6 +9,8 @@ export interface UserProfile {
   bio: string | null;
   phone: string | null;
   trust_score?: number | null;
+  is_verified?: boolean | null;
+  payment_reliability_score?: number | null;
   created_at: string;
 }
 
