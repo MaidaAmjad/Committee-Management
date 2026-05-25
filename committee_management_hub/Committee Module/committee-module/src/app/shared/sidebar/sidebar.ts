@@ -50,7 +50,7 @@ export class SidebarComponent implements OnInit {
   async loadTrustScore(): Promise<void> {
     const user = this.auth.user();
     if (!user) return;
-    const score = await this.reviewService.getTrustScore(user.id);
+    const score = await this.reviewService.getAndPersistTrustScore(user.id);
     this.trustScore.set(score);
   }
 

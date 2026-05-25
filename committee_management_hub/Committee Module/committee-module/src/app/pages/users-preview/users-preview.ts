@@ -5,7 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
-import { ReviewService } from '../../core/review.service';
 import { PaymentReliabilityService } from '../../core/payment-reliability.service';
 
 interface PublicUser {
@@ -44,7 +43,6 @@ export class UsersPreviewComponent implements OnInit {
     private supabaseService: SupabaseService,
     public guestGuard: GuestGuardService,
     private router: Router,
-    private reviewService: ReviewService,
     private reliabilityService: PaymentReliabilityService
   ) {
     this.supabase = this.supabaseService.client;
@@ -57,8 +55,8 @@ export class UsersPreviewComponent implements OnInit {
       .select('id, full_name, email, trust_score, is_verified, created_at')
       .order('trust_score', { ascending: false });
     this.loading.set(false);
-    const users = await Promise.all((data || []).map(async (user: any) => {
-      const trustScore = await this.reviewService.getTrustScore(user.id);
+    const users = (data || []).map((user: any) => {
+      const trustScore = this.normalizeTrustScore(user.trust_score);
       const label = this.reliabilityService.getReliabilityLabel(trustScore);
       return {
         ...user,
@@ -68,8 +66,14 @@ export class UsersPreviewComponent implements OnInit {
         reliability_color: label.labelColor,
         reliability_bg: label.labelBg,
       } as PublicUser;
-    }));
+    });
     this.users.set(users);
+  }
+
+  private normalizeTrustScore(score: unknown): number {
+    const numericScore = Number(score ?? 0);
+    if (Number.isNaN(numericScore)) return 0;
+    return Math.max(0, Math.min(100, Math.round(numericScore)));
   }
 
   getInitials(name: string): string {

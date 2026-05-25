@@ -92,14 +92,15 @@ export class UserProfileViewComponent implements OnInit {
     this.committees.set(committeesRes.data);
 
     // Load verification + reviews in parallel
+    const storedTrustScore = this.normalizeTrustScore(this.profile()?.trust_score);
     const [verStatus] = await Promise.all([
       this.verificationService.getUserVerificationStatus(userId),
-      this.loadReviews(userId),
+      this.loadReviews(userId, this.isGuest() ? storedTrustScore : undefined),
     ]);
     this.isVerified.set(verStatus === 'approved');
   }
 
-  private async loadReviews(userId: string): Promise<void> {
+  private async loadReviews(userId: string, publicTrustScore?: number): Promise<void> {
     this.reviewsLoading.set(true);
     const [reviewsRes, myReviewRes, breakdown, reliability] = await Promise.all([
       this.reviewService.getReviewsForUser(userId),
@@ -116,7 +117,7 @@ export class UserProfileViewComponent implements OnInit {
         this.reviewComment = myReviewRes.data.comment;
       }
     }
-    this.trustScore.set(breakdown.score);
+    this.trustScore.set(publicTrustScore ?? breakdown.score);
     this.trustBreakdown.set(breakdown);
     this.reliabilityStats.set(reliability);
   }
@@ -232,5 +233,11 @@ export class UserProfileViewComponent implements OnInit {
 
   hasTrustHistory(): boolean {
     return this.trustBreakdown()?.hasActivity ?? false;
+  }
+
+  private normalizeTrustScore(score: unknown): number {
+    const numericScore = Number(score ?? 0);
+    if (Number.isNaN(numericScore)) return 0;
+    return Math.max(0, Math.min(100, Math.round(numericScore)));
   }
 }

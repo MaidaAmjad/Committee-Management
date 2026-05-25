@@ -132,7 +132,17 @@ export class ReviewService {
   /** Recalculate and persist the earned composite trust score. */
   async recalculateTrustScore(userId: string): Promise<void> {
     const trustScore = await this.getTrustScore(userId);
+    await this.saveTrustScore(userId, trustScore);
+  }
 
+  /** Return the live score and keep the public profile score in sync. */
+  async getAndPersistTrustScore(userId: string): Promise<number> {
+    const trustScore = await this.getTrustScore(userId);
+    await this.saveTrustScore(userId, trustScore);
+    return trustScore;
+  }
+
+  private async saveTrustScore(userId: string, trustScore: number): Promise<void> {
     await this.supabase
       .from('profiles')
       .update({ trust_score: trustScore })

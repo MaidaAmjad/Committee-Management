@@ -8,6 +8,7 @@ export interface UserProfile {
   email: string;
   bio: string | null;
   phone: string | null;
+  trust_score?: number | null;
   created_at: string;
 }
 

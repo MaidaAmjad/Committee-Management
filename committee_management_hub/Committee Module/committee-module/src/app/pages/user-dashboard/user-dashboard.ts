@@ -84,7 +84,7 @@ export class UserDashboardComponent implements OnInit {
     // Load real trust score
     const user = this.auth.user();
     if (user) {
-      const score = await this.reviewService.getTrustScore(user.id);
+      const score = await this.reviewService.getAndPersistTrustScore(user.id);
       this.trustScore.set(score);
       this.trustLabel.set(this.getReliabilityLabel(score));
       // 440 * (1 - score/100)

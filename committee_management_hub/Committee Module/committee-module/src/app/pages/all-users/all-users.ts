@@ -5,7 +5,6 @@ import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
 import { SupabaseService } from '../../core/supabase.service';
 import { AuthService } from '../../core/auth.service';
-import { ReviewService } from '../../core/review.service';
 import { PaymentReliabilityService } from '../../core/payment-reliability.service';
 
 export interface UserProfile {
@@ -48,7 +47,6 @@ export class AllUsersComponent implements OnInit {
     private supabaseService: SupabaseService,
     private auth: AuthService,
     private router: Router,
-    private reviewService: ReviewService,
     private reliabilityService: PaymentReliabilityService
   ) {
     this.supabase = this.supabaseService.client;
@@ -71,8 +69,8 @@ export class AllUsersComponent implements OnInit {
 
       if (error) throw error;
 
-      const users: UserProfile[] = await Promise.all((data || []).map(async (p: any) => {
-        const trustScore = await this.reviewService.getTrustScore(p.id);
+      const users: UserProfile[] = (data || []).map((p: any) => {
+        const trustScore = this.normalizeTrustScore(p.trust_score);
         const label = this.reliabilityService.getReliabilityLabel(trustScore);
         return {
           id: p.id,
@@ -85,7 +83,7 @@ export class AllUsersComponent implements OnInit {
           reliability_bg: label.labelBg,
           bio: p.bio ?? 'No bio provided.'
         };
-      }));
+      });
 
       this.allUsers.set(users);
     } catch (error: any) {
@@ -98,6 +96,12 @@ export class AllUsersComponent implements OnInit {
 
   onSearch(val: string): void {
     this.searchQuery.set(val);
+  }
+
+  private normalizeTrustScore(score: unknown): number {
+    const numericScore = Number(score ?? 0);
+    if (Number.isNaN(numericScore)) return 0;
+    return Math.max(0, Math.min(100, Math.round(numericScore)));
   }
 
   initials(name: string): string {
