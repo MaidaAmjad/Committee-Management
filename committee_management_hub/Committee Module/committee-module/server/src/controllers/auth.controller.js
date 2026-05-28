@@ -20,6 +20,12 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   res.redirect(redirectUrl);
 });
 
+export const resendVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const result = await authService.resendVerificationEmail(email);
+  res.json({ success: true, ...result });
+});
+
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const result = await authService.loginUser({ email, password });

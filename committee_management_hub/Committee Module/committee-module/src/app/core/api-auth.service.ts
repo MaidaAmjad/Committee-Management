@@ -20,6 +20,7 @@ export interface AuthApiResponse {
   message?: string;
   token?: string;
   user?: ApiUser;
+  verificationResent?: boolean;
 }
 
 const TOKEN_KEY = 'trustcom_auth_token';
@@ -74,6 +75,10 @@ export class ApiAuthService {
     phone?: string;
   }): Promise<AuthApiResponse> {
     return this.post<AuthApiResponse>('/register', payload);
+  }
+
+  async resendVerification(email: string): Promise<AuthApiResponse> {
+    return this.post<AuthApiResponse>('/resend-verification', { email });
   }
 
   async login(email: string, password: string): Promise<AuthApiResponse> {

@@ -27,6 +27,29 @@ export async function signInWithSupabase(email, password) {
   return { user: data.user, error: null };
 }
 
+/** Find auth user by email (paginated scan). */
+export async function findSupabaseUserByEmail(email) {
+  const normalized = email.trim().toLowerCase();
+  let page = 1;
+  const perPage = 200;
+
+  while (page <= 10) {
+    const { data, error } = await getSupabaseAdmin().auth.admin.listUsers({ page, perPage });
+    if (error) {
+      console.error('Supabase listUsers:', error.message);
+      return null;
+    }
+
+    const match = data.users.find(u => u.email?.trim().toLowerCase() === normalized);
+    if (match) return match;
+
+    if (data.users.length < perPage) break;
+    page += 1;
+  }
+
+  return null;
+}
+
 export async function getSupabaseAuthUserById(userId) {
   if (!userId) return null;
   const { data, error } = await getSupabaseAdmin().auth.admin.getUserById(userId);

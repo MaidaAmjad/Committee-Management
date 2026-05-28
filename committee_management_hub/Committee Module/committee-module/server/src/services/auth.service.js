@@ -10,6 +10,7 @@ import {
   updateSupabasePassword,
   signInWithSupabase,
   getSupabaseAuthUserById,
+  findSupabaseUserByEmail,
   getProfileById,
   isSupabaseEmailConfirmed,
 } from './supabase-sync.service.js';
@@ -21,6 +22,62 @@ function addHours(date, hours) {
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
 }
 
+async function sendVerificationOrFail(user, rawVerificationToken) {
+  try {
+    await sendVerificationEmail(user, rawVerificationToken);
+  } catch (err) {
+    console.error('Verification email failed:', err.message);
+    throw new AppError(
+      'Could not send verification email. Check spam, or try again in a few minutes.',
+      502
+    );
+  }
+}
+
+/** Re-send verification for an unverified auth_users row (e.g. prior signup email failed). */
+async function completeUnverifiedRegistration(user, { password, fullName, phone }) {
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  const rawVerificationToken = generateSecureToken();
+
+  let updated = await userRepo.updateUser(user.id, {
+    passwordHash: hashedPassword,
+    fullName: fullName.trim(),
+    phone: phone?.trim() || null,
+    verificationToken: hashToken(rawVerificationToken),
+    verificationTokenExpires: addHours(new Date(), env.emailVerificationExpiresHours),
+  });
+
+  let supabaseUserId = updated.supabaseUserId;
+  if (!supabaseUserId) {
+    const supabaseExisting = await findSupabaseUserByEmail(updated.email);
+    if (supabaseExisting) {
+      supabaseUserId = supabaseExisting.id;
+      await updateSupabasePassword(supabaseUserId, password);
+    } else {
+      supabaseUserId = await createSupabaseUser({
+        email: updated.email,
+        password,
+        fullName: updated.fullName,
+        phone: updated.phone,
+      });
+    }
+    if (supabaseUserId) {
+      updated = await userRepo.updateUser(user.id, { supabaseUserId });
+    }
+  } else {
+    await updateSupabasePassword(supabaseUserId, password);
+  }
+
+  await sendVerificationOrFail(updated, rawVerificationToken);
+
+  return {
+    message:
+      'Verification email sent. Please check your inbox and spam folder, then click the link to activate your account.',
+    user: userRepo.toPublicJSON(updated),
+    verificationResent: true,
+  };
+}
+
 export async function registerUser({ email, password, fullName, phone }) {
   const normalizedEmail = email.trim().toLowerCase();
 
@@ -30,11 +87,41 @@ export async function registerUser({ email, password, fullName, phone }) {
 
   const existing = await userRepo.findByEmail(normalizedEmail);
   if (existing) {
-    throw new AppError('An account with this email already exists.', 409);
+    if (existing.isVerified) {
+      throw new AppError('An account with this email already exists. Please sign in.', 409);
+    }
+    return completeUnverifiedRegistration(existing, { password, fullName, phone });
+  }
+
+  const supabaseExisting = await findSupabaseUserByEmail(normalizedEmail);
+  if (supabaseExisting && isSupabaseEmailConfirmed(supabaseExisting)) {
+    throw new AppError('An account with this email already exists. Please sign in.', 409);
   }
 
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   const rawVerificationToken = generateSecureToken();
+
+  if (supabaseExisting) {
+    let user = await userRepo.createUser({
+      email: normalizedEmail,
+      passwordHash: hashedPassword,
+      fullName: fullName.trim(),
+      phone: phone?.trim() || null,
+      verificationToken: hashToken(rawVerificationToken),
+      verificationTokenExpires: addHours(new Date(), env.emailVerificationExpiresHours),
+      supabaseUserId: supabaseExisting.id,
+    });
+
+    await updateSupabasePassword(supabaseExisting.id, password);
+    await sendVerificationOrFail(user, rawVerificationToken);
+
+    return {
+      message:
+        'Verification email sent. Please check your inbox and spam folder, then click the link to activate your account.',
+      user: userRepo.toPublicJSON(user),
+      verificationResent: true,
+    };
+  }
 
   let user = await userRepo.createUser({
     email: normalizedEmail,
@@ -56,11 +143,40 @@ export async function registerUser({ email, password, fullName, phone }) {
     user = await userRepo.updateUser(user.id, { supabaseUserId });
   }
 
-  await sendVerificationEmail(user, rawVerificationToken);
+  await sendVerificationOrFail(user, rawVerificationToken);
 
   return {
     message: 'Registration successful. Please check your email to verify your account.',
     user: userRepo.toPublicJSON(user),
+    verificationResent: false,
+  };
+}
+
+export async function resendVerificationEmail(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await userRepo.findByEmail(normalizedEmail);
+
+  if (!user) {
+    return {
+      message: 'If an account exists for this email, a verification link has been sent.',
+    };
+  }
+
+  if (user.isVerified) {
+    throw new AppError('This email is already verified. Please sign in.', 400);
+  }
+
+  const rawVerificationToken = generateSecureToken();
+  const updated = await userRepo.updateUser(user.id, {
+    verificationToken: hashToken(rawVerificationToken),
+    verificationTokenExpires: addHours(new Date(), env.emailVerificationExpiresHours),
+  });
+
+  await sendVerificationOrFail(updated, rawVerificationToken);
+
+  return {
+    message: 'Verification email sent. Please check your inbox and spam folder.',
+    verificationResent: true,
   };
 }
 

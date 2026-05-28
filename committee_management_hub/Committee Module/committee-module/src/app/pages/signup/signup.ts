@@ -74,16 +74,20 @@ export class SignupComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const { error } = await this.auth.signUp(this.email, this.password, this.fullName, this.phoneE164);
+    const result = await this.auth.signUp(this.email, this.password, this.fullName, this.phoneE164);
 
     this.loading = false;
 
-    if (error) {
-      this.errorMessage = error.message;
+    if (result.error) {
+      this.errorMessage = result.error.message;
       return;
     }
 
-    this.successMessage = 'Account created! We sent a verification email — click the link to activate your account, then sign in.';
-    setTimeout(() => this.router.navigate(['/login']), 3500);
+    this.successMessage =
+      result.message ||
+      (result.verificationResent
+        ? 'Verification email sent again. Check your inbox and spam folder, then click the link to activate your account.'
+        : 'Account created! We sent a verification email — click the link to activate your account, then sign in.');
+    setTimeout(() => this.router.navigate(['/login']), 4500);
   }
 }

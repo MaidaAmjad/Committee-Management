@@ -14,6 +14,12 @@ router.post(
 router.get('/verify-email/:token', authController.verifyEmail);
 
 router.post(
+  '/resend-verification',
+  validateBody(['email']),
+  authController.resendVerification
+);
+
+router.post(
   '/login',
   validateBody(['email', 'password']),
   authController.login

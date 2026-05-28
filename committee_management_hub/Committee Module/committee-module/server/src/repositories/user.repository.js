@@ -130,6 +130,8 @@ export async function updateUser(id, patch) {
   };
 
   if (patch.passwordHash !== undefined) row.password_hash = patch.passwordHash;
+  if (patch.fullName !== undefined) row.full_name = patch.fullName;
+  if (patch.phone !== undefined) row.phone = patch.phone;
   if (patch.isVerified !== undefined) row.is_verified = patch.isVerified;
   if (patch.verificationToken !== undefined) row.verification_token = patch.verificationToken;
   if (patch.verificationTokenExpires !== undefined) {

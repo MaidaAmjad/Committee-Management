@@ -9,6 +9,11 @@ export interface AuthResult {
   error: AuthError | { message: string } | null;
 }
 
+export interface SignUpResult extends AuthResult {
+  message?: string;
+  verificationResent?: boolean;
+}
+
 const SUPABASE_AUTH_TIMEOUT_MS = 20_000;
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
@@ -89,7 +94,7 @@ export class AuthService {
     });
   }
 
-  async signUp(email: string, password: string, fullName: string, phone?: string): Promise<AuthResult> {
+  async signUp(email: string, password: string, fullName: string, phone?: string): Promise<SignUpResult> {
     if (!this.usesApiAuth()) {
       return {
         error: {
@@ -108,9 +113,25 @@ export class AuthService {
       if (!res.success) {
         return { error: { message: res.message || 'Registration failed.' } as AuthError };
       }
-      return { error: null };
+      return {
+        error: null,
+        message: res.message,
+        verificationResent: res.verificationResent === true,
+      };
     } catch (err: unknown) {
       return { error: { message: ApiAuthService.formatError(err) } as AuthError };
+    }
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ error: string | null; message?: string }> {
+    if (!this.usesApiAuth()) {
+      return { error: 'Resend verification is only available when the auth API is running locally.' };
+    }
+    try {
+      const res = await this.apiAuth.resendVerification(email.trim());
+      return { error: null, message: res.message };
+    } catch (err: unknown) {
+      return { error: ApiAuthService.formatError(err) };
     }
   }
 
