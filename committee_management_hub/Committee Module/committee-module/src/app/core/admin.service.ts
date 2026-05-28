@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { Committee, CommitteeMember } from './committee.service';
+import { AdminAuthService } from './admin-auth.service';
+import { environment } from '../../environments/environment';
 
 // ── Admin-specific interfaces ─────────────────────────────────────────────────
 
@@ -48,8 +52,42 @@ export interface AdminReport {
 export class AdminService {
   private supabase;
 
-  constructor(private supabaseService: SupabaseService) {
+  constructor(
+    private supabaseService: SupabaseService,
+    private http: HttpClient,
+    private adminAuth: AdminAuthService
+  ) {
     this.supabase = this.supabaseService.client;
+  }
+
+  private async postAdminApi(path: string, body: Record<string, unknown> = {}): Promise<{ error: string | null }> {
+    const creds = this.adminAuth.getApiAuthBody();
+    if (!creds) {
+      return { error: 'Admin session expired. Sign in to the admin portal again.' };
+    }
+    if (!environment.apiUrl?.trim()) {
+      return { error: 'Auth API is not configured. Start the server (cd server && npm run dev) to suspend users.' };
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.post(`${environment.apiUrl}/api/admin${path}`, {
+          ...body,
+          ...creds,
+        })
+      );
+      return { error: null };
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse) {
+        const msg = err.error?.message;
+        if (typeof msg === 'string' && msg) return { error: msg };
+        if (err.status === 0) {
+          return { error: `Cannot reach API at ${environment.apiUrl}. Start the server with: cd server && npm run dev` };
+        }
+      }
+      if (err instanceof Error && err.message) return { error: err.message };
+      return { error: 'Admin action failed. Check the API server and try again.' };
+    }
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
@@ -90,8 +128,9 @@ export class AdminService {
   // ── Stats ─────────────────────────────────────────────────────────────────
 
   async getStats(): Promise<{ data: AdminStats; error: string | null }> {
-    const [usersRes, completedRes, pendingRes, committeesRes] = await Promise.all([
+    const [usersRes, suspendedRes, completedRes, pendingRes, committeesRes] = await Promise.all([
       this.supabase.from('profiles').select('*', { count: 'exact', head: true }),
+      this.supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_suspended', true),
       this.supabase.from('committees').select('*', { count: 'exact', head: true }).eq('status', 'Completed'),
       this.supabase.from('committee_members').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       this.supabase.from('committees').select('monthly_amount, max_members, duration_months, status'),
@@ -116,7 +155,7 @@ export class AdminService {
         completedCommittees: completedRes.count ?? 0,
         totalCapital,
         pendingRequests:     pendingRes.count ?? 0,
-        suspendedUsers:      0,
+        suspendedUsers:      suspendedRes.count ?? 0,
       },
       error: null,
     };
@@ -127,7 +166,7 @@ export class AdminService {
   async getAllUsers(): Promise<{ data: AdminUser[]; error: string | null }> {
     const { data: profiles, error: profileErr } = await this.supabase
       .from('profiles')
-      .select('id, full_name, email, created_at, payment_setup_complete')
+      .select('id, full_name, email, created_at, payment_setup_complete, trust_score, is_suspended')
       .order('created_at', { ascending: false });
 
     if (profileErr) return { data: [], error: profileErr.message };
@@ -158,14 +197,16 @@ export class AdminService {
   }
 
   async suspendUser(userId: string): Promise<{ error: string | null }> {
+    if (environment.apiUrl?.trim()) {
+      return this.postAdminApi(`/users/${userId}/suspend`);
+    }
     const { error } = await this.supabase
       .from('profiles')
       .update({ is_suspended: true } as any)
       .eq('id', userId);
-
     if (error) {
       if (error.message.includes('column') || (error as any).code === '42703') {
-        return { error: 'Run the admin SQL migration to add the "is_suspended" column.' };
+        return { error: 'Run database-migrations/add-user-suspension.sql in Supabase.' };
       }
       return { error: this.rlsError('profiles', 'UPDATE', error.message) };
     }
@@ -173,14 +214,16 @@ export class AdminService {
   }
 
   async reinstateUser(userId: string): Promise<{ error: string | null }> {
+    if (environment.apiUrl?.trim()) {
+      return this.postAdminApi(`/users/${userId}/reinstate`);
+    }
     const { error } = await this.supabase
       .from('profiles')
       .update({ is_suspended: false } as any)
       .eq('id', userId);
-
     if (error) {
       if (error.message.includes('column') || (error as any).code === '42703') {
-        return { error: 'Run the admin SQL migration to add the "is_suspended" column.' };
+        return { error: 'Run database-migrations/add-user-suspension.sql in Supabase.' };
       }
       return { error: this.rlsError('profiles', 'UPDATE', error.message) };
     }

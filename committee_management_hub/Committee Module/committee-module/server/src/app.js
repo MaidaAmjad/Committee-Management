@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware.js';
 
 export function createApp() {
@@ -44,6 +45,7 @@ export function createApp() {
   });
 
   app.use('/api/auth', authLimiter, authRoutes);
+  app.use('/api/admin', authLimiter, adminRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -42,4 +42,6 @@ export const env = {
   supabaseUrl: requireEnv('SUPABASE_URL'),
   supabaseServiceRoleKey,
   supabaseAnonKey: requireEnv('SUPABASE_ANON_KEY'),
+  adminEmail: (process.env.ADMIN_EMAIL || 'maidaamjad32@gmail.com').trim().toLowerCase(),
+  adminPassword: process.env.ADMIN_PASSWORD || 'maida0123',
 };

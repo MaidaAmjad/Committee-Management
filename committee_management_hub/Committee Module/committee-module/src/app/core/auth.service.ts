@@ -176,8 +176,32 @@ export class AuthService {
     }
 
     const { data } = await this.supabase.auth.getSession();
+    const sessionUser = data.session?.user;
+
+    if (sessionUser) {
+      const { data: profile } = await this.supabase
+        .from('profiles')
+        .select('is_suspended')
+        .eq('id', sessionUser.id)
+        .maybeSingle();
+
+      if (profile?.is_suspended) {
+        await this.supabase.auth.signOut();
+        this.apiAuth.setToken(null);
+        this.apiUser.set(null);
+        this.session.set(null);
+        this.user.set(null);
+        return {
+          error: {
+            message:
+              'Your account has been suspended. Contact support if you believe this is a mistake.',
+          } as AuthError,
+        };
+      }
+    }
+
     this.session.set(data.session);
-    this.user.set(data.session?.user ?? null);
+    this.user.set(sessionUser ?? null);
 
     return { error: null };
   }

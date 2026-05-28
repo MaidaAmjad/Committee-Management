@@ -15,6 +15,7 @@ import {
   isSupabaseEmailConfirmed,
 } from './supabase-sync.service.js';
 import * as userRepo from '../repositories/user.repository.js';
+import { assertEmailNotSuspended, isEmailSuspended } from './user-suspension.service.js';
 
 const SALT_ROUNDS = 12;
 
@@ -112,8 +113,16 @@ export async function registerUser({ email, password, fullName, phone }) {
     throw new AppError('Password must be at least 8 characters.', 400);
   }
 
+  await assertEmailNotSuspended(normalizedEmail);
+
   const existing = await userRepo.findByEmail(normalizedEmail);
   if (existing) {
+    if (existing.isSuspended) {
+      throw new AppError(
+        'This email is associated with a suspended account. Contact support if you believe this is a mistake.',
+        403
+      );
+    }
     if (existing.isVerified) {
       throw new AppError('An account with this email already exists. Please sign in.', 409);
     }
@@ -188,6 +197,7 @@ export async function registerUser({ email, password, fullName, phone }) {
 
 export async function resendVerificationEmail(email) {
   const normalizedEmail = email.trim().toLowerCase();
+  await assertEmailNotSuspended(normalizedEmail);
   const user = await userRepo.findByEmail(normalizedEmail);
 
   if (!user) {
@@ -295,7 +305,22 @@ async function ensureVerified(user) {
 
 export async function loginUser({ email, password }) {
   const normalizedEmail = email.trim().toLowerCase();
+
+  if (await isEmailSuspended(normalizedEmail)) {
+    throw new AppError(
+      'Your account has been suspended. Contact support if you believe this is a mistake.',
+      403
+    );
+  }
+
   let user = await userRepo.findByEmail(normalizedEmail);
+
+  if (user?.isSuspended) {
+    throw new AppError(
+      'Your account has been suspended. Contact support if you believe this is a mistake.',
+      403
+    );
+  }
 
   if (user) {
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);

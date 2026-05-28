@@ -12,6 +12,7 @@ function mapRow(row) {
     fullName: row.full_name,
     phone: row.phone,
     isVerified: row.is_verified,
+    isSuspended: row.is_suspended ?? false,
     verificationToken: row.verification_token,
     verificationTokenExpires: row.verification_token_expires
       ? new Date(row.verification_token_expires)
@@ -133,6 +134,7 @@ export async function updateUser(id, patch) {
   if (patch.fullName !== undefined) row.full_name = patch.fullName;
   if (patch.phone !== undefined) row.phone = patch.phone;
   if (patch.isVerified !== undefined) row.is_verified = patch.isVerified;
+  if (patch.isSuspended !== undefined) row.is_suspended = patch.isSuspended;
   if (patch.verificationToken !== undefined) row.verification_token = patch.verificationToken;
   if (patch.verificationTokenExpires !== undefined) {
     row.verification_token_expires = patch.verificationTokenExpires;

@@ -25,6 +25,7 @@ export class AdminUsersComponent implements OnInit {
   allUsers    = signal<AdminUser[]>([]);
   loading     = signal(true);
   errorMsg    = signal('');
+  successMsg  = signal('');
   searchQuery = signal('');
   statusFilter = signal<'all' | 'active' | 'suspended' | 'pending'>('all');
 
@@ -119,8 +120,14 @@ export class AdminUsersComponent implements OnInit {
   closeDetail(): void { this.selectedUser.set(null); }
 
   async suspendUser(user: AdminUser): Promise<void> {
+    if (!confirm(`Suspend ${user.full_name}? They will not be able to log in or sign up again with ${user.email}.`)) {
+      return;
+    }
+    this.errorMsg.set('');
+    this.successMsg.set('');
     const { error } = await this.adminService.suspendUser(user.id);
     if (error) { this.errorMsg.set(error); return; }
+    this.successMsg.set(`${user.full_name} has been suspended.`);
     this.allUsers.update(list => list.map(u => u.id === user.id ? { ...u, status: 'suspended' as const } : u));
     if (this.selectedUser()?.id === user.id) this.selectedUser.update(u => u ? { ...u, status: 'suspended' as const } : u);
   }

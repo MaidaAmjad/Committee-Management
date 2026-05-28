@@ -19,6 +19,12 @@
         </div>
       }
 
+      @if (successMsg()) {
+        <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined">check_circle</span>{{ successMsg() }}
+        </div>
+      }
+
       <!-- Stats -->
       @if (!loading()) {
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
