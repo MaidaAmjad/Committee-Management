@@ -31,6 +31,9 @@ export class ApiAuthService {
   constructor(private http: HttpClient) {}
 
   private post<T>(path: string, body: unknown): Promise<T> {
+    if (!environment.apiUrl?.trim()) {
+      return Promise.reject(new Error('Auth API is not configured for this environment.'));
+    }
     return firstValueFrom(
       this.http.post<T>(`${this.baseUrl}${path}`, body).pipe(timeout(API_TIMEOUT_MS))
     );

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { SupabaseClient, Session, User, AuthError } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { ApiAuthService, ApiUser } from './api-auth.service';
+import { environment } from '../../environments/environment';
 
 export interface AuthResult {
   error: AuthError | { message: string } | null;
@@ -30,13 +31,30 @@ export class AuthService {
     this.bootstrapAuth();
   }
 
+  private usesApiAuth(): boolean {
+    const url = environment.apiUrl?.trim() || '';
+    return Boolean(
+      url &&
+      !url.includes('your-api-domain') &&
+      !(environment.useSupabasePasswordReset && environment.production)
+    );
+  }
+
+  private resetRedirectUrl(): string {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return `${window.location.origin}/reset-password`;
+    }
+    return `${environment.appUrl}/reset-password`;
+  }
+
   private async bootstrapAuth(): Promise<void> {
     try {
-      const token = this.apiAuth.getToken();
-      if (token) {
-        const me = await this.apiAuth.me();
-        this.apiUser.set(me);
-        await this.restoreSupabaseSession();
+      if (this.usesApiAuth()) {
+        const token = this.apiAuth.getToken();
+        if (token) {
+          const me = await this.apiAuth.me();
+          this.apiUser.set(me);
+        }
       }
     } catch {
       this.apiAuth.setToken(null);
@@ -54,12 +72,15 @@ export class AuthService {
     });
   }
 
-  private async restoreSupabaseSession(): Promise<void> {
-    const { data } = await this.supabase.auth.getSession();
-    if (data.session) return;
-  }
-
   async signUp(email: string, password: string, fullName: string, phone?: string): Promise<AuthResult> {
+    if (!this.usesApiAuth()) {
+      return {
+        error: {
+          message: 'Sign up via the API is not available on the live site yet. Run locally or deploy the auth API.',
+        } as AuthError,
+      };
+    }
+
     try {
       const res = await this.apiAuth.register({
         email,
@@ -71,64 +92,93 @@ export class AuthService {
         return { error: { message: res.message || 'Registration failed.' } as AuthError };
       }
       return { error: null };
-    } catch (err: any) {
-      const message = err?.error?.message || err?.message || 'Registration failed.';
-      return { error: { message } as AuthError };
-    }
-  }
-
-  async signIn(email: string, password: string): Promise<AuthResult> {
-    try {
-      const res = await this.apiAuth.login(email, password);
-      if (!res.token || !res.user) {
-        return { error: { message: res.message || 'Login failed.' } as AuthError };
-      }
-
-      if (!res.user.isVerified) {
-        return {
-          error: {
-            message: 'Please verify your email before logging in.',
-          } as AuthError,
-        };
-      }
-
-      this.apiAuth.setToken(res.token);
-      this.apiUser.set(res.user);
-
-      const { error: supabaseError } = await this.supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (supabaseError) {
-        this.apiAuth.setToken(null);
-        this.apiUser.set(null);
-        return {
-          error: {
-            message: supabaseError.message || 'Could not start your committee session.',
-          } as AuthError,
-        };
-      }
-
-      const { data } = await this.supabase.auth.getSession();
-      this.session.set(data.session);
-      this.user.set(data.session?.user ?? null);
-
-      return { error: null };
     } catch (err: unknown) {
       return { error: { message: ApiAuthService.formatError(err) } as AuthError };
     }
   }
 
+  async signIn(email: string, password: string): Promise<AuthResult> {
+    if (this.usesApiAuth()) {
+      try {
+        const res = await this.apiAuth.login(email, password);
+        if (!res.token || !res.user) {
+          return { error: { message: res.message || 'Login failed.' } as AuthError };
+        }
+
+        if (!res.user.isVerified) {
+          return {
+            error: {
+              message: 'Please verify your email before logging in.',
+            } as AuthError,
+          };
+        }
+
+        this.apiAuth.setToken(res.token);
+        this.apiUser.set(res.user);
+      } catch (err: unknown) {
+        return { error: { message: ApiAuthService.formatError(err) } as AuthError };
+      }
+    }
+
+    const { error: supabaseError } = await this.supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (supabaseError) {
+      this.apiAuth.setToken(null);
+      this.apiUser.set(null);
+      return {
+        error: {
+          message: supabaseError.message || 'Could not sign in.',
+        } as AuthError,
+      };
+    }
+
+    const { data } = await this.supabase.auth.getSession();
+    this.session.set(data.session);
+    this.user.set(data.session?.user ?? null);
+
+    return { error: null };
+  }
+
+  /** Forgot password — Brevo/API locally, Supabase email on production (Vercel). */
   async forgotPassword(email: string): Promise<{ error: string | null; message?: string }> {
+    const normalized = email.trim().toLowerCase();
+    const genericMessage =
+      'If an account exists for this email, a password reset link has been sent.';
+
+    if (environment.useSupabasePasswordReset || !this.usesApiAuth()) {
+      const { error } = await this.supabase.auth.resetPasswordForEmail(normalized, {
+        redirectTo: this.resetRedirectUrl(),
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      return { error: null, message: genericMessage };
+    }
+
     try {
-      const res = await this.apiAuth.forgotPassword(email);
-      return { error: null, message: res.message };
+      const res = await this.apiAuth.forgotPassword(normalized);
+      return { error: null, message: res.message || genericMessage };
     } catch (err: unknown) {
       return { error: ApiAuthService.formatError(err) };
     }
   }
 
+  /** Complete reset after Supabase recovery link (production). */
+  async resetPasswordWithSupabase(newPassword: string): Promise<{ error: string | null; message?: string }> {
+    const { error } = await this.supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      return { error: error.message };
+    }
+    await this.supabase.auth.signOut();
+    return { error: null, message: 'Password updated successfully. You can now sign in.' };
+  }
+
+  /** Complete reset via API token (local Brevo flow). */
   async resetPassword(token: string, newPassword: string): Promise<{ error: string | null; message?: string }> {
     try {
       const res = await this.apiAuth.resetPassword(token, newPassword);
@@ -136,6 +186,12 @@ export class AuthService {
     } catch (err: unknown) {
       return { error: ApiAuthService.formatError(err) };
     }
+  }
+
+  /** Exchange PKCE code from Supabase reset email (?code=). */
+  async exchangeRecoveryCode(code: string): Promise<{ error: string | null }> {
+    const { error } = await this.supabase.auth.exchangeCodeForSession(code);
+    return { error: error?.message ?? null };
   }
 
   async signOut(): Promise<void> {
