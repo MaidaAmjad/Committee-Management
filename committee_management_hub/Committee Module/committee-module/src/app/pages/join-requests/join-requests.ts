@@ -3,10 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
-import { CommitteeService, CommitteeMember } from '../../core/committee.service';
+import { CommitteeService, PendingJoinRequest } from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
-
-type RequestWithCommittee = CommitteeMember & { committee_name: string };
 
 @Component({
   selector: 'app-join-requests',
@@ -16,10 +14,11 @@ type RequestWithCommittee = CommitteeMember & { committee_name: string };
   styleUrl: './join-requests.scss'
 })
 export class JoinRequestsComponent implements OnInit {
-  requests   = signal<RequestWithCommittee[]>([]);
+  requests   = signal<PendingJoinRequest[]>([]);
   loading    = signal(true);
   actionId   = signal<string | null>(null);
   errorMsg   = signal('');
+  successMsg = signal('');
 
   constructor(
     private committeeService: CommitteeService,
@@ -39,16 +38,35 @@ export class JoinRequestsComponent implements OnInit {
     this.requests.set(data);
   }
 
-  async approve(req: RequestWithCommittee): Promise<void> {
+  async approve(req: PendingJoinRequest): Promise<void> {
+    if (!req.can_approve) {
+      this.errorMsg.set(
+        `${req.committee_name} is full (${req.slots_used}/${req.max_members} slots). Reject this request or remove a member first.`
+      );
+      return;
+    }
+
     this.actionId.set(req.id);
+    this.errorMsg.set('');
+    this.successMsg.set('');
+
     const { error } = await this.committeeService.approveRequest(req.id);
     this.actionId.set(null);
-    if (error) { this.errorMsg.set(error); return; }
+
+    if (error) {
+      this.errorMsg.set(error);
+      await this.load();
+      return;
+    }
+
+    this.successMsg.set(`${req.full_name} was approved for ${req.committee_name}.`);
     this.requests.update(list => list.filter(r => r.id !== req.id));
+    await this.load();
   }
 
-  async reject(req: RequestWithCommittee): Promise<void> {
+  async reject(req: PendingJoinRequest): Promise<void> {
     this.actionId.set(req.id);
+    this.errorMsg.set('');
     const { error } = await this.committeeService.rejectRequest(req.id);
     this.actionId.set(null);
     if (error) { this.errorMsg.set(error); return; }

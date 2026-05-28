@@ -221,11 +221,24 @@
           <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-3">
               <h2 class="text-lg font-bold text-[#191c1e]">Members</h2>
-              <span class="bg-[#dbe1ff] text-[#004ac6] text-xs font-bold px-2.5 py-0.5 rounded-full">
-                {{ approvedMembers().length }} / {{ committee()!.max_members }}
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                [class.bg-[#dbe1ff]]="!isOverCapacity()"
+                [class.text-[#004ac6]]="!isOverCapacity()"
+                [class.bg-[#ffdad6]]="isOverCapacity()"
+                [class.text-[#ba1a1a]]="isOverCapacity()">
+                {{ approvedSlotsUsed() }} / {{ committee()!.max_members }}
               </span>
             </div>
-            <span class="text-sm text-[#737686]">{{ slotsLeft() }} slot{{ slotsLeft() !== 1 ? 's' : '' }} remaining</span>
+            <span class="text-sm"
+              [class.text-[#737686]]="!isOverCapacity()"
+              [class.text-[#ba1a1a]]="isOverCapacity()"
+              [class.font-semibold]="isOverCapacity()">
+              @if (isOverCapacity()) {
+                Over capacity — remove a member or reject pending requests
+              } @else {
+                {{ slotsLeft() }} slot{{ slotsLeft() !== 1 ? 's' : '' }} remaining
+              }
+            </span>
           </div>
 
           <!-- Progress bar -->

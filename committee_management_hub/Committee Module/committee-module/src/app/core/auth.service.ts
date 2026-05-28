@@ -9,6 +9,23 @@ export interface AuthResult {
   error: AuthError | { message: string } | null;
 }
 
+const SUPABASE_AUTH_TIMEOUT_MS = 20_000;
+
+function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('AUTH_REQUEST_TIMEOUT')), ms);
+    Promise.resolve(promise)
+      .then(value => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(err => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private supabase: SupabaseClient;
@@ -149,12 +166,26 @@ export class AuthService {
       'If an account exists for this email, a password reset link has been sent.';
 
     if (environment.useSupabasePasswordReset || !this.usesApiAuth()) {
-      const { error } = await this.supabase.auth.resetPasswordForEmail(normalized, {
-        redirectTo: this.resetRedirectUrl(),
-      });
+      try {
+        const { error } = await withTimeout(
+          this.supabase.auth.resetPasswordForEmail(normalized, {
+            redirectTo: this.resetRedirectUrl(),
+          }),
+          SUPABASE_AUTH_TIMEOUT_MS
+        );
 
-      if (error) {
-        return { error: error.message };
+        if (error) {
+          return { error: error.message };
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg === 'AUTH_REQUEST_TIMEOUT') {
+          // Email may already have been sent even if the client never got a response.
+          return { error: null, message: genericMessage };
+        }
+        return {
+          error: err instanceof Error ? err.message : 'Could not send reset email. Please try again.',
+        };
       }
 
       return { error: null, message: genericMessage };

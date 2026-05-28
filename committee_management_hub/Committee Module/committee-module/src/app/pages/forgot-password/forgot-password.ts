@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -13,30 +13,31 @@ import { AuthService } from '../../core/auth.service';
 })
 export class ForgotPasswordComponent {
   email = '';
-  loading = false;
-  errorMessage = '';
-  successMessage = '';
+  loading = signal(false);
+  errorMessage = signal('');
+  successMessage = signal('');
 
   constructor(private auth: AuthService) {}
 
   async onSubmit(): Promise<void> {
-    if (!this.email.trim()) return;
-    this.loading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+    if (!this.email.trim() || this.loading()) return;
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
     try {
       const { error, message } = await this.auth.forgotPassword(this.email.trim());
 
       if (error) {
-        this.errorMessage = error;
+        this.errorMessage.set(error);
         return;
       }
 
-      this.successMessage =
-        message || 'If an account exists for this email, a password reset link has been sent.';
+      this.successMessage.set(
+        message || 'If an account exists for this email, a password reset link has been sent.'
+      );
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 }

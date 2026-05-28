@@ -4,7 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/sidebar/sidebar';
 import { TopnavComponent } from '../../shared/topnav/topnav';
-import { CommitteeService, Committee, CommitteeMember } from '../../core/committee.service';
+import {
+  CommitteeService,
+  Committee,
+  CommitteeMember,
+  sumApprovedSlotWeight,
+} from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
 import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
@@ -62,10 +67,18 @@ export class CommitteeDetailComponent implements OnInit {
   // Only count approved members for slots
   approvedMembers = computed(() => this.members().filter(m => m.status === 'approved'));
 
+  approvedSlotsUsed = computed(() => sumApprovedSlotWeight(this.members()));
+
+  isOverCapacity = computed(() => {
+    const c = this.committee();
+    if (!c) return false;
+    return this.approvedSlotsUsed() > c.max_members;
+  });
+
   slotsLeft = computed(() => {
     const c = this.committee();
     if (!c) return 0;
-    return Math.max(0, c.max_members - this.approvedMembers().length);
+    return Math.max(0, c.max_members - this.approvedSlotsUsed());
   });
 
   totalPool = computed(() => {
@@ -226,7 +239,7 @@ export class CommitteeDetailComponent implements OnInit {
   getProgressWidth(): string {
     const c = this.committee();
     if (!c || c.max_members === 0) return '0%';
-    return `${Math.min(100, (this.approvedMembers().length / c.max_members) * 100)}%`;
+    return `${Math.min(100, (this.approvedSlotsUsed() / c.max_members) * 100)}%`;
   }
 
   /**

@@ -46,6 +46,27 @@ export interface CommitteeMember {
   is_verified?: boolean;
 }
 
+export type PendingJoinRequest = CommitteeMember & {
+  committee_name: string;
+  max_members: number;
+  slots_used: number;
+  slots_remaining: number;
+  can_approve: boolean;
+};
+
+/** Slot weight: full member = 1, shared pair = 0.5 each. */
+export function memberSlotWeight(slotType?: string | null): number {
+  return slotType === 'shared' ? 0.5 : 1;
+}
+
+export function sumApprovedSlotWeight(
+  members: { status: string; slot_type?: string | null }[]
+): number {
+  return members
+    .filter(m => m.status === 'approved')
+    .reduce((sum, m) => sum + memberSlotWeight(m.slot_type), 0);
+}
+
 @Injectable({ providedIn: 'root' })
 export class CommitteeService {
   private supabase;
@@ -189,10 +210,66 @@ export class CommitteeService {
     return { data: data as Committee, error: null };
   }
 
+  /** Approved slot usage for a committee (full = 1, shared = 0.5). */
+  async getCommitteeSlotUsage(committeeId: string): Promise<{
+    maxMembers: number;
+    slotsUsed: number;
+    slotsRemaining: number;
+    isFull: boolean;
+    error: string | null;
+  }> {
+    const { data: committee, error: committeeError } = await this.supabase
+      .from('committees')
+      .select('max_members')
+      .eq('id', committeeId)
+      .maybeSingle();
+
+    if (committeeError) {
+      return { maxMembers: 0, slotsUsed: 0, slotsRemaining: 0, isFull: true, error: committeeError.message };
+    }
+    if (!committee) {
+      return { maxMembers: 0, slotsUsed: 0, slotsRemaining: 0, isFull: true, error: 'Committee not found.' };
+    }
+
+    const { data: members, error: membersError } = await this.supabase
+      .from('committee_members')
+      .select('status, slot_type')
+      .eq('committee_id', committeeId)
+      .eq('status', 'approved');
+
+    if (membersError) {
+      return {
+        maxMembers: committee.max_members,
+        slotsUsed: 0,
+        slotsRemaining: 0,
+        isFull: true,
+        error: membersError.message,
+      };
+    }
+
+    const slotsUsed = sumApprovedSlotWeight(members ?? []);
+    const maxMembers = committee.max_members ?? 0;
+    const slotsRemaining = Math.max(0, maxMembers - slotsUsed);
+
+    return {
+      maxMembers,
+      slotsUsed,
+      slotsRemaining,
+      isFull: slotsRemaining <= 0,
+      error: null,
+    };
+  }
+
   /** Join a committee — creates a PENDING request */
   async joinCommittee(committeeId: string): Promise<{ error: string | null }> {
     const user = this.auth.user();
     if (!user) return { error: 'Not authenticated' };
+
+    const capacity = await this.getCommitteeSlotUsage(committeeId);
+    if (capacity.error) return { error: capacity.error };
+    if (capacity.isFull) {
+      return { error: 'This committee is full. No slots available.' };
+    }
 
     const { error } = await this.supabase.from('committee_members').insert({
       committee_id: committeeId,
@@ -275,21 +352,35 @@ export class CommitteeService {
   }
 
   /** Get only PENDING requests for committees owned by current user */
-  async getPendingRequests(): Promise<{ data: (CommitteeMember & { committee_name: string })[]; error: string | null }> {
+  async getPendingRequests(): Promise<{ data: PendingJoinRequest[]; error: string | null }> {
     const user = this.auth.user();
     if (!user) return { data: [], error: 'Not authenticated' };
 
     // Get all committees owned by this user
     const { data: myCommittees } = await this.supabase
       .from('committees')
-      .select('id, name')
+      .select('id, name, max_members')
       .eq('created_by', user.id);
 
     if (!myCommittees?.length) return { data: [], error: null };
 
     const ids = myCommittees.map((c: { id: string }) => c.id);
-    const nameMap: Record<string, string> = {};
-    myCommittees.forEach((c: { id: string; name: string }) => { nameMap[c.id] = c.name; });
+    const committeeMeta: Record<string, { name: string; max_members: number }> = {};
+    myCommittees.forEach((c: { id: string; name: string; max_members: number }) => {
+      committeeMeta[c.id] = { name: c.name, max_members: c.max_members };
+    });
+
+    const { data: approvedRows } = await this.supabase
+      .from('committee_members')
+      .select('committee_id, slot_type')
+      .in('committee_id', ids)
+      .eq('status', 'approved');
+
+    const slotsUsedByCommittee: Record<string, number> = {};
+    (approvedRows ?? []).forEach((row: { committee_id: string; slot_type?: string }) => {
+      const weight = memberSlotWeight(row.slot_type);
+      slotsUsedByCommittee[row.committee_id] = (slotsUsedByCommittee[row.committee_id] ?? 0) + weight;
+    });
 
     const { data, error } = await this.supabase
       .from('committee_members')
@@ -300,29 +391,72 @@ export class CommitteeService {
 
     if (error) return { data: [], error: error.message };
 
-    const enriched = (data as CommitteeMember[]).map(m => ({
-      ...m,
-      committee_name: nameMap[m.committee_id] ?? 'Unknown',
-    }));
+    const enriched: PendingJoinRequest[] = (data as CommitteeMember[]).map(m => {
+      const meta = committeeMeta[m.committee_id];
+      const maxMembers = meta?.max_members ?? 0;
+      const slotsUsed = slotsUsedByCommittee[m.committee_id] ?? 0;
+      const requestWeight = memberSlotWeight(m.slot_type);
+      const slotsRemaining = Math.max(0, maxMembers - slotsUsed);
+
+      return {
+        ...m,
+        committee_name: meta?.name ?? 'Unknown',
+        max_members: maxMembers,
+        slots_used: slotsUsed,
+        slots_remaining: slotsRemaining,
+        can_approve: slotsUsed + requestWeight <= maxMembers,
+      };
+    });
 
     return { data: enriched, error: null };
   }
 
-  /** Approve a join request */
+  /** Approve a join request (blocked when committee is at max_members). */
   async approveRequest(memberId: string): Promise<{ error: string | null }> {
-    const { data: member } = await this.supabase
+    const { data: pendingMember, error: fetchError } = await this.supabase
       .from('committee_members')
-      .select('user_id')
+      .select('id, committee_id, status, slot_type, user_id')
       .eq('id', memberId)
       .maybeSingle();
 
-    const { error } = await this.supabase
+    if (fetchError) return { error: fetchError.message };
+    if (!pendingMember) return { error: 'Request not found.' };
+    if (pendingMember.status !== 'pending') {
+      return { error: 'This request is no longer pending.' };
+    }
+
+    const capacity = await this.getCommitteeSlotUsage(pendingMember.committee_id);
+    if (capacity.error) return { error: capacity.error };
+
+    const requestWeight = memberSlotWeight(pendingMember.slot_type);
+    if (capacity.slotsUsed + requestWeight > capacity.maxMembers) {
+      return {
+        error: `Committee is full (${capacity.slotsUsed}/${capacity.maxMembers} slots used). Reject extra requests or increase max members.`,
+      };
+    }
+
+    const { data: updated, error } = await this.supabase
       .from('committee_members')
       .update({ status: 'approved' })
-      .eq('id', memberId);
+      .eq('id', memberId)
+      .eq('status', 'pending')
+      .select('id')
+      .maybeSingle();
 
-    if (error) return { error: error.message };
-    if (member?.user_id) await this.reviewService.recalculateTrustScore(member.user_id);
+    if (error) {
+      const msg = error.message.includes('Committee is full')
+        ? 'Committee is full. Cannot approve more members.'
+        : error.message;
+      return { error: msg };
+    }
+
+    if (!updated) {
+      return { error: 'Could not approve. The committee may be full or this request was already handled.' };
+    }
+
+    if (pendingMember.user_id) {
+      await this.reviewService.recalculateTrustScore(pendingMember.user_id);
+    }
     return { error: null };
   }
 

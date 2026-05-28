@@ -37,6 +37,13 @@
         </div>
       }
 
+      @if (successMsg()) {
+        <div class="flex items-center gap-3 bg-[#d4edda] border border-[#28a745] text-[#155724] rounded-2xl px-5 py-4 mb-6 text-sm">
+          <span class="material-symbols-outlined">check_circle</span>
+          {{ successMsg() }}
+        </div>
+      }
+
       <!-- Loading -->
       @if (loading()) {
         <div class="space-y-4">
@@ -90,6 +97,13 @@
                       <span class="material-symbols-outlined text-[12px]">groups</span>
                       {{ req.committee_name }}
                     </span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                      [class.bg-[#dbe1ff]]="req.can_approve"
+                      [class.text-[#004ac6]]="req.can_approve"
+                      [class.bg-[#ffdad6]]="!req.can_approve"
+                      [class.text-[#ba1a1a]]="!req.can_approve">
+                      {{ req.slots_used }} / {{ req.max_members }} slots
+                    </span>
                     <span class="text-[10px] text-[#737686]">
                       {{ req.joined_at | date:'MMM d, y · h:mm a' }}
                     </span>
@@ -103,11 +117,18 @@
                 Pending
               </span>
 
+              @if (!req.can_approve) {
+                <p class="text-xs text-[#ba1a1a] font-semibold sm:max-w-[200px]">
+                  Committee is full — reject this request or remove a member first.
+                </p>
+              }
+
               <!-- Action Buttons -->
               <div class="flex gap-2 flex-shrink-0">
                 <button
                   (click)="approve(req)"
-                  [disabled]="actionId() === req.id"
+                  [disabled]="actionId() === req.id || !req.can_approve"
+                  [title]="!req.can_approve ? 'Committee is full' : 'Approve member'"
                   class="flex items-center gap-1.5 px-4 py-2 bg-[#004ac6] text-white text-sm font-semibold rounded-xl hover:bg-[#2563eb] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                   @if (actionId() === req.id) {
                     <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
