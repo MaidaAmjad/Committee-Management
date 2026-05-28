@@ -22,11 +22,35 @@ function addHours(date, hours) {
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
 }
 
+function buildVerificationUrl(rawVerificationToken) {
+  return `${env.apiUrl}/api/auth/verify-email/${rawVerificationToken}`;
+}
+
 async function sendVerificationOrFail(user, rawVerificationToken) {
+  const verifyUrl = buildVerificationUrl(rawVerificationToken);
+
   try {
     await sendVerificationEmail(user, rawVerificationToken);
+    return { verifyUrl: null, devEmailBypass: false };
   } catch (err) {
     console.error('Verification email failed:', err.message);
+
+    if (env.emailDevBypass) {
+      console.log('\n=== DEV: Verification link (email not sent) ===');
+      console.log(verifyUrl);
+      console.log('===============================================\n');
+      return {
+        verifyUrl,
+        devEmailBypass: true,
+        message:
+          'Brevo could not send email (SMTP not active). Copy the verification link from the API terminal (npm run dev), open it in your browser, then sign in.',
+      };
+    }
+
+    if (err instanceof AppError) {
+      throw err;
+    }
+
     throw new AppError(
       'Could not send verification email. Check spam, or try again in a few minutes.',
       502
@@ -68,13 +92,16 @@ async function completeUnverifiedRegistration(user, { password, fullName, phone 
     await updateSupabasePassword(supabaseUserId, password);
   }
 
-  await sendVerificationOrFail(updated, rawVerificationToken);
+  const emailResult = await sendVerificationOrFail(updated, rawVerificationToken);
 
   return {
     message:
+      emailResult.message ||
       'Verification email sent. Please check your inbox and spam folder, then click the link to activate your account.',
     user: userRepo.toPublicJSON(updated),
     verificationResent: true,
+    devEmailBypass: emailResult.devEmailBypass,
+    devVerifyUrl: emailResult.verifyUrl,
   };
 }
 
@@ -113,13 +140,16 @@ export async function registerUser({ email, password, fullName, phone }) {
     });
 
     await updateSupabasePassword(supabaseExisting.id, password);
-    await sendVerificationOrFail(user, rawVerificationToken);
+    const emailResult = await sendVerificationOrFail(user, rawVerificationToken);
 
     return {
       message:
+        emailResult.message ||
         'Verification email sent. Please check your inbox and spam folder, then click the link to activate your account.',
       user: userRepo.toPublicJSON(user),
       verificationResent: true,
+      devEmailBypass: emailResult.devEmailBypass,
+      devVerifyUrl: emailResult.verifyUrl,
     };
   }
 
@@ -143,12 +173,16 @@ export async function registerUser({ email, password, fullName, phone }) {
     user = await userRepo.updateUser(user.id, { supabaseUserId });
   }
 
-  await sendVerificationOrFail(user, rawVerificationToken);
+  const emailResult = await sendVerificationOrFail(user, rawVerificationToken);
 
   return {
-    message: 'Registration successful. Please check your email to verify your account.',
+    message:
+      emailResult.message ||
+      'Registration successful. Please check your email to verify your account.',
     user: userRepo.toPublicJSON(user),
     verificationResent: false,
+    devEmailBypass: emailResult.devEmailBypass,
+    devVerifyUrl: emailResult.verifyUrl,
   };
 }
 
@@ -172,11 +206,15 @@ export async function resendVerificationEmail(email) {
     verificationTokenExpires: addHours(new Date(), env.emailVerificationExpiresHours),
   });
 
-  await sendVerificationOrFail(updated, rawVerificationToken);
+  const emailResult = await sendVerificationOrFail(updated, rawVerificationToken);
 
   return {
-    message: 'Verification email sent. Please check your inbox and spam folder.',
+    message:
+      emailResult.message ||
+      'Verification email sent. Please check your inbox and spam folder.',
     verificationResent: true,
+    devEmailBypass: emailResult.devEmailBypass,
+    devVerifyUrl: emailResult.verifyUrl,
   };
 }
 

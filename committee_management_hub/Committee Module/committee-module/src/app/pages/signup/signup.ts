@@ -30,6 +30,7 @@ export class SignupComponent {
   loading = false;
   errorMessage = '';
   successMessage = '';
+  devVerifyUrl = '';
 
   constructor(private auth: AuthService, private router: Router) {}
 
@@ -83,11 +84,14 @@ export class SignupComponent {
       return;
     }
 
+    this.devVerifyUrl = result.devVerifyUrl || '';
     this.successMessage =
       result.message ||
       (result.verificationResent
         ? 'Verification email sent again. Check your inbox and spam folder, then click the link to activate your account.'
         : 'Account created! We sent a verification email — click the link to activate your account, then sign in.');
-    setTimeout(() => this.router.navigate(['/login']), 4500);
+    if (!this.devVerifyUrl) {
+      setTimeout(() => this.router.navigate(['/login']), 4500);
+    }
   }
 }

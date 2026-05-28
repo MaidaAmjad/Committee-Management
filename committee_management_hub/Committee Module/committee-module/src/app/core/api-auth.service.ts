@@ -21,6 +21,8 @@ export interface AuthApiResponse {
   token?: string;
   user?: ApiUser;
   verificationResent?: boolean;
+  devEmailBypass?: boolean;
+  devVerifyUrl?: string | null;
 }
 
 const TOKEN_KEY = 'trustcom_auth_token';

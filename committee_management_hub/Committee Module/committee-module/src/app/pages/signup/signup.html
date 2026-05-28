@@ -143,6 +143,13 @@
         <div class="tc-alert tc-alert-ok">
           <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
           {{ successMessage }}
+          @if (devVerifyUrl) {
+            <p style="margin:12px 0 0;font-size:12px;word-break:break-all;">
+              <a [href]="devVerifyUrl" target="_blank" rel="noopener" style="color:#004ac6;font-weight:600;">
+                Open verification link
+              </a>
+            </p>
+          }
         </div>
       }
 

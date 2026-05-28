@@ -12,6 +12,7 @@ export interface AuthResult {
 export interface SignUpResult extends AuthResult {
   message?: string;
   verificationResent?: boolean;
+  devVerifyUrl?: string | null;
 }
 
 const SUPABASE_AUTH_TIMEOUT_MS = 20_000;
@@ -117,6 +118,7 @@ export class AuthService {
         error: null,
         message: res.message,
         verificationResent: res.verificationResent === true,
+        devVerifyUrl: res.devVerifyUrl ?? null,
       };
     } catch (err: unknown) {
       return { error: { message: ApiAuthService.formatError(err) } as AuthError };

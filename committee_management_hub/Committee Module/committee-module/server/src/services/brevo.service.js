@@ -28,9 +28,32 @@ export async function sendTransactionalEmail({ toEmail, toName, subject, htmlCon
     if (!response.ok) {
       const detail = await response.text();
       console.error('Brevo API error:', response.status, detail);
+
+      let brevoMessage = '';
+      try {
+        const parsed = JSON.parse(detail);
+        brevoMessage = parsed.message || '';
+      } catch {
+        brevoMessage = detail;
+      }
+
+      if (response.status === 401) {
+        throw new AppError('Email service configuration error (invalid Brevo API key).', 502);
+      }
+
+      if (
+        response.status === 403 &&
+        /smtp account is not yet activated/i.test(brevoMessage)
+      ) {
+        throw new AppError(
+          'Brevo SMTP is not activated on your account. In Brevo: Settings → SMTP & API, complete activation, or contact Brevo support.',
+          502
+        );
+      }
+
       throw new AppError(
-        response.status === 401
-          ? 'Email service configuration error (invalid Brevo API key).'
+        brevoMessage
+          ? `Email could not be sent: ${brevoMessage}`
           : 'Failed to send email. Please try again later.',
         502
       );

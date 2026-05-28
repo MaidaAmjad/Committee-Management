@@ -11,7 +11,11 @@ import {
   sumApprovedSlotWeight,
 } from '../../core/committee.service';
 import { AuthService } from '../../core/auth.service';
-import { WinnerSelectionService, WinnerSelection } from '../../core/winner-selection.service';
+import {
+  WinnerSelectionService,
+  WinnerSelection,
+  EligibleMember,
+} from '../../core/winner-selection.service';
 import { GuestGuardService } from '../../core/guest-guard.service';
 import { SignInPopupComponent } from '../../shared/sign-in-popup/sign-in-popup';
 import { PaymentReliabilityService } from '../../core/payment-reliability.service';
@@ -45,6 +49,9 @@ export class CommitteeDetailComponent implements OnInit {
   currentWinner = signal<WinnerSelection | null>(null);
   showWinnerSelection = signal(false);
   selectingWinner = signal(false);
+  showMemberPicker = signal(false);
+  eligibleMembersForWinner = signal<EligibleMember[]>([]);
+  loadingEligibleMembers = signal(false);
   showWinnerModal = signal(false);
   selectedWinnerName = signal('');
 
@@ -278,6 +285,38 @@ export class CommitteeDetailComponent implements OnInit {
     return member?.user_id || null;
   }
 
+  private async applyWinnerSelection(
+    data: WinnerSelection,
+    method: 'manual' | 'random'
+  ): Promise<void> {
+    const c = this.committee();
+    if (!c) return;
+
+    this.currentWinner.set(data);
+    this.showMemberPicker.set(false);
+    this.selectedWinnerName.set(data.member_name);
+    this.showWinnerModal.set(true);
+
+    await this.winnerService.sendWinnerAnnouncement(
+      c.id,
+      data.member_name,
+      data.cycle_number,
+      method
+    );
+
+    const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
+    this.broadcasts.set(broadcastData);
+  }
+
+  private handleWinnerSelectionError(error: string, committeeId: string): void {
+    if (error.includes('No eligible members') || error.includes('already won')) {
+      void this.checkAndHandleCompletion(committeeId);
+      return;
+    }
+    this.errorMsg.set(error);
+    setTimeout(() => this.errorMsg.set(''), 4000);
+  }
+
   /**
    * Select yourself (admin) as winner
    */
@@ -285,19 +324,33 @@ export class CommitteeDetailComponent implements OnInit {
     const c = this.committee();
     if (!c) return;
 
-    const adminMember = this.members().find(m => m.user_id === this.currentUserId() && m.status === 'approved');
+    const adminMember = this.members().find(
+      m => m.user_id === this.currentUserId() && m.status === 'approved'
+    );
     if (!adminMember) {
       this.errorMsg.set('You must be an approved member to select yourself as winner');
       setTimeout(() => this.errorMsg.set(''), 4000);
       return;
     }
 
-    this.selectingWinner.set(true);
+    await this.selectMemberAsWinner(adminMember.id);
+  }
+
+  /** Open/close picker to choose any eligible member as winner. */
+  async toggleMemberPicker(): Promise<void> {
+    if (this.showMemberPicker()) {
+      this.showMemberPicker.set(false);
+      return;
+    }
+
+    const c = this.committee();
+    if (!c) return;
+
+    this.loadingEligibleMembers.set(true);
     this.errorMsg.set('');
 
-    const { data, error } = await this.winnerService.selectManualWinner(c.id, adminMember.id);
-
-    this.selectingWinner.set(false);
+    const { data, error } = await this.winnerService.getEligibleMembers(c.id);
+    this.loadingEligibleMembers.set(false);
 
     if (error) {
       this.errorMsg.set(error);
@@ -305,19 +358,35 @@ export class CommitteeDetailComponent implements OnInit {
       return;
     }
 
-    if (data) {
-      this.currentWinner.set(data);
-      
-      // Show winner modal
-      this.selectedWinnerName.set(data.member_name);
-      this.showWinnerModal.set(true);
-      
-      // Send announcement
-      await this.winnerService.sendWinnerAnnouncement(c.id, data.member_name, data.cycle_number, 'manual');
+    if (!data.length) {
+      this.errorMsg.set('No eligible members — everyone may have already won this cycle.');
+      setTimeout(() => this.errorMsg.set(''), 4000);
+      return;
+    }
 
-      // Refresh broadcasts
-      const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
-      this.broadcasts.set(broadcastData);
+    this.eligibleMembersForWinner.set(data);
+    this.showMemberPicker.set(true);
+  }
+
+  /** Manually select a specific approved member as winner. */
+  async selectMemberAsWinner(memberId: string): Promise<void> {
+    const c = this.committee();
+    if (!c) return;
+
+    this.selectingWinner.set(true);
+    this.errorMsg.set('');
+
+    const { data, error } = await this.winnerService.selectManualWinner(c.id, memberId);
+
+    this.selectingWinner.set(false);
+
+    if (error) {
+      this.handleWinnerSelectionError(error, c.id);
+      return;
+    }
+
+    if (data) {
+      await this.applyWinnerSelection(data, 'manual');
     }
   }
 
@@ -337,35 +406,19 @@ export class CommitteeDetailComponent implements OnInit {
 
     this.selectingWinner.set(true);
     this.errorMsg.set('');
+    this.showMemberPicker.set(false);
 
     const { data, error } = await this.winnerService.selectRandomWinner(c.id);
 
     this.selectingWinner.set(false);
 
     if (error) {
-      // If no eligible members, the committee is complete — show completion popup
-      if (error.includes('No eligible members')) {
-        await this.checkAndHandleCompletion(c.id);
-        return;
-      }
-      this.errorMsg.set(error);
-      setTimeout(() => this.errorMsg.set(''), 4000);
+      this.handleWinnerSelectionError(error, c.id);
       return;
     }
 
     if (data) {
-      this.currentWinner.set(data);
-      
-      // Show winner modal
-      this.selectedWinnerName.set(data.member_name);
-      this.showWinnerModal.set(true);
-      
-      // Send announcement
-      await this.winnerService.sendWinnerAnnouncement(c.id, data.member_name, data.cycle_number, 'random');
-
-      // Refresh broadcasts
-      const { data: broadcastData } = await this.committeeService.getBroadcasts(c.id);
-      this.broadcasts.set(broadcastData);
+      await this.applyWinnerSelection(data, 'random');
     }
   }
 

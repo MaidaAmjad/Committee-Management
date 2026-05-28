@@ -37,6 +37,8 @@ export const env = {
   apiUrl: (process.env.API_URL || 'http://localhost:3000').replace(/\/$/, ''),
   emailVerificationExpiresHours: Number(process.env.EMAIL_VERIFICATION_EXPIRES_HOURS) || 24,
   passwordResetExpiresHours: Number(process.env.PASSWORD_RESET_EXPIRES_HOURS) || 1,
+  /** When true, log verify/reset links to the server console if Brevo fails (local dev). */
+  emailDevBypass: process.env.EMAIL_DEV_BYPASS === 'true' || process.env.NODE_ENV === 'development',
   supabaseUrl: requireEnv('SUPABASE_URL'),
   supabaseServiceRoleKey,
   supabaseAnonKey: requireEnv('SUPABASE_ANON_KEY'),

@@ -284,7 +284,7 @@
               }
 
               <!-- Selection Buttons -->
-              <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   (click)="selectYourselfAsWinner()"
                   [disabled]="selectingWinner()"
@@ -310,7 +310,48 @@
                     <p class="text-[10px] text-[#737686]">Random member selected</p>
                   </div>
                 </button>
+
+                <button
+                  (click)="toggleMemberPicker()"
+                  [disabled]="selectingWinner() || loadingEligibleMembers()"
+                  [class.border-[#16a34a]]="showMemberPicker()"
+                  [class.bg-[#f0fdf4]]="showMemberPicker()"
+                  class="flex flex-col items-center justify-center gap-2 p-4 bg-white border-2 border-[#16a34a] rounded-xl hover:bg-[#f0fdf4] transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
+                  <div class="w-12 h-12 bg-[#dcfce7] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-[#16a34a] text-[24px]">groups</span>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-sm font-bold text-[#191c1e]">Select Member</p>
+                    <p class="text-[10px] text-[#737686]">Pick from the list</p>
+                  </div>
+                </button>
               </div>
+
+              @if (showMemberPicker()) {
+                <div class="mt-4 bg-white rounded-xl border border-[#bbf7d0] p-4">
+                  <p class="text-xs font-bold text-[#166534] uppercase tracking-wide mb-3">
+                    Choose a member to win this cycle
+                  </p>
+                  <div class="space-y-2 max-h-56 overflow-y-auto">
+                    @for (member of eligibleMembersForWinner(); track member.id) {
+                      <button
+                        type="button"
+                        (click)="selectMemberAsWinner(member.id)"
+                        [disabled]="selectingWinner()"
+                        class="w-full flex items-center gap-3 p-3 rounded-xl border border-[#c3c6d7] hover:border-[#16a34a] hover:bg-[#f0fdf4] transition-all text-left disabled:opacity-50">
+                        <div class="w-9 h-9 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {{ getInitials(member.full_name) }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-bold text-[#191c1e] truncate">{{ member.full_name }}</p>
+                          <p class="text-[10px] text-[#737686] truncate">{{ member.email }}</p>
+                        </div>
+                        <span class="material-symbols-outlined text-[#16a34a] text-[20px] flex-shrink-0">emoji_events</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
 
               @if (selectingWinner()) {
                 <div class="flex items-center justify-center gap-2 mt-4 text-sm text-[#943700] font-semibold">
