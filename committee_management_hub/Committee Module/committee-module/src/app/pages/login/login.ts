@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { NotificationService } from '../../core/notification.service';
 import { PaymentMethodService } from '../../core/payment-method.service';
@@ -25,10 +25,20 @@ export class LoginComponent {
   constructor(
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private notificationService: NotificationService,
     private paymentMethodService: PaymentMethodService,
     private profileService: ProfileService
   ) {}
+
+  ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('verified') === '1') {
+      this.errorMessage = '';
+      this.successBanner = 'Email verified! You can now sign in.';
+    }
+  }
+
+  successBanner = '';
 
   togglePassword(): void { this.showPassword = !this.showPassword; }
 
@@ -41,11 +51,7 @@ export class LoginComponent {
     this.loading = false;
 
     if (error) {
-      if (error.message.toLowerCase().includes('email not confirmed')) {
-        this.errorMessage = 'Your email is not confirmed yet. Please check your inbox and click the confirmation link.';
-      } else {
-        this.errorMessage = error.message;
-      }
+      this.errorMessage = error.message;
       return;
     }
 

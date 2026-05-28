@@ -37,7 +37,6 @@ export class CreateCommitteeComponent {
       paymentDeadlineDate:  ['', Validators.required],
       gracePeriodDays:      [3, [Validators.required, Validators.min(0), Validators.max(30)]],
       paymentCycleDays:     [30, [Validators.required, Validators.min(1), Validators.max(365)]],
-      distributionMethod:   ['random', Validators.required],
     });
   }
 
@@ -80,7 +79,10 @@ export class CreateCommitteeComponent {
     this.loading  = true;
     this.errorMsg = '';
 
-    const { error } = await this.committeeService.createCommittee(this.form.value);
+    const { error } = await this.committeeService.createCommittee({
+      ...this.form.value,
+      distributionMethod: 'random',
+    });
 
     this.loading = false;
 

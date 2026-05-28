@@ -83,7 +83,7 @@ export class SignupComponent {
       return;
     }
 
-    this.successMessage = 'Account created! Please check your email inbox and click the confirmation link, then come back to sign in.';
+    this.successMessage = 'Account created! We sent a verification email — click the link to activate your account, then sign in.';
     setTimeout(() => this.router.navigate(['/login']), 3500);
   }
 }

@@ -38,7 +38,7 @@
       <div class="tc-field">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <label class="tc-label" for="password" style="margin-bottom:0">Password</label>
-          <a href="#" class="tc-forgot">Forgot password?</a>
+          <a [routerLink]="['/forgot-password']" class="tc-forgot">Forgot password?</a>
         </div>
         <div class="tc-input-wrap">
           <input id="password" [type]="showPassword ? 'text' : 'password'"
@@ -63,6 +63,13 @@
           <span class="tc-agree-text">Remember this device</span>
         </label>
       </div>
+
+      @if (successBanner) {
+        <div class="tc-alert" style="background:#d4edda;border-color:#28a745;color:#155724;margin-bottom:16px;">
+          <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
+          {{ successBanner }}
+        </div>
+      }
 
       <!-- Error -->
       @if (errorMessage) {
