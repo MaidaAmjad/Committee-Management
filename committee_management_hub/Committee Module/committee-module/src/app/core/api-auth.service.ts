@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { apiReachabilityHint, apiUrl } from './api-url';
 
 const API_TIMEOUT_MS = 30000;
 
@@ -29,12 +30,12 @@ const TOKEN_KEY = 'trustcom_auth_token';
 
 @Injectable({ providedIn: 'root' })
 export class ApiAuthService {
-  private readonly baseUrl = `${environment.apiUrl}/api/auth`;
+  private readonly baseUrl = apiUrl('/api/auth');
 
   constructor(private http: HttpClient) {}
 
   private post<T>(path: string, body: unknown): Promise<T> {
-    if (!environment.apiUrl?.trim()) {
+    if (environment.production && !environment.apiUrl?.trim()) {
       return Promise.reject(new Error('Auth API is not configured for this environment.'));
     }
     return firstValueFrom(
@@ -46,13 +47,13 @@ export class ApiAuthService {
   static formatError(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
       if (err.status === 0) {
-        return `Cannot reach the auth API at ${environment.apiUrl}. Start the server with: cd server && npm run dev`;
+        return `Cannot reach the auth API (${apiReachabilityHint()}). Start the API: cd server && npm run dev, then restart ng serve.`;
       }
       const apiMsg = err.error?.message;
       if (typeof apiMsg === 'string' && apiMsg) return apiMsg;
     }
     if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'TimeoutError') {
-      return `Request timed out. Is the API running at ${environment.apiUrl}?`;
+      return `Request timed out. Is the API running? (${apiReachabilityHint()})`;
     }
     if (err instanceof Error && err.message) return err.message;
     return 'Request failed. Please try again.';

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -27,10 +27,10 @@ export class SignupComponent {
   showPassword = false;
   showConfirmPassword = false;
 
-  loading = false;
-  errorMessage = '';
-  successMessage = '';
-  devVerifyUrl = '';
+  loading = signal(false);
+  errorMessage = signal('');
+  successMessage = signal('');
+  devVerifyUrl = signal('');
 
   constructor(private auth: AuthService, private router: Router) {}
 
@@ -69,29 +69,33 @@ export class SignupComponent {
   toggleConfirmPassword(): void { this.showConfirmPassword = !this.showConfirmPassword; }
 
   async onSubmit(): Promise<void> {
-    if (!this.isFormValid) return;
+    if (!this.isFormValid || this.loading()) return;
 
-    this.loading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.devVerifyUrl.set('');
 
-    const result = await this.auth.signUp(this.email, this.password, this.fullName, this.phoneE164);
+    try {
+      const result = await this.auth.signUp(this.email, this.password, this.fullName, this.phoneE164);
 
-    this.loading = false;
+      if (result.error) {
+        this.errorMessage.set(result.error.message);
+        return;
+      }
 
-    if (result.error) {
-      this.errorMessage = result.error.message;
-      return;
-    }
-
-    this.devVerifyUrl = result.devVerifyUrl || '';
-    this.successMessage =
-      result.message ||
-      (result.verificationResent
-        ? 'Verification email sent again. Check your inbox and spam folder, then click the link to activate your account.'
-        : 'Account created! We sent a verification email — click the link to activate your account, then sign in.');
-    if (!this.devVerifyUrl) {
-      setTimeout(() => this.router.navigate(['/login']), 4500);
+      this.devVerifyUrl.set(result.devVerifyUrl || '');
+      this.successMessage.set(
+        result.message ||
+        (result.verificationResent
+          ? 'Verification email sent again. Check your inbox and spam folder, then click the link to activate your account.'
+          : 'Account created! We sent a verification email — click the link to activate your account, then sign in.')
+      );
+      if (!this.devVerifyUrl()) {
+        setTimeout(() => this.router.navigate(['/login']), 4500);
+      }
+    } finally {
+      this.loading.set(false);
     }
   }
 }

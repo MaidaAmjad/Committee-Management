@@ -55,12 +55,10 @@ export class AuthService {
   }
 
   private usesApiAuth(): boolean {
-    const url = environment.apiUrl?.trim() || '';
-    return Boolean(
-      url &&
-      !url.includes('your-api-domain') &&
-      !(environment.useSupabasePasswordReset && environment.production)
-    );
+    if (environment.apiUrl?.includes('your-api-domain')) return false;
+    if (environment.useSupabasePasswordReset && environment.production) return false;
+    if (environment.production) return Boolean(environment.apiUrl?.trim());
+    return true;
   }
 
   private resetRedirectUrl(): string {

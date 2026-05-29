@@ -131,31 +131,35 @@
       </div>
 
       <!-- Error -->
-      @if (errorMessage) {
+      @if (errorMessage()) {
         <div class="tc-alert tc-alert-err">
           <span class="material-symbols-outlined" style="font-size:18px">error</span>
-          {{ errorMessage }}
+          {{ errorMessage() }}
         </div>
       }
 
       <!-- Success -->
-      @if (successMessage) {
+      @if (successMessage()) {
         <div class="tc-alert tc-alert-ok">
           <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
-          {{ successMessage }}
-          @if (devVerifyUrl) {
-            <p style="margin:12px 0 0;font-size:12px;word-break:break-all;">
-              <a [href]="devVerifyUrl" target="_blank" rel="noopener" style="color:#004ac6;font-weight:600;">
-                Open verification link
+          {{ successMessage() }}
+          @if (devVerifyUrl()) {
+            <p style="margin:14px 0 0;">
+              <a [href]="devVerifyUrl()" target="_blank" rel="noopener"
+                 style="display:inline-block;background:#004ac6;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;">
+                Verify my email →
               </a>
+            </p>
+            <p style="margin:10px 0 0;font-size:11px;color:#64748b;word-break:break-all;">
+              Or copy this link: {{ devVerifyUrl() }}
             </p>
           }
         </div>
       }
 
       <!-- Submit -->
-      <button type="submit" class="tc-btn" [disabled]="!isFormValid || loading">
-        @if (loading) {
+      <button type="submit" class="tc-btn" [disabled]="!isFormValid || loading()">
+        @if (loading()) {
           <svg class="tc-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="width:20px;height:20px">
             <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>

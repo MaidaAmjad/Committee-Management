@@ -25,7 +25,9 @@ function baseTemplate(title, bodyHtml, ctaLabel, ctaUrl) {
 }
 
 export async function sendVerificationEmail(user, rawToken) {
-  const verifyUrl = `${env.apiUrl}/api/auth/verify-email/${rawToken}`;
+  const origin =
+    env.nodeEnv === 'development' && env.clientUrl ? env.clientUrl : env.apiUrl;
+  const verifyUrl = `${origin}/api/auth/verify-email/${rawToken}`;
   const html = baseTemplate(
     'Verify your email',
     `<p style="color:#334155;line-height:1.6;">Hi ${user.fullName},</p>

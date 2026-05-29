@@ -24,7 +24,10 @@ function addHours(date, hours) {
 }
 
 function buildVerificationUrl(rawVerificationToken) {
-  return `${env.apiUrl}/api/auth/verify-email/${rawVerificationToken}`;
+  // In local dev, use the Angular dev server so /api is proxied to the Express API.
+  const origin =
+    env.nodeEnv === 'development' && env.clientUrl ? env.clientUrl : env.apiUrl;
+  return `${origin}/api/auth/verify-email/${rawVerificationToken}`;
 }
 
 async function sendVerificationOrFail(user, rawVerificationToken) {
@@ -44,7 +47,7 @@ async function sendVerificationOrFail(user, rawVerificationToken) {
         verifyUrl,
         devEmailBypass: true,
         message:
-          'Brevo could not send email (SMTP not active). Copy the verification link from the API terminal (npm run dev), open it in your browser, then sign in.',
+          'Account created! Email is not sent in local dev — click Verify my email below to activate your account, then sign in.',
       };
     }
 

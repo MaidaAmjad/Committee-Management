@@ -40,6 +40,15 @@ export function createApp() {
     message: { success: false, message: 'Too many requests. Please try again later.' },
   });
 
+  app.get('/', (_req, res) => {
+    res.json({
+      success: true,
+      message: 'TrustCom API',
+      health: '/health',
+      auth: '/api/auth',
+    });
+  });
+
   app.get('/health', (_req, res) => {
     res.json({ success: true, status: 'ok' });
   });

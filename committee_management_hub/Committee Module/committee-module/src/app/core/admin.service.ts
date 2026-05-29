@@ -5,6 +5,7 @@ import { SupabaseService } from './supabase.service';
 import { Committee, CommitteeMember } from './committee.service';
 import { AdminAuthService } from './admin-auth.service';
 import { environment } from '../../environments/environment';
+import { apiReachabilityHint, apiUrl, getApiOrigin } from './api-url';
 
 // ── Admin-specific interfaces ─────────────────────────────────────────────────
 
@@ -65,13 +66,13 @@ export class AdminService {
     if (!creds) {
       return { error: 'Admin session expired. Sign in to the admin portal again.' };
     }
-    if (!environment.apiUrl?.trim()) {
+    if (environment.production && !getApiOrigin()) {
       return { error: 'Auth API is not configured. Start the server (cd server && npm run dev) to suspend users.' };
     }
 
     try {
       await firstValueFrom(
-        this.http.post(`${environment.apiUrl}/api/admin${path}`, {
+        this.http.post(apiUrl(`/api/admin${path}`), {
           ...body,
           ...creds,
         })
@@ -82,7 +83,7 @@ export class AdminService {
         const msg = err.error?.message;
         if (typeof msg === 'string' && msg) return { error: msg };
         if (err.status === 0) {
-          return { error: `Cannot reach API at ${environment.apiUrl}. Start the server with: cd server && npm run dev` };
+          return { error: `Cannot reach API (${apiReachabilityHint()}). Start the server with: cd server && npm run dev` };
         }
       }
       if (err instanceof Error && err.message) return { error: err.message };
@@ -197,7 +198,7 @@ export class AdminService {
   }
 
   async suspendUser(userId: string): Promise<{ error: string | null }> {
-    if (environment.apiUrl?.trim()) {
+    if (!environment.production || getApiOrigin()) {
       return this.postAdminApi(`/users/${userId}/suspend`);
     }
     const { error } = await this.supabase
@@ -214,7 +215,7 @@ export class AdminService {
   }
 
   async reinstateUser(userId: string): Promise<{ error: string | null }> {
-    if (environment.apiUrl?.trim()) {
+    if (!environment.production || getApiOrigin()) {
       return this.postAdminApi(`/users/${userId}/reinstate`);
     }
     const { error } = await this.supabase

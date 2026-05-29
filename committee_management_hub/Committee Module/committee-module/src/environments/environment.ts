@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000',
+  /** Empty = same-origin `/api` proxied to http://localhost:3000 (see proxy.conf.json). */
+  apiUrl: '',
   useSupabasePasswordReset: false,
   appUrl: 'http://localhost:4200',
   supabase: {
