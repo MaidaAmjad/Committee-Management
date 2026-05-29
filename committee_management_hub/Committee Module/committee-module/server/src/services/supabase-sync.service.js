@@ -124,6 +124,40 @@ export async function updateSupabasePassword(supabaseUserId, newPassword) {
   }
 }
 
+/** Send Supabase Auth signup confirmation email (uses Supabase built-in mailer). */
+export async function sendSupabaseSignupConfirmation(email) {
+  const redirectTo = `${env.clientUrl.replace(/\/$/, '')}/login?verified=1`;
+  const normalized = email.trim().toLowerCase();
+
+  const response = await fetch(`${env.supabaseUrl.replace(/\/$/, '')}/auth/v1/resend`, {
+    method: 'POST',
+    headers: {
+      apikey: env.supabaseAnonKey,
+      Authorization: `Bearer ${env.supabaseAnonKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      type: 'signup',
+      email: normalized,
+      options: { emailRedirectTo: redirectTo },
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Supabase resend failed (${response.status})`);
+  }
+}
+
 export function isSupabaseEmailConfirmed(supabaseUser) {
   return Boolean(supabaseUser?.email_confirmed_at);
+}
+
+/** Remove Supabase Auth user (allows re-registration with same email). */
+export async function deleteSupabaseAuthUser(supabaseUserId) {
+  if (!supabaseUserId) return;
+  const { error } = await getSupabaseAdmin().auth.admin.deleteUser(supabaseUserId);
+  if (error && !/not found|unable to find/i.test(error.message)) {
+    throw new Error(error.message);
+  }
 }

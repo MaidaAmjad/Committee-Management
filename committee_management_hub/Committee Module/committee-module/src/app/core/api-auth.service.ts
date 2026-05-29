@@ -51,6 +51,9 @@ export class ApiAuthService {
       }
       const apiMsg = err.error?.message;
       if (typeof apiMsg === 'string' && apiMsg) return apiMsg;
+      if (err.status >= 500) {
+        return `Server error (${err.status}). Check that the API is running: cd server && npm run dev`;
+      }
     }
     if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'TimeoutError') {
       return `Request timed out. Is the API running? (${apiReachabilityHint()})`;

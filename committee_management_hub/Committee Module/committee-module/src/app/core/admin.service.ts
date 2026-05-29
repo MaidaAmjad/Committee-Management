@@ -232,11 +232,14 @@ export class AdminService {
   }
 
   /**
-   * Deletes a user's profile and all their committee memberships.
-   * Verifies the deletion actually happened — RLS silently blocks without error.
+   * Deletes a user completely (profile, memberships, auth_users, Supabase Auth).
    */
   async deleteUser(userId: string): Promise<{ error: string | null }> {
-    // Remove memberships first
+    if (!environment.production || getApiOrigin()) {
+      return this.postAdminApi(`/users/${userId}/delete`);
+    }
+
+    // Production without API: profile-only delete (legacy)
     const { error: memErr } = await this.supabase
       .from('committee_members')
       .delete()
@@ -244,7 +247,6 @@ export class AdminService {
 
     if (memErr) return { error: this.rlsError('committee_members', 'DELETE', memErr.message) };
 
-    // Delete profile
     const { error } = await this.supabase
       .from('profiles')
       .delete()
@@ -252,7 +254,6 @@ export class AdminService {
 
     if (error) return { error: this.rlsError('profiles', 'DELETE', error.message) };
 
-    // Verify the row is actually gone (RLS silent block check)
     const verifyErr = await this.verifyDeleted('profiles', userId);
     if (verifyErr) return { error: verifyErr };
 

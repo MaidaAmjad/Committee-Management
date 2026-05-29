@@ -13,9 +13,11 @@ import {
   findSupabaseUserByEmail,
   getProfileById,
   isSupabaseEmailConfirmed,
+  sendSupabaseSignupConfirmation,
 } from './supabase-sync.service.js';
 import * as userRepo from '../repositories/user.repository.js';
-import { assertEmailNotSuspended, isEmailSuspended } from './user-suspension.service.js';
+import { assertEmailNotSuspended, isEmailSuspended, getProfileByEmail } from './user-suspension.service.js';
+import { purgeAuthRecordsForEmail } from './user-deletion.service.js';
 
 const SALT_ROUNDS = 12;
 
@@ -37,7 +39,20 @@ async function sendVerificationOrFail(user, rawVerificationToken) {
     await sendVerificationEmail(user, rawVerificationToken);
     return { verifyUrl: null, devEmailBypass: false };
   } catch (err) {
-    console.error('Verification email failed:', err.message);
+    console.error('Verification email (Brevo) failed:', err.message);
+
+    try {
+      await sendSupabaseSignupConfirmation(user.email);
+      console.log(`Verification email sent via Supabase to ${user.email}`);
+      return {
+        verifyUrl: null,
+        devEmailBypass: false,
+        message:
+          'Account created! We sent a verification email — check your inbox and spam folder, then sign in.',
+      };
+    } catch (supabaseErr) {
+      console.error('Verification email (Supabase) failed:', supabaseErr.message);
+    }
 
     if (env.emailDevBypass) {
       console.log('\n=== DEV: Verification link (email not sent) ===');
@@ -47,7 +62,7 @@ async function sendVerificationOrFail(user, rawVerificationToken) {
         verifyUrl,
         devEmailBypass: true,
         message:
-          'Account created! Email is not sent in local dev — click Verify my email below to activate your account, then sign in.',
+          'Account created! Email could not be sent. Click Verify my email below, or activate Brevo / Supabase email in your project settings.',
       };
     }
 
@@ -117,6 +132,11 @@ export async function registerUser({ email, password, fullName, phone }) {
   }
 
   await assertEmailNotSuspended(normalizedEmail);
+
+  // Admin may delete only the profile; allow re-registration when auth records are orphaned.
+  if (!(await getProfileByEmail(normalizedEmail))) {
+    await purgeAuthRecordsForEmail(normalizedEmail);
+  }
 
   const existing = await userRepo.findByEmail(normalizedEmail);
   if (existing) {

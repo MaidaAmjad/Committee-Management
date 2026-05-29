@@ -155,3 +155,16 @@ export async function updateUser(id, patch) {
   if (error) dbError(error, 'Failed to update user.');
   return mapRow(data);
 }
+
+export async function deleteById(id) {
+  const { error } = await getSupabaseAdmin().from(TABLE).delete().eq('id', id);
+  if (error) dbError(error, 'Failed to delete user.');
+}
+
+export async function deleteByEmail(email) {
+  const { error } = await getSupabaseAdmin()
+    .from(TABLE)
+    .delete()
+    .eq('email', email.trim().toLowerCase());
+  if (error) dbError(error, 'Failed to delete user.');
+}

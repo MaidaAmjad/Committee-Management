@@ -8,5 +8,6 @@ router.use(requireAdmin);
 
 router.post('/users/:userId/suspend', adminController.suspendUser);
 router.post('/users/:userId/reinstate', adminController.reinstateUser);
+router.post('/users/:userId/delete', adminController.deleteUser);
 
 export default router;
