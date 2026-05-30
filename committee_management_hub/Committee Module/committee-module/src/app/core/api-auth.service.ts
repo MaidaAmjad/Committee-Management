@@ -12,6 +12,7 @@ export interface ApiUser {
   fullName: string;
   phone: string | null;
   isVerified: boolean;
+  phoneVerified?: boolean;
   supabaseUserId: string | null;
   createdAt: string;
 }
@@ -50,7 +51,9 @@ export class ApiAuthService {
         return `Cannot reach the auth API (${apiReachabilityHint()}). Start the API: cd server && npm run dev, then restart ng serve.`;
       }
       const apiMsg = err.error?.message;
-      if (typeof apiMsg === 'string' && apiMsg) return apiMsg;
+      if (typeof apiMsg === 'string' && apiMsg && apiMsg !== 'Internal server error.') {
+        return apiMsg;
+      }
       if (err.status >= 500) {
         return `Server error (${err.status}). Check that the API is running: cd server && npm run dev`;
       }
@@ -107,5 +110,21 @@ export class ApiAuthService {
       })
     );
     return res.user;
+  }
+
+  async fetchSupabaseSession(): Promise<{
+    access_token: string;
+    refresh_token: string;
+    expires_in?: number;
+  }> {
+    const token = this.getToken();
+    const res = await firstValueFrom(
+      this.http.post<{ success: boolean; session: { access_token: string; refresh_token: string; expires_in?: number } }>(
+        `${this.baseUrl}/supabase-session`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      ).pipe(timeout(API_TIMEOUT_MS))
+    );
+    return res.session;
   }
 }

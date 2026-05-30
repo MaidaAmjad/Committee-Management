@@ -1,11 +1,8 @@
-<!-- Floating orbs -->
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
 
 <div class="tc-page">
-
-  <!-- Logo -->
   <div class="tc-logo">
     <div class="tc-logo-icon">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;fill:white;position:relative;z-index:1;">
@@ -15,7 +12,6 @@
     <span class="tc-logo-name">TrustCom</span>
   </div>
 
-  <!-- Card -->
   <div class="tc-card">
     <div class="tc-card-header">
       <h1 class="tc-card-title">Welcome back</h1>
@@ -24,17 +20,17 @@
 
     <form (ngSubmit)="onSubmit()" class="tc-form">
 
-      <!-- Email -->
       <div class="tc-field">
         <label class="tc-label" for="email">Email Address</label>
         <div class="tc-input-wrap">
           <input id="email" type="email" [(ngModel)]="email" name="email"
-            placeholder="name@organization.com" autocomplete="email"
-            class="tc-input"/>
+            placeholder="name@organization.com" autocomplete="email" required
+            class="tc-input"
+            [class.tc-valid]="emailValid"
+            [class.tc-invalid]="email.length > 0 && !emailValid"/>
         </div>
       </div>
 
-      <!-- Password -->
       <div class="tc-field">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <label class="tc-label" for="password" style="margin-bottom:0">Password</label>
@@ -43,7 +39,7 @@
         <div class="tc-input-wrap">
           <input id="password" [type]="showPassword ? 'text' : 'password'"
             [(ngModel)]="password" name="password"
-            placeholder="••••••••" autocomplete="current-password"
+            placeholder="••••••••" autocomplete="current-password" required
             class="tc-input" style="padding-right:48px"/>
           <button type="button" (click)="togglePassword()" class="tc-eye-btn">
             <span class="material-symbols-outlined" style="font-size:20px">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
@@ -51,7 +47,6 @@
         </div>
       </div>
 
-      <!-- Remember me -->
       <div class="tc-agree-row" style="margin:8px 0 20px;">
         <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
           <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" style="display:none"/>
@@ -71,7 +66,6 @@
         </div>
       }
 
-      <!-- Error -->
       @if (errorMessage()) {
         <div class="tc-alert tc-alert-err">
           <span class="material-symbols-outlined" style="font-size:18px">error</span>
@@ -79,13 +73,8 @@
         </div>
       }
 
-      <!-- Submit -->
-      <button type="submit" class="tc-btn" [disabled]="loading() || !email || !password">
+      <button type="submit" class="tc-btn" [disabled]="loading() || !emailValid || !password">
         @if (loading()) {
-          <svg class="tc-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="width:20px;height:20px">
-            <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-          </svg>
           Signing in...
         } @else {
           Sign In <span class="tc-btn-arrow">→</span>
@@ -93,21 +82,16 @@
       </button>
     </form>
 
-    <!-- Divider -->
     <div class="tc-divider">or</div>
-
-    <!-- Sign up link -->
     <div class="tc-signin-row">
       Don't have an account?
       <a [routerLink]="['/signup']">Create an Account</a>
     </div>
   </div>
 
-  <!-- Trust badges -->
   <div class="tc-badges">
     <div class="tc-badge"><div class="tc-badge-dot"></div> 256-bit SSL Encrypted</div>
     <div class="tc-badge"><div class="tc-badge-dot" style="animation-delay:.6s"></div> GDPR Compliant</div>
     <div class="tc-badge"><div class="tc-badge-dot" style="animation-delay:1.2s"></div> SOC 2 Certified</div>
   </div>
-
 </div>

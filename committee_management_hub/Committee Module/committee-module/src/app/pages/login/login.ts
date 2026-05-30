@@ -12,7 +12,7 @@ import { ProfileService } from '../../core/profile.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.scss'
+  styleUrl: './login.scss',
 })
 export class LoginComponent implements OnInit {
   email = '';
@@ -34,26 +34,32 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.route.snapshot.queryParamMap.get('verified') === '1') {
-      this.errorMessage.set('');
       this.successBanner.set('Email verified! You can now sign in.');
     }
   }
 
-  togglePassword(): void { this.showPassword = !this.showPassword; }
+  get emailValid(): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
+  }
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   async onSubmit(): Promise<void> {
-    if (!this.email || !this.password || this.loading()) return;
+    if (!this.emailValid || !this.password || this.loading()) return;
     this.loading.set(true);
     this.errorMessage.set('');
 
     try {
-      const { error } = await this.auth.signIn(this.email, this.password);
+      const { error } = await this.auth.signIn(this.email.trim().toLowerCase(), this.password);
 
       if (error) {
         this.errorMessage.set(error.message);
         return;
       }
 
+      await this.auth.ensureSupabaseSession();
       await this.profileService.syncMetadataToProfile();
 
       const setupComplete = await this.paymentMethodService.isSetupComplete();

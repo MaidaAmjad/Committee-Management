@@ -2,6 +2,10 @@ import { env } from '../config/env.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import * as authService from '../services/auth.service.js';
 
+export const captchaVerified = asyncHandler(async (_req, res) => {
+  res.json({ success: true, message: 'Security check passed.' });
+});
+
 export const register = asyncHandler(async (req, res) => {
   const { email, password, fullName, phone } = req.body;
   const result = await authService.registerUser({ email, password, fullName, phone });
@@ -47,4 +51,9 @@ export const resetPassword = asyncHandler(async (req, res) => {
 export const me = asyncHandler(async (req, res) => {
   const user = await authService.getUserById(req.userId);
   res.json({ success: true, user });
+});
+
+export const supabaseSession = asyncHandler(async (req, res) => {
+  const session = await authService.getSupabaseSessionForUser(req.userId);
+  res.json({ success: true, session });
 });

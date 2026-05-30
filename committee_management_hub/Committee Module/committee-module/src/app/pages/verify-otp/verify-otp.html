@@ -1,0 +1,89 @@
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="tc-page">
+  <div class="tc-logo">
+    <div class="tc-logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;fill:white;position:relative;z-index:1;">
+        <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6L12 2zm-1 13l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/>
+      </svg>
+    </div>
+    <span class="tc-logo-name">TrustCom</span>
+  </div>
+
+  <div class="tc-card">
+    <div class="tc-card-header">
+      <h1 class="tc-card-title">Verify your phone</h1>
+      <p class="tc-card-sub">Code will be sent to {{ maskedPhone }}</p>
+    </div>
+
+    @if (infoMessage()) {
+      <div class="tc-alert" style="background:#e8f4fd;border-color:#004ac6;color:#004ac6;margin-bottom:16px;">
+        {{ infoMessage() }}
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="tc-alert tc-alert-err" style="margin-bottom:16px;">
+        <span class="material-symbols-outlined" style="font-size:18px">error</span>
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (rateLimited) {
+      <div class="tc-alert" style="background:#fff8e6;border-color:#e6a800;color:#5c4a00;margin-bottom:16px;">
+        <strong>Continue testing now</strong>
+        <ol style="margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.5;">
+          <li>Firebase Console → Authentication → Sign-in method → Phone → <strong>Phone numbers for testing</strong></li>
+          <li>Add phone <code>+923001234567</code> with code <code>123456</code></li>
+          <li>Click below and sign up again using that exact number</li>
+          <li>Enter <code>123456</code> (no SMS is sent for test numbers)</li>
+        </ol>
+        <button type="button" class="tc-btn" style="margin-top:12px;width:100%"
+          (click)="startOver()">Start over with test number</button>
+      </div>
+    }
+
+    <div class="tc-form">
+      <div class="tc-field">
+        <label class="tc-label">Security check</label>
+        <p class="tc-hint" style="margin:0 0 10px;">Tick &ldquo;I&apos;m not a robot&rdquo;. If pictures appear, select them all — do not skip or close the popup.</p>
+        <div #recaptchaHost class="recaptcha-wrap"></div>
+      </div>
+
+      <button type="button" class="tc-btn" style="margin-bottom:16px;"
+        [disabled]="!captchaReady() || sending() || (otpSent() && cooldownSeconds() > 0 && !canResend)"
+        (click)="sendOtp(otpSent())">
+        @if (sending()) { Sending OTP... }
+        @else if (otpSent() && cooldownSeconds() > 0) { Resend OTP in {{ cooldownSeconds() }}s }
+        @else if (otpSent()) { Resend OTP }
+        @else { Send OTP → }
+      </button>
+
+      @if (otpSent()) {
+        <form (ngSubmit)="verifyOtp()">
+          <div class="tc-field">
+            <label class="tc-label" for="otp">OTP Code</label>
+            <input id="otp" type="text" inputmode="numeric" maxlength="6"
+              [(ngModel)]="otpCode" name="otp" placeholder="123456"
+              class="tc-input" autocomplete="one-time-code" required />
+          </div>
+
+          <button type="submit" class="tc-btn" [disabled]="loading() || otpCode.trim().length < 6">
+            @if (loading()) { Verifying... } @else { Verify OTP → }
+          </button>
+
+          <p class="tc-hint" style="text-align:center;margin-top:12px;">
+            Resends used: {{ resendCount() }} / {{ maxResends }}
+          </p>
+        </form>
+      }
+    </div>
+
+    <div class="tc-divider">or</div>
+    <div class="tc-signin-row">
+      <a [routerLink]="purpose === 'forgot' ? ['/forgot-password'] : ['/signup']">← Go back</a>
+    </div>
+  </div>
+</div>

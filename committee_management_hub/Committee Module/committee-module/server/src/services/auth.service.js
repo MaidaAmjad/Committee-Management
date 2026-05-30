@@ -14,6 +14,7 @@ import {
   getProfileById,
   isSupabaseEmailConfirmed,
   sendSupabaseSignupConfirmation,
+  mintSupabaseClientSession,
 } from './supabase-sync.service.js';
 import * as userRepo from '../repositories/user.repository.js';
 import { assertEmailNotSuspended, isEmailSuspended, getProfileByEmail } from './user-suspension.service.js';
@@ -311,7 +312,7 @@ async function syncUserFromSupabase(supabaseUser, password) {
 }
 
 async function ensureVerified(user) {
-  if (user.isVerified) return user;
+  if (user.phoneVerified || user.isVerified) return user;
 
   if (user.supabaseUserId) {
     const sbUser = await getSupabaseAuthUserById(user.supabaseUserId);
@@ -425,4 +426,18 @@ export async function getUserById(userId) {
     throw new AppError('User not found.', 404);
   }
   return userRepo.toPublicJSON(user);
+}
+
+export async function getSupabaseSessionForUser(userId) {
+  const user = await userRepo.findById(userId);
+  if (!user) {
+    throw new AppError('User not found.', 404);
+  }
+
+  const session = await mintSupabaseClientSession(user.email);
+  return {
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_in: session.expires_in,
+  };
 }

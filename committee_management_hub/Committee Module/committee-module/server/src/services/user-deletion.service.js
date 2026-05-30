@@ -27,6 +27,33 @@ async function resolveEmail(userId) {
   return null;
 }
 
+/** Remove unverified auth_users rows for a phone (failed/partial signups). */
+export async function purgeUnverifiedAuthByPhone(phone) {
+  const supabase = getSupabaseAdmin();
+  const { data: rows, error } = await supabase
+    .from('auth_users')
+    .select('id, email, supabase_user_id, is_verified')
+    .eq('phone', phone);
+
+  if (error) {
+    console.error('purgeUnverifiedAuthByPhone:', error.message);
+    return;
+  }
+
+  for (const row of rows || []) {
+    if (row.is_verified) continue;
+    await userRepo.deleteById(row.id);
+    if (row.supabase_user_id) {
+      await deleteSupabaseAuthUser(row.supabase_user_id);
+      continue;
+    }
+    const supabaseUser = await findSupabaseUserByEmail(row.email);
+    if (supabaseUser) {
+      await deleteSupabaseAuthUser(supabaseUser.id);
+    }
+  }
+}
+
 /** Remove auth_users + Supabase Auth rows for an email (profile may already be gone). */
 export async function purgeAuthRecordsForEmail(email) {
   const normalized = email.trim().toLowerCase();

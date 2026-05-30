@@ -38,11 +38,26 @@
         }
       </div>
 
-      <!-- Phone (country + national number) -->
+      <!-- Email -->
+      <div class="tc-field">
+        <label class="tc-label" for="email">Email Address</label>
+        <div class="tc-input-wrap">
+          <input id="email" type="email" [(ngModel)]="email" name="email"
+            placeholder="name@organization.com" autocomplete="email" required
+            class="tc-input"
+            [class.tc-valid]="emailValid"
+            [class.tc-invalid]="email.length > 0 && !emailValid"/>
+        </div>
+        @if (email.length > 0 && !emailValid) {
+          <p class="tc-hint tc-hint-err">Enter a valid email address</p>
+        }
+      </div>
+
+      <!-- Mobile number (required) -->
       <div class="tc-field">
         <label class="tc-label" for="countryIso2">Country / region</label>
         <select id="countryIso2" name="countryIso2" [(ngModel)]="countryIso2"
-          class="tc-input tc-country-select">
+          class="tc-input tc-country-select" required>
           @for (c of countries; track c.iso2) {
             <option [value]="c.iso2">{{ c.name }} (+{{ c.dial }})</option>
           }
@@ -57,20 +72,9 @@
             [class.tc-valid]="phoneValid"
             [class.tc-invalid]="phoneNational.length > 0 && !phoneValid"/>
         </div>
-        <p class="tc-hint" [class.tc-hint-err]="phoneNational.length > 0 && !phoneValid"
-          [style.visibility]="phoneNational.length > 0 && !phoneValid ? 'visible' : 'hidden'">
-          Enter your number without the country code (8–15 digits total with +country).
-        </p>
-      </div>
-
-      <!-- Email -->
-      <div class="tc-field">
-        <label class="tc-label" for="email">Email Address</label>
-        <div class="tc-input-wrap">
-          <input id="email" type="email" [(ngModel)]="email" name="email"
-            placeholder="name@organization.com" autocomplete="email" required
-            class="tc-input"/>
-        </div>
+        @if (phoneNational.length > 0 && !phoneValid) {
+          <p class="tc-hint tc-hint-err">Enter a valid mobile number</p>
+        }
       </div>
 
       <!-- Password -->
@@ -138,25 +142,6 @@
         </div>
       }
 
-      <!-- Success -->
-      @if (successMessage()) {
-        <div class="tc-alert tc-alert-ok">
-          <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
-          {{ successMessage() }}
-          @if (devVerifyUrl()) {
-            <p style="margin:14px 0 0;">
-              <a [href]="devVerifyUrl()" target="_blank" rel="noopener"
-                 style="display:inline-block;background:#004ac6;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;">
-                Verify my email →
-              </a>
-            </p>
-            <p style="margin:10px 0 0;font-size:11px;color:#64748b;word-break:break-all;">
-              Or copy this link: {{ devVerifyUrl() }}
-            </p>
-          }
-        </div>
-      }
-
       <!-- Submit -->
       <button type="submit" class="tc-btn" [disabled]="!isFormValid || loading()">
         @if (loading()) {
@@ -166,7 +151,7 @@
           </svg>
           Creating account...
         } @else {
-          Create Account <span class="tc-btn-arrow">→</span>
+          Create account <span class="tc-btn-arrow">→</span>
         }
       </button>
     </form>

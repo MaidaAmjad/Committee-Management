@@ -1,0 +1,72 @@
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="tc-page">
+  <div class="tc-logo">
+    <div class="tc-logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;fill:white;position:relative;z-index:1;">
+        <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6L12 2zm-1 13l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/>
+      </svg>
+    </div>
+    <span class="tc-logo-name">TrustCom</span>
+  </div>
+
+  <div class="tc-card">
+    <div class="tc-card-header">
+      <h1 class="tc-card-title">Check your email</h1>
+      <p class="tc-card-sub">
+        @if (email) {
+          We sent a verification link to <strong>{{ email }}</strong>
+        } @else {
+          We sent a verification link to your email address
+        }
+      </p>
+    </div>
+
+    <div class="tc-alert" style="background:#e8f4fd;border-color:#004ac6;color:#004ac6;margin-bottom:16px;">
+      {{ infoMessage() }}
+    </div>
+
+    @if (!useFirebase && devVerifyUrl()) {
+      <div class="tc-alert" style="background:#fff8e6;border-color:#e6a800;color:#5c4a00;margin-bottom:16px;">
+        <strong>Local dev:</strong> Email could not be sent. Use this link to verify:
+        <a [href]="devVerifyUrl()" style="display:block;margin-top:8px;word-break:break-all;">Verify my email</a>
+      </div>
+    }
+
+    @if (useFirebase && showPasswordForResend()) {
+      <div class="tc-field" style="margin-bottom:16px;">
+        <label class="tc-label" for="resendPassword">Password (to resend)</label>
+        <input
+          id="resendPassword"
+          type="password"
+          class="tc-input"
+          [(ngModel)]="resendPassword"
+          placeholder="Same password you used to sign up"
+          autocomplete="current-password"
+        />
+        <p class="tc-hint" style="margin-top:8px;font-size:13px;color:#666;">
+          Use this if you closed the browser after signing up. We only use it to resend the Firebase verification email.
+        </p>
+      </div>
+    }
+
+    @if (resendMessage()) {
+      <div class="tc-alert tc-alert-ok" style="margin-bottom:16px;">{{ resendMessage() }}</div>
+    }
+
+    @if (resendError()) {
+      <div class="tc-alert tc-alert-err" style="margin-bottom:16px;">{{ resendError() }}</div>
+    }
+
+    <button type="button" class="tc-btn" style="margin-bottom:12px;" [disabled]="!email || resendLoading()" (click)="resend()">
+      @if (resendLoading()) { Sending... } @else { Resend verification email }
+    </button>
+
+    <div class="tc-signin-row">
+      Already verified?
+      <a [routerLink]="['/login']">Sign in</a>
+    </div>
+  </div>
+</div>

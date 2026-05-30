@@ -16,6 +16,18 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/signup/signup').then(m => m.SignupComponent)
   },
   {
+    path: 'check-email',
+    loadComponent: () => import('./pages/check-email/check-email').then(m => m.CheckEmailComponent)
+  },
+  {
+    path: 'verify-otp',
+    loadComponent: () => import('./pages/verify-otp/verify-otp').then(m => m.VerifyOtpComponent)
+  },
+  {
+    path: 'verification-success',
+    loadComponent: () => import('./pages/verification-success/verification-success').then(m => m.VerificationSuccessComponent)
+  },
+  {
     path: 'login',
     loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent)
   },

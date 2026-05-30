@@ -27,6 +27,19 @@ export async function signInWithSupabase(email, password) {
   return { user: data.user, error: null };
 }
 
+export function normalizePhoneAuthEmail(email) {
+  const normalized = email.trim().toLowerCase();
+  if (normalized.endsWith('@phone.trustcom.local')) {
+    return normalized.replace('@phone.trustcom.local', '@phone.trustcom.app');
+  }
+  return normalized;
+}
+
+export function isSyntheticPhoneEmail(email) {
+  const normalized = email.trim().toLowerCase();
+  return normalized.endsWith('@phone.trustcom.app') || normalized.endsWith('@phone.trustcom.local');
+}
+
 /** Find auth user by email (paginated scan). */
 export async function findSupabaseUserByEmail(email) {
   const normalized = email.trim().toLowerCase();
@@ -70,13 +83,13 @@ export async function getProfileById(userId) {
 }
 
 /** Create Supabase auth user (unconfirmed) and public profile row. */
-export async function createSupabaseUser({ email, password, fullName, phone }) {
+export async function createSupabaseUser({ email, password, fullName, phone, emailConfirm = false }) {
   const client = getSupabaseAdmin();
 
   const { data, error } = await client.auth.admin.createUser({
     email,
     password,
-    email_confirm: false,
+    email_confirm: emailConfirm,
     user_metadata: {
       full_name: fullName,
       ...(phone ? { phone } : {}),
@@ -160,4 +173,79 @@ export async function deleteSupabaseAuthUser(supabaseUserId) {
   if (error && !/not found|unable to find/i.test(error.message)) {
     throw new Error(error.message);
   }
+}
+
+/** Ensure phone-auth user has a confirmed Supabase account + profile for RLS-backed tables. */
+export async function ensurePhoneSupabaseAccount({ email, password, fullName, phone, supabaseUserId }) {
+  const normalizedEmail = normalizePhoneAuthEmail(email);
+  let userId = supabaseUserId || null;
+
+  if (userId) {
+    const sbUser = await getSupabaseAuthUserById(userId);
+    if (sbUser) {
+      const currentEmail = sbUser.email?.trim().toLowerCase();
+      if (currentEmail !== normalizedEmail) {
+        const { error } = await getSupabaseAdmin().auth.admin.updateUserById(userId, {
+          email: normalizedEmail,
+          email_confirm: true,
+        });
+        if (error) console.error('Supabase email update:', error.message);
+      }
+      await confirmSupabaseEmail(userId);
+      await updateSupabasePassword(userId, password);
+    } else {
+      userId = null;
+    }
+  }
+
+  if (!userId) {
+    userId = await createSupabaseUser({
+      email: normalizedEmail,
+      password,
+      fullName,
+      phone,
+      emailConfirm: true,
+    });
+  } else {
+    await getSupabaseAdmin().from('profiles').upsert({
+      id: userId,
+      email: normalizedEmail,
+      full_name: fullName,
+      phone: phone || null,
+      trust_score: 0,
+    });
+  }
+
+  return { supabaseUserId: userId, email: normalizedEmail };
+}
+
+/** Mint a Supabase client session for phone-auth users (used after API JWT login). */
+export async function mintSupabaseClientSession(email) {
+  const normalizedEmail = normalizePhoneAuthEmail(email);
+  const admin = getSupabaseAdmin();
+
+  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email: normalizedEmail,
+  });
+
+  if (linkError) {
+    throw new Error(linkError.message);
+  }
+
+  const tokenHash = linkData.properties?.hashed_token;
+  if (!tokenHash) {
+    throw new Error('Could not generate Supabase session.');
+  }
+
+  const { data: sessionData, error: sessionError } = await admin.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: 'email',
+  });
+
+  if (sessionError) {
+    throw new Error(sessionError.message);
+  }
+
+  return sessionData.session;
 }

@@ -49,6 +49,9 @@ export class SetupPaymentComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.auth.ready;
+    if (this.auth.isLoggedIn && !this.auth.user()) {
+      await this.auth.ensureSupabaseSession();
+    }
     await this.loadMethods();
   }
 

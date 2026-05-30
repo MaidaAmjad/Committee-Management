@@ -25,13 +25,16 @@ function rejectPlaceholder(name, value) {
 const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 rejectPlaceholder('SUPABASE_SERVICE_ROLE_KEY', supabaseServiceRoleKey);
 
+const brevoApiKey = process.env.BREVO_API_KEY?.trim() || '';
+const brevoSenderEmail = process.env.BREVO_SENDER_EMAIL?.trim() || '';
+
 export const env = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   jwtSecret: requireEnv('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  brevoApiKey: requireEnv('BREVO_API_KEY'),
-  brevoSenderEmail: requireEnv('BREVO_SENDER_EMAIL'),
+  brevoApiKey,
+  brevoSenderEmail,
   brevoSenderName: process.env.BREVO_SENDER_NAME || 'TrustCom',
   clientUrl: (process.env.CLIENT_URL || 'http://localhost:4200').replace(/\/$/, ''),
   apiUrl: (process.env.API_URL || 'http://localhost:3000').replace(/\/$/, ''),
@@ -44,4 +47,17 @@ export const env = {
   supabaseAnonKey: requireEnv('SUPABASE_ANON_KEY'),
   adminEmail: (process.env.ADMIN_EMAIL || 'maidaamjad32@gmail.com').trim().toLowerCase(),
   adminPassword: process.env.ADMIN_PASSWORD || 'maida0123',
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID?.trim() || '',
+  firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL?.trim() || '',
+  firebasePrivateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n').trim(),
+  otpExpiresMinutes: Number(process.env.OTP_EXPIRES_MINUTES) || 5,
+  otpMaxResends: Number(process.env.OTP_MAX_RESENDS) || 3,
+  otpResendCooldownSeconds: Number(process.env.OTP_RESEND_COOLDOWN_SECONDS) || 60,
+  recaptchaSecretKey: process.env.RECAPTCHA_SECRET_KEY?.trim() || '',
+  /** Allow auth without server CAPTCHA when secret is unset (local dev only). */
+  captchaDevBypass:
+    process.env.CAPTCHA_DEV_BYPASS === 'true' ||
+    (process.env.CAPTCHA_DEV_BYPASS !== 'false' &&
+      process.env.NODE_ENV !== 'production' &&
+      !process.env.RECAPTCHA_SECRET_KEY?.trim()),
 };

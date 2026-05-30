@@ -18,11 +18,7 @@ export class TopnavComponent {
   showUserMenu = false;
 
   // Derive display name and initials from the logged-in user
-  displayName = computed(() => {
-    const user = this.auth.user();
-    if (!user) return '';
-    return user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User';
-  });
+  displayName = computed(() => this.auth.displayName());
 
   initials = computed(() => {
     const name = this.displayName();
@@ -34,7 +30,7 @@ export class TopnavComponent {
       .slice(0, 2);
   });
 
-  email = computed(() => this.auth.user()?.email || '');
+  email = computed(() => this.auth.displayEmail());
 
   constructor(public auth: AuthService, public notificationService: NotificationService) {}
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { ApiAuthService } from '../../core/api-auth.service';
 import { COUNTRY_DIAL_CODES } from '../../data/country-dial-codes';
 import { buildE164, isPlausibleE164 } from '../../core/phone.utils';
 
@@ -11,14 +12,12 @@ import { buildE164, isPlausibleE164 } from '../../core/phone.utils';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './signup.html',
-  styleUrl: './signup.scss'
+  styleUrl: './signup.scss',
 })
 export class SignupComponent {
   fullName = '';
   countries = COUNTRY_DIAL_CODES;
-  /** ISO 3166-1 alpha-2; default Pakistan */
   countryIso2 = 'PK';
-  /** National number digits only (no country code) */
   phoneNational = '';
   email = '';
   password = '';
@@ -29,10 +28,11 @@ export class SignupComponent {
 
   loading = signal(false);
   errorMessage = signal('');
-  successMessage = signal('');
-  devVerifyUrl = signal('');
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   get selectedDial(): string {
     return this.countries.find(c => c.iso2 === this.countryIso2)?.dial ?? '92';
@@ -46,8 +46,12 @@ export class SignupComponent {
     return buildE164(this.selectedDial, this.phoneNational);
   }
 
+  get emailValid(): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
+  }
+
   get phoneValid(): boolean {
-    return isPlausibleE164(this.phoneE164);
+    return this.phoneNational.trim().length > 0 && isPlausibleE164(this.phoneE164);
   }
 
   onPhoneNationalInput(): void {
@@ -56,44 +60,64 @@ export class SignupComponent {
 
   get isFormValid(): boolean {
     return (
-      this.fullName.trim().length > 0 &&
+      this.fullName.trim().length >= 2 &&
+      this.emailValid &&
       this.phoneValid &&
-      this.email.trim().length > 0 &&
       this.password.length >= 8 &&
       this.confirmPassword === this.password &&
       this.agreeTerms
     );
   }
 
-  togglePassword(): void { this.showPassword = !this.showPassword; }
-  toggleConfirmPassword(): void { this.showConfirmPassword = !this.showConfirmPassword; }
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPassword(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
 
   async onSubmit(): Promise<void> {
     if (!this.isFormValid || this.loading()) return;
 
     this.loading.set(true);
     this.errorMessage.set('');
-    this.successMessage.set('');
-    this.devVerifyUrl.set('');
+
+    const normalizedEmail = this.email.trim().toLowerCase();
+    if (!this.phoneValid) {
+      this.errorMessage.set('Enter a valid mobile number with country code.');
+      this.loading.set(false);
+      return;
+    }
 
     try {
-      const result = await this.auth.signUp(this.email, this.password, this.fullName, this.phoneE164);
+      const result = await this.auth.signUp(
+        normalizedEmail,
+        this.password,
+        this.fullName.trim(),
+        this.phoneE164
+      );
 
       if (result.error) {
-        this.errorMessage.set(result.error.message);
+        this.errorMessage.set(result.error.message || 'Registration failed.');
         return;
       }
 
-      this.devVerifyUrl.set(result.devVerifyUrl || '');
-      this.successMessage.set(
-        result.message ||
-        (result.verificationResent
-          ? 'Verification email sent again. Check your inbox and spam folder, then click the link to activate your account.'
-          : 'Account created! We sent a verification email — click the link to activate your account, then sign in.')
-      );
-      if (!this.devVerifyUrl()) {
-        setTimeout(() => this.router.navigate(['/login']), 4500);
+      sessionStorage.setItem('pending_verify_email', normalizedEmail);
+      if (result.message) {
+        sessionStorage.setItem('signup_message', result.message);
       }
+      if (result.devVerifyUrl) {
+        sessionStorage.setItem('dev_verify_url', result.devVerifyUrl);
+      } else {
+        sessionStorage.removeItem('dev_verify_url');
+      }
+
+      await this.router.navigate(['/check-email'], {
+        queryParams: { email: normalizedEmail },
+      });
+    } catch (err: unknown) {
+      this.errorMessage.set(ApiAuthService.formatError(err));
     } finally {
       this.loading.set(false);
     }

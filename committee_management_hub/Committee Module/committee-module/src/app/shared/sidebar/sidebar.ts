@@ -23,9 +23,8 @@ export class SidebarComponent implements OnInit {
   pendingCount = signal(0);
 
   displayName = computed(() => {
-    const user = this.auth.user();
-    if (!user) return 'Committee Portal';
-    return user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User';
+    if (!this.auth.isLoggedIn) return 'Committee Portal';
+    return this.auth.displayName();
   });
 
   initials = computed(() =>
