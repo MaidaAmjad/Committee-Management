@@ -52,22 +52,53 @@ export class FirebaseEmailService {
     return `${base.replace(/\/$/, '')}/reset-password`;
   }
 
-  static saveSignupProfile(profile: FirebaseSignupProfile): void {
-    sessionStorage.setItem(SIGNUP_PROFILE_KEY, JSON.stringify(profile));
+  private static profileStorageKey(email: string): string {
+    return `trustcom_signup_profile_${email.trim().toLowerCase()}`;
   }
 
-  static loadSignupProfile(): FirebaseSignupProfile | null {
+  /** Persist name + phone so sign-in still works after email verification (new tab / device). */
+  static saveSignupProfile(email: string, profile: FirebaseSignupProfile): void {
+    const payload = JSON.stringify(profile);
+    sessionStorage.setItem(SIGNUP_PROFILE_KEY, payload);
     try {
-      const raw = sessionStorage.getItem(SIGNUP_PROFILE_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw) as FirebaseSignupProfile;
+      localStorage.setItem(FirebaseEmailService.profileStorageKey(email), payload);
     } catch {
-      return null;
+      /* private mode / quota */
     }
   }
 
-  static clearSignupProfile(): void {
+  static loadSignupProfile(email?: string): FirebaseSignupProfile | null {
+    const tryParse = (raw: string | null): FirebaseSignupProfile | null => {
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw) as FirebaseSignupProfile;
+      } catch {
+        return null;
+      }
+    };
+
+    const fromSession = tryParse(sessionStorage.getItem(SIGNUP_PROFILE_KEY));
+    if (fromSession?.fullName) return fromSession;
+
+    const normalized = email?.trim().toLowerCase();
+    if (normalized) {
+      const fromLocal = tryParse(localStorage.getItem(FirebaseEmailService.profileStorageKey(normalized)));
+      if (fromLocal?.fullName) return fromLocal;
+    }
+
+    return fromSession;
+  }
+
+  static clearSignupProfile(email?: string): void {
     sessionStorage.removeItem(SIGNUP_PROFILE_KEY);
+    const normalized = email?.trim().toLowerCase();
+    if (normalized) {
+      try {
+        localStorage.removeItem(FirebaseEmailService.profileStorageKey(normalized));
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   async signUp(email: string, password: string, fullName: string): Promise<void> {

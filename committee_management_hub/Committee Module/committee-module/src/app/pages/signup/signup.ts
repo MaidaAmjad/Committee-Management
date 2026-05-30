@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { FirebaseEmailService } from '../../core/firebase-email.service';
 import { ApiAuthService } from '../../core/api-auth.service';
 import { RecaptchaV2Service } from '../../core/recaptcha-v2.service';
 import { COUNTRY_DIAL_CODES } from '../../data/country-dial-codes';
@@ -121,6 +122,11 @@ export class SignupComponent implements AfterViewInit {
     }
 
     try {
+      FirebaseEmailService.saveSignupProfile(normalizedEmail, {
+        fullName: this.fullName.trim(),
+        phone: this.phoneE164,
+      });
+
       const result = await this.auth.signUp(
         normalizedEmail,
         this.password,

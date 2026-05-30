@@ -80,7 +80,11 @@ export async function establishAccount({ idToken, password, fullName, phone }) {
 
     const normalizedPhone = phone?.trim() ? normalizePhone(phone.trim()) : '';
     if (!normalizedPhone || !isValidE164(normalizedPhone)) {
-      throw new AppError('A valid mobile number is required. Sign up again with your phone number.', 400);
+      throw new AppError(
+        'Your mobile number is missing from registration. On Sign Up, enter the same email and phone number, ' +
+          'verify your email, then Sign In. Use the same browser if possible, or sign up again after deleting the Firebase user.',
+        400
+      );
     }
 
     created = true;

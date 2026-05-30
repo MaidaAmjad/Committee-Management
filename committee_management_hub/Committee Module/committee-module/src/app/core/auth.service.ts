@@ -161,12 +161,14 @@ export class AuthService {
     }
 
     if (this.useFirebaseEmail()) {
+      const normalizedEmail = email.trim().toLowerCase();
+      FirebaseEmailService.saveSignupProfile(normalizedEmail, {
+        fullName: fullName.trim(),
+        phone: phone?.trim() || undefined,
+      });
+
       try {
         await this.firebaseEmail.signUp(email, password, fullName);
-        FirebaseEmailService.saveSignupProfile({
-          fullName: fullName.trim(),
-          phone: phone?.trim() || undefined,
-        });
         return {
           error: null,
           message:
@@ -362,7 +364,8 @@ export class AuthService {
           };
         }
 
-        const profile = FirebaseEmailService.loadSignupProfile();
+        const normalizedEmail = email.trim().toLowerCase();
+        const profile = FirebaseEmailService.loadSignupProfile(normalizedEmail);
         const idToken = await fbUser.getIdToken();
         const res = await this.firebaseEmailApi.establish({
           idToken,
@@ -377,7 +380,7 @@ export class AuthService {
         }
 
         this.setApiSession(res.token, res.user);
-        FirebaseEmailService.clearSignupProfile();
+        FirebaseEmailService.clearSignupProfile(normalizedEmail);
 
         const sync = await this.syncSupabaseSession(
           email,
