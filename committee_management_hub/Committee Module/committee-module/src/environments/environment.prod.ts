@@ -4,6 +4,7 @@ export const environment = {
   useSupabasePasswordReset: false,
   usePhoneOtpAuth: false,
   useFirebaseEmailVerification: true,
+  recaptchaSiteKey: '',
   appUrl: 'https://committee-management-ten.vercel.app',
   supabase: {
     url: 'https://lvinxglqpdrljtqwuqrm.supabase.co',

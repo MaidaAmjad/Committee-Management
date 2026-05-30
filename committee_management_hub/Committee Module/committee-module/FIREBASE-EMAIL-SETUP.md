@@ -36,6 +36,19 @@ Set `useFirebaseEmailVerification: false` to fall back to Brevo/API email verifi
 3. **Sign in** with email + password → app syncs the account to `auth_users` + Supabase via `POST /api/auth/firebase-email/establish`.
 4. **Forgot password** → Firebase reset email → `/reset-password?mode=resetPassword&oobCode=...`.
 
+## reCAPTCHA (signup & sign-in)
+
+1. Create keys at [Google reCAPTCHA Admin](https://www.google.com/recaptcha/admin) — type **v2 Checkbox** (“I'm not a robot”).
+2. Add domains: `localhost`, your production host.
+3. **Client** — set `recaptchaSiteKey` in `src/environments/environment.ts` and `environment.prod.ts`.
+4. **Server** — add to `server/.env`:
+   ```
+   RECAPTCHA_SECRET_KEY=your-secret-key
+   ```
+5. Restart API and `ng serve`.
+
+Local dev: if `RECAPTCHA_SECRET_KEY` is unset, the server skips verification (`CAPTCHA_DEV_BYPASS`). The widget is hidden until you set `recaptchaSiteKey` on the client.
+
 ## Resend verification
 
 Works in the same browser session after signup. If the session was lost, enter your password on the check-email page to resend.

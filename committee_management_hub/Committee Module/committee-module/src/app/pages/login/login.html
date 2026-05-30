@@ -66,6 +66,16 @@
         </div>
       }
 
+      @if (captchaEnabled) {
+        <div class="tc-field">
+          <label class="tc-label">Security check</label>
+          <div #captchaHost class="recaptcha-wrap"></div>
+          @if (!captchaReady()) {
+            <p class="tc-hint">Loading security check…</p>
+          }
+        </div>
+      }
+
       @if (errorMessage()) {
         <div class="tc-alert tc-alert-err">
           <span class="material-symbols-outlined" style="font-size:18px">error</span>
@@ -73,7 +83,7 @@
         </div>
       }
 
-      <button type="submit" class="tc-btn" [disabled]="loading() || !emailValid || !password">
+      <button type="submit" class="tc-btn" [disabled]="loading() || !emailValid || !password || (captchaEnabled && !captchaReady())">
         @if (loading()) {
           Signing in...
         } @else {

@@ -17,6 +17,7 @@ export class FirebaseEmailApiService {
     password: string;
     fullName?: string;
     phone?: string;
+    captchaToken: string;
   }): Promise<AuthApiResponse> {
     return firstValueFrom(
       this.http

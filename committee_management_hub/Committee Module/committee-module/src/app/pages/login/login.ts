@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth.service';
 import { NotificationService } from '../../core/notification.service';
 import { PaymentMethodService } from '../../core/payment-method.service';
 import { ProfileService } from '../../core/profile.service';
+import { RecaptchaV2Service } from '../../core/recaptcha-v2.service';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,10 @@ import { ProfileService } from '../../core/profile.service';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, AfterViewInit {
+  @ViewChild('captchaHost') captchaHost?: ElementRef<HTMLDivElement>;
+
+  captchaReady = signal(false);
   email = '';
   password = '';
   rememberMe = false;
@@ -29,12 +33,32 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute,
     private notificationService: NotificationService,
     private paymentMethodService: PaymentMethodService,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private recaptcha: RecaptchaV2Service
   ) {}
+
+  get captchaEnabled(): boolean {
+    return this.recaptcha.isEnabled();
+  }
 
   ngOnInit(): void {
     if (this.route.snapshot.queryParamMap.get('verified') === '1') {
       this.successBanner.set('Email verified! You can now sign in.');
+    }
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    if (!this.captchaEnabled) {
+      this.captchaReady.set(true);
+      return;
+    }
+    const el = this.captchaHost?.nativeElement;
+    if (!el) return;
+    try {
+      await this.recaptcha.render(el);
+      this.captchaReady.set(true);
+    } catch (err: unknown) {
+      this.errorMessage.set(err instanceof Error ? err.message : 'Could not load security check.');
     }
   }
 
@@ -48,14 +72,26 @@ export class LoginComponent implements OnInit {
 
   async onSubmit(): Promise<void> {
     if (!this.emailValid || !this.password || this.loading()) return;
+
+    const captchaToken = this.recaptcha.getResponse();
+    if (this.captchaEnabled && !captchaToken) {
+      this.errorMessage.set('Complete the security check (CAPTCHA) before continuing.');
+      return;
+    }
+
     this.loading.set(true);
     this.errorMessage.set('');
 
     try {
-      const { error } = await this.auth.signIn(this.email.trim().toLowerCase(), this.password);
+      const { error } = await this.auth.signIn(
+        this.email.trim().toLowerCase(),
+        this.password,
+        captchaToken
+      );
 
       if (error) {
         this.errorMessage.set(error.message);
+        this.recaptcha.reset();
         return;
       }
 

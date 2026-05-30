@@ -121,6 +121,17 @@
         }
       </div>
 
+      <!-- Security check -->
+      @if (captchaEnabled) {
+        <div class="tc-field">
+          <label class="tc-label">Security check</label>
+          <div #captchaHost class="recaptcha-wrap"></div>
+          @if (!captchaReady()) {
+            <p class="tc-hint">Loading security check…</p>
+          }
+        </div>
+      }
+
       <!-- Terms -->
       <div class="tc-agree-row">
         <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
@@ -143,7 +154,7 @@
       }
 
       <!-- Submit -->
-      <button type="submit" class="tc-btn" [disabled]="!isFormValid || loading()">
+      <button type="submit" class="tc-btn" [disabled]="!isFormValid || loading() || (captchaEnabled && !captchaReady())">
         @if (loading()) {
           <svg class="tc-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="width:20px;height:20px">
             <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

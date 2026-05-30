@@ -77,11 +77,16 @@ export class ApiAuthService {
     }
   }
 
+  async verifyCaptcha(captchaToken: string): Promise<{ success: boolean; message?: string }> {
+    return this.post<{ success: boolean; message?: string }>('/captcha/verify', { captchaToken });
+  }
+
   async register(payload: {
     email: string;
     password: string;
     fullName: string;
     phone?: string;
+    captchaToken: string;
   }): Promise<AuthApiResponse> {
     return this.post<AuthApiResponse>('/register', payload);
   }
@@ -90,8 +95,8 @@ export class ApiAuthService {
     return this.post<AuthApiResponse>('/resend-verification', { email });
   }
 
-  async login(email: string, password: string): Promise<AuthApiResponse> {
-    return this.post<AuthApiResponse>('/login', { email, password });
+  async login(email: string, password: string, captchaToken: string): Promise<AuthApiResponse> {
+    return this.post<AuthApiResponse>('/login', { email, password, captchaToken });
   }
 
   async forgotPassword(email: string): Promise<AuthApiResponse> {

@@ -138,13 +138,28 @@ export class AuthService {
     });
   }
 
-  async signUp(email: string, password: string, fullName: string, phone?: string): Promise<SignUpResult> {
+  async signUp(
+    email: string,
+    password: string,
+    fullName: string,
+    phone?: string,
+    captchaToken?: string
+  ): Promise<SignUpResult> {
     if (!this.usesApiAuth() && !this.useFirebaseEmail()) {
       return {
         error: {
           message: 'Sign up via the API is not available on the live site yet. Run locally or deploy the auth API.',
         } as AuthError,
       };
+    }
+
+    const token = captchaToken?.trim() || 'dev-bypass';
+    if (this.usesApiAuth() && token !== 'dev-bypass') {
+      try {
+        await this.apiAuth.verifyCaptcha(token);
+      } catch (err: unknown) {
+        return { error: { message: ApiAuthService.formatError(err) } as AuthError };
+      }
     }
 
     if (this.useFirebaseEmail()) {
@@ -174,6 +189,7 @@ export class AuthService {
         password,
         fullName,
         phone: phone?.trim() || undefined,
+        captchaToken: token,
       });
       if (!res.success) {
         return { error: { message: res.message || 'Registration failed.' } as AuthError };
@@ -325,7 +341,9 @@ export class AuthService {
     }
   }
 
-  async signIn(email: string, password: string): Promise<AuthResult> {
+  async signIn(email: string, password: string, captchaToken?: string): Promise<AuthResult> {
+    const token = captchaToken?.trim() || 'dev-bypass';
+
     if (this.useFirebaseEmail()) {
       try {
         const fbUser = await this.firebaseEmail.signIn(email, password);
@@ -345,6 +363,7 @@ export class AuthService {
           password,
           fullName: profile?.fullName,
           phone: profile?.phone,
+          captchaToken: token,
         });
 
         if (!res.token || !res.user) {
@@ -378,7 +397,7 @@ export class AuthService {
 
     if (this.usesApiAuth()) {
       try {
-        const res = await this.apiAuth.login(email, password);
+        const res = await this.apiAuth.login(email, password, token);
         if (!res.token || !res.user) {
           return { error: { message: res.message || 'Login failed.' } as AuthError };
         }

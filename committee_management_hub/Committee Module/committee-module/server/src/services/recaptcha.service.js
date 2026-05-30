@@ -16,7 +16,11 @@ export function isCaptchaRequired() {
 
 /** Verify Google reCAPTCHA v2 response token. */
 export async function verifyRecaptchaToken(token) {
-  if (!token?.trim()) {
+  if (!isCaptchaRequired()) {
+    return;
+  }
+
+  if (!token?.trim() || token.trim() === 'dev-bypass') {
     throw new AppError('Complete the security check (CAPTCHA) before continuing.', 400);
   }
 

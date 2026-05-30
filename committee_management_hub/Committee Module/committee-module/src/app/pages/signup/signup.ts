@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { ApiAuthService } from '../../core/api-auth.service';
+import { RecaptchaV2Service } from '../../core/recaptcha-v2.service';
 import { COUNTRY_DIAL_CODES } from '../../data/country-dial-codes';
 import { buildE164, isPlausibleE164 } from '../../core/phone.utils';
 
@@ -14,7 +15,10 @@ import { buildE164, isPlausibleE164 } from '../../core/phone.utils';
   templateUrl: './signup.html',
   styleUrl: './signup.scss',
 })
-export class SignupComponent {
+export class SignupComponent implements AfterViewInit {
+  @ViewChild('captchaHost') captchaHost?: ElementRef<HTMLDivElement>;
+
+  captchaReady = signal(false);
   fullName = '';
   countries = COUNTRY_DIAL_CODES;
   countryIso2 = 'PK';
@@ -31,8 +35,28 @@ export class SignupComponent {
 
   constructor(
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private recaptcha: RecaptchaV2Service
   ) {}
+
+  get captchaEnabled(): boolean {
+    return this.recaptcha.isEnabled();
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    if (!this.captchaEnabled) {
+      this.captchaReady.set(true);
+      return;
+    }
+    const el = this.captchaHost?.nativeElement;
+    if (!el) return;
+    try {
+      await this.recaptcha.render(el);
+      this.captchaReady.set(true);
+    } catch (err: unknown) {
+      this.errorMessage.set(err instanceof Error ? err.message : 'Could not load security check.');
+    }
+  }
 
   get selectedDial(): string {
     return this.countries.find(c => c.iso2 === this.countryIso2)?.dial ?? '92';
@@ -80,6 +104,12 @@ export class SignupComponent {
   async onSubmit(): Promise<void> {
     if (!this.isFormValid || this.loading()) return;
 
+    const captchaToken = this.recaptcha.getResponse();
+    if (this.captchaEnabled && !captchaToken) {
+      this.errorMessage.set('Complete the security check (CAPTCHA) before continuing.');
+      return;
+    }
+
     this.loading.set(true);
     this.errorMessage.set('');
 
@@ -95,11 +125,13 @@ export class SignupComponent {
         normalizedEmail,
         this.password,
         this.fullName.trim(),
-        this.phoneE164
+        this.phoneE164,
+        captchaToken
       );
 
       if (result.error) {
         this.errorMessage.set(result.error.message || 'Registration failed.');
+        this.recaptcha.reset();
         return;
       }
 
@@ -118,6 +150,7 @@ export class SignupComponent {
       });
     } catch (err: unknown) {
       this.errorMessage.set(ApiAuthService.formatError(err));
+      this.recaptcha.reset();
     } finally {
       this.loading.set(false);
     }

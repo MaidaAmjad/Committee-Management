@@ -8,6 +8,8 @@ import { requireCaptcha } from '../middleware/captcha.middleware.js';
 
 const router = Router();
 
+router.post('/captcha/verify', requireCaptcha, authController.captchaVerified);
+
 router.post(
   '/register',
   validateBody(['email', 'password', 'fullName']),
@@ -24,7 +26,7 @@ router.post(
 
 router.post(
   '/login',
-  validateBody(['email', 'password', 'captchaToken']),
+  validateBody(['email', 'password']),
   requireCaptcha,
   authController.login
 );
@@ -46,7 +48,7 @@ router.post('/supabase-session', authenticate, authController.supabaseSession);
 
 router.post(
   '/firebase-email/establish',
-  validateBody(['idToken', 'password', 'captchaToken']),
+  validateBody(['idToken', 'password']),
   requireCaptcha,
   firebaseEmailAuthController.establish
 );
