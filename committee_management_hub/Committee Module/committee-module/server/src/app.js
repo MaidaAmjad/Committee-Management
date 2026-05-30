@@ -15,7 +15,13 @@ export function createApp() {
     env.clientUrl,
     'http://localhost:4200',
     'http://127.0.0.1:4200',
+    'https://committee-management-ten.vercel.app',
   ]);
+
+  for (const extra of (process.env.ALLOWED_ORIGINS || '').split(',')) {
+    const origin = extra.trim();
+    if (origin) allowedOrigins.add(origin);
+  }
 
   app.use(
     cors({

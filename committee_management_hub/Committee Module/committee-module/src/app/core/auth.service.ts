@@ -7,6 +7,7 @@ import { PhoneAuthApiService } from './phone-auth-api.service';
 import { FirebaseEmailService } from './firebase-email.service';
 import { FirebaseEmailApiService } from './firebase-email-api.service';
 import { environment } from '../../environments/environment';
+import { authApiNotConfiguredMessage, canReachAuthApi } from './api-url';
 
 export interface AuthResult {
   error: AuthError | { message: string } | null;
@@ -80,15 +81,12 @@ export class AuthService {
   private usesApiAuth(): boolean {
     if (environment.apiUrl?.includes('your-api-domain')) return false;
     if (environment.useSupabasePasswordReset && environment.production) return false;
-    if (environment.production) return Boolean(environment.apiUrl?.trim());
-    return true;
+    return canReachAuthApi();
   }
 
   private useFirebaseEmail(): boolean {
     return (
-      environment.useFirebaseEmailVerification !== false &&
-      this.firebaseEmail.isConfigured() &&
-      this.usesApiAuth()
+      environment.useFirebaseEmailVerification !== false && this.firebaseEmail.isConfigured()
     );
   }
 
@@ -145,16 +143,16 @@ export class AuthService {
     phone?: string,
     captchaToken?: string
   ): Promise<SignUpResult> {
-    if (!this.usesApiAuth() && !this.useFirebaseEmail()) {
+    if (!this.useFirebaseEmail() && !this.usesApiAuth()) {
       return {
         error: {
-          message: 'Sign up via the API is not available on the live site yet. Run locally or deploy the auth API.',
+          message: authApiNotConfiguredMessage(),
         } as AuthError,
       };
     }
 
     const token = captchaToken?.trim() || 'dev-bypass';
-    if (this.usesApiAuth() && token !== 'dev-bypass') {
+    if (canReachAuthApi() && token !== 'dev-bypass') {
       try {
         await this.apiAuth.verifyCaptcha(token);
       } catch (err: unknown) {
@@ -345,6 +343,14 @@ export class AuthService {
     const token = captchaToken?.trim() || 'dev-bypass';
 
     if (this.useFirebaseEmail()) {
+      if (!canReachAuthApi()) {
+        return {
+          error: {
+            message: authApiNotConfiguredMessage(),
+          } as AuthError,
+        };
+      }
+
       try {
         const fbUser = await this.firebaseEmail.signIn(email, password);
         if (!fbUser.emailVerified) {

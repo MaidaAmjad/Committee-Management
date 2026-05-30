@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { apiReachabilityHint, apiUrl } from './api-url';
+import { apiReachabilityHint, apiUrl, authApiNotConfiguredMessage, canReachAuthApi } from './api-url';
 
 const API_TIMEOUT_MS = 30000;
 
@@ -36,8 +36,8 @@ export class ApiAuthService {
   constructor(private http: HttpClient) {}
 
   private post<T>(path: string, body: unknown): Promise<T> {
-    if (environment.production && !environment.apiUrl?.trim()) {
-      return Promise.reject(new Error('Auth API is not configured for this environment.'));
+    if (!canReachAuthApi()) {
+      return Promise.reject(new Error(authApiNotConfiguredMessage()));
     }
     return firstValueFrom(
       this.http.post<T>(`${this.baseUrl}${path}`, body).pipe(timeout(API_TIMEOUT_MS))

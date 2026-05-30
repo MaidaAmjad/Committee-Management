@@ -29,6 +29,18 @@ Restart the API after changes: `cd server && npm run dev`.
 
 Set `useFirebaseEmailVerification: false` to fall back to Brevo/API email verification.
 
+## Production (Vercel + API host)
+
+The Angular app on Vercel is **frontend only**. Deploy `server/` separately (Render, Railway, Fly.io, etc.), then set in `src/environments/environment.prod.ts`:
+
+```ts
+apiUrl: 'https://your-deployed-api.example.com',
+```
+
+Redeploy the frontend. In the API host `.env`, set `CLIENT_URL=https://committee-management-ten.vercel.app` (your Vercel URL).
+
+Without `apiUrl`, users can still **sign up** (Firebase email), but **sign in** and committees/payments need the API.
+
 ## User flow
 
 1. **Sign up** → Firebase creates the user and sends a verification email.

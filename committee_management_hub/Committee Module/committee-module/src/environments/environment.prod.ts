@@ -1,6 +1,11 @@
 export const environment = {
   production: true,
-  apiUrl: '',
+  /**
+   * Public URL of the deployed Express API (server/). Required for sign-in after email verification.
+   * Example: 'https://trustcom-api.onrender.com' (no trailing slash).
+   * Firebase signup works without this; login and app data sync need it.
+   */
+  apiUrl: 'https://committee-management-1.onrender.com',
   useSupabasePasswordReset: false,
   usePhoneOtpAuth: false,
   useFirebaseEmailVerification: true,

@@ -3,6 +3,8 @@ This Website is based on MEAN stack and is made for ROSCA system committees
 
 ## Committee App link
 Link:   https://committee-management-ten.vercel.app/
+
+**Production auth API:** The live site needs the Express API deployed separately. See [DEPLOY-API.md](committee_management_hub/Committee%20Module/committee-module/DEPLOY-API.md).
 ### Credentials:
 email: maidaamjad32@gmail.com
 password: 12345678

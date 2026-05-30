@@ -1,0 +1,21 @@
+# Render Blueprint — deploy from dashboard: New → Blueprint → connect repo
+# Or: New → Web Service → Root Directory = this folder (server)
+services:
+  - type: web
+    name: trustcom-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        value: https://committee-management-ten.vercel.app
+      - key: CAPTCHA_DEV_BYPASS
+        value: 'false'
+      # Add the rest in Render Dashboard → Environment (copy from your local server/.env):
+      # SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, JWT_SECRET,
+      # FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY,
+      # RECAPTCHA_SECRET_KEY (optional), API_URL (set after first deploy to this service URL)
