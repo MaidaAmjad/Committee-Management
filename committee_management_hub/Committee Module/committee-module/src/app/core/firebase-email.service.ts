@@ -174,7 +174,13 @@ export class FirebaseEmailService {
     const message = err instanceof Error ? err.message : '';
 
     if (code === 'auth/email-already-in-use') {
-      return 'An account with this email already exists. Sign in or use forgot password.';
+      return (
+        'This email is already registered. On Sign In, use the same password you chose at signup. ' +
+        'Or use Forgot password. If you just signed up, verify your email first (check spam).'
+      );
+    }
+    if (code === 'auth/account-exists-with-different-credential') {
+      return 'This email is registered with a different sign-in method. Use email + password or reset your password.';
     }
     if (code === 'auth/invalid-email') {
       return 'Enter a valid email address.';

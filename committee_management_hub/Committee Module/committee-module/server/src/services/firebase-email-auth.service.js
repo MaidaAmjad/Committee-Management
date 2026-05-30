@@ -84,13 +84,30 @@ export async function establishAccount({ idToken, password, fullName, phone }) {
     }
 
     created = true;
-    user = await userRepo.createUser({
-      email,
-      passwordHash,
-      fullName: resolvedFullName,
-      phone: normalizedPhone,
-      isVerified: true,
-    });
+    try {
+      user = await userRepo.createUser({
+        email,
+        passwordHash,
+        fullName: resolvedFullName,
+        phone: normalizedPhone,
+        isVerified: true,
+      });
+    } catch (err) {
+      // Row may exist in auth_users but not yet in profiles (admin list) — complete sign-in instead.
+      if (err.statusCode === 409) {
+        user = await userRepo.findByEmail(email);
+        if (!user) throw err;
+        created = false;
+        user = await userRepo.updateUser(user.id, {
+          passwordHash,
+          isVerified: true,
+          fullName: user.fullName || resolvedFullName,
+          phone: user.phone || normalizedPhone,
+        });
+      } else {
+        throw err;
+      }
+    }
 
     const supabaseUserId = await createSupabaseUser({
       email,
@@ -127,7 +144,7 @@ export async function establishAccount({ idToken, password, fullName, phone }) {
   return {
     message: created
       ? 'Email verified. Your account is now active.'
-      : 'Login successful.',
+      : 'Sign in successful.',
     token,
     user: userRepo.toPublicJSON(user),
   };

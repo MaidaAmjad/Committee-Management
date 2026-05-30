@@ -52,6 +52,12 @@ export class ApiAuthService {
       }
       const apiMsg = err.error?.message;
       if (typeof apiMsg === 'string' && apiMsg && apiMsg !== 'Internal server error.') {
+        if (apiMsg.includes('already exists') && err.url?.includes('/establish')) {
+          return (
+            'Your email is registered but setup was not finished. Try Sign In again with your password, ' +
+            'or use Forgot password. If it still fails, contact support.'
+          );
+        }
         return apiMsg;
       }
       if (err.status >= 500) {
