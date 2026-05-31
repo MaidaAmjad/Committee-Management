@@ -235,11 +235,11 @@ export class AdminService {
    * Deletes a user completely (profile, memberships, auth_users, Supabase Auth).
    */
   async deleteUser(userId: string): Promise<{ error: string | null }> {
-    if (!environment.production || getApiOrigin()) {
+    if (getApiOrigin()) {
       return this.postAdminApi(`/users/${userId}/delete`);
     }
 
-    // Production without API: profile-only delete (legacy)
+    // Local fallback when API URL is not configured (incomplete — prefer running the server)
     const { error: memErr } = await this.supabase
       .from('committee_members')
       .delete()

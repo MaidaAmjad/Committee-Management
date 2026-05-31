@@ -86,3 +86,20 @@ function normalizePhoneImport(phone) {
   const digits = String(phone || '').replace(/\D/g, '');
   return digits ? `+${digits}` : '';
 }
+
+/** Remove Firebase Auth user so the same email can register again. */
+export async function deleteFirebaseUserByEmail(email) {
+  if (!isFirebaseConfigured()) return;
+
+  const normalized = email.trim().toLowerCase();
+  try {
+    const auth = getFirebaseAuth();
+    const user = await auth.getUserByEmail(normalized);
+    await auth.deleteUser(user.uid);
+    console.log(`Firebase user deleted: ${normalized}`);
+  } catch (err) {
+    const code = err?.errorInfo?.code || err?.code || '';
+    if (code === 'auth/user-not-found') return;
+    console.error('Firebase deleteUser:', err?.errorInfo?.message || err.message);
+  }
+}
