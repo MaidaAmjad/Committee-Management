@@ -1,8 +1,16 @@
-<header class="sticky top-0 z-50 bg-[#f7f9fb] border-b border-[#c3c6d7] shadow-sm h-16 flex justify-between items-center w-full px-6">
+<header class="sticky top-0 z-30 bg-[#f7f9fb] border-b border-[#c3c6d7] shadow-sm h-16 flex justify-between items-center w-full px-4 md:px-6 gap-3">
 
-  <!-- Search -->
-  <div class="flex items-center gap-4 w-full max-w-xl">
-    <div class="relative w-full">
+  <!-- Mobile menu + search -->
+  <div class="flex items-center gap-2 w-full max-w-xl min-w-0">
+    <button
+      type="button"
+      class="md:hidden p-2 -ml-1 rounded-xl hover:bg-[#e6e8ea] text-[#434655] flex-shrink-0"
+      aria-label="Open menu"
+      (click)="mobileNav.openDrawer()"
+    >
+      <span class="material-symbols-outlined text-[24px]">menu</span>
+    </button>
+    <div class="relative w-full min-w-0">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#434655]">search</span>
       <input
         [(ngModel)]="searchQuery"

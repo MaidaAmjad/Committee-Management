@@ -9,9 +9,21 @@
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f7f9fb;
+/* Mobile app layout: room for bottom navigation */
+@media (max-width: 767px) {
+  .flex.min-h-screen > .flex-col.flex-1 {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-bottom-nav-item.mobile-bottom-nav-active,
+  .mobile-bottom-nav-item.router-link-active {
+    color: #004ac6;
+  }
+
+  .mobile-bottom-nav-item.mobile-bottom-nav-active .material-symbols-outlined,
+  .mobile-bottom-nav-item.router-link-active .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════

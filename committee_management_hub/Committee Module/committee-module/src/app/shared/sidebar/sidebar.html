@@ -1,9 +1,38 @@
-<aside class="fixed left-0 top-0 h-screen w-64 bg-[#f2f4f6] border-r border-[#c3c6d7] shadow-sm z-40 hidden md:flex flex-col p-4 gap-2">
+<!-- Mobile backdrop -->
+@if (mobileNav.drawerOpen()) {
+  <button
+    type="button"
+    class="sidebar-backdrop fixed inset-0 z-40 bg-black/45 md:hidden"
+    aria-label="Close menu"
+    (click)="mobileNav.closeDrawer()"
+  ></button>
+}
+
+<!-- Sidebar / drawer -->
+<aside
+  class="sidebar-drawer fixed left-0 top-0 h-screen w-64 max-w-[85vw] bg-[#f2f4f6] border-r border-[#c3c6d7] shadow-lg z-50 flex flex-col p-4 gap-2
+         -translate-x-full md:translate-x-0"
+  [class.translate-x-0]="mobileNav.drawerOpen()"
+  [attr.aria-hidden]="!mobileNav.drawerOpen() ? true : null"
+>
+
+  <!-- Mobile drawer header -->
+  <div class="flex items-center justify-between md:hidden mb-1">
+    <span class="text-lg font-bold text-[#004ac6]">Menu</span>
+    <button
+      type="button"
+      (click)="mobileNav.closeDrawer()"
+      class="p-2 rounded-xl hover:bg-[#e6e8ea] text-[#434655]"
+      aria-label="Close menu"
+    >
+      <span class="material-symbols-outlined text-[22px]">close</span>
+    </button>
+  </div>
 
   <!-- Brand + User -->
-  <div class="px-4 py-5">
-    <span class="text-2xl font-bold text-[#004ac6]">TrustCom</span>
-    <div class="flex items-center gap-3 mt-3">
+  <div class="px-4 py-3 md:py-5">
+    <span class="text-2xl font-bold text-[#004ac6] hidden md:block">TrustCom</span>
+    <div class="flex items-center gap-3 mt-1 md:mt-3">
       <div class="w-9 h-9 rounded-full bg-[#004ac6] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
         {{ initials() }}
       </div>
@@ -15,12 +44,13 @@
   </div>
 
   <!-- Nav Links -->
-  <nav class="flex flex-col gap-1 flex-grow">
+  <nav class="flex flex-col gap-1 flex-grow overflow-y-auto">
     @for (item of navItems; track item.route) {
       <a
         [routerLink]="item.route"
         routerLinkActive="bg-[#d0e1fb] !text-[#004ac6] font-bold"
         [routerLinkActiveOptions]="{ exact: true }"
+        (click)="mobileNav.closeDrawer()"
         class="flex items-center gap-3 text-[#434655] px-4 py-2.5 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-xl transition-all text-sm font-semibold"
       >
         <span class="material-symbols-outlined text-[20px]">{{ item.icon }}</span>
@@ -28,10 +58,10 @@
       </a>
     }
 
-    <!-- Join Requests link — only shows when there are pending requests -->
     <a
       routerLink="/join-requests"
       routerLinkActive="bg-[#d0e1fb] !text-[#004ac6] font-bold"
+      (click)="mobileNav.closeDrawer()"
       class="flex items-center gap-3 text-[#434655] px-4 py-2.5 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-xl transition-all text-sm font-semibold"
     >
       <span class="material-symbols-outlined text-[20px]">mark_email_unread</span>
@@ -44,15 +74,14 @@
     </a>
   </nav>
 
-  <!-- Create Committee Button -->
   <button
-    (click)="goToCreateCommittee()"
-    class="bg-[#004ac6] text-white rounded-xl px-4 py-3 text-sm font-semibold shadow-sm hover:bg-[#2563eb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2">
+    (click)="goToCreateCommittee(); mobileNav.closeDrawer()"
+    class="bg-[#004ac6] text-white rounded-xl px-4 py-3 text-sm font-semibold shadow-sm hover:bg-[#2563eb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
+  >
     <span class="material-symbols-outlined text-[20px]">add</span>
     Create Committee
   </button>
 
-  <!-- Bottom Links -->
   <div class="border-t border-[#c3c6d7] pt-3 flex flex-col gap-1">
     <a href="#" class="flex items-center gap-3 text-[#434655] px-4 py-2.5 hover:text-[#191c1e] hover:bg-[#e6e8ea] rounded-xl transition-all text-sm font-semibold">
       <span class="material-symbols-outlined text-[20px]">settings</span>
@@ -64,9 +93,41 @@
     </a>
     <button
       (click)="signOut()"
-      class="flex items-center gap-3 text-[#ba1a1a] px-4 py-2.5 hover:bg-[#ffdad6] rounded-xl transition-all text-sm font-semibold w-full text-left mt-1">
+      class="flex items-center gap-3 text-[#ba1a1a] px-4 py-2.5 hover:bg-[#ffdad6] rounded-xl transition-all text-sm font-semibold w-full text-left mt-1"
+    >
       <span class="material-symbols-outlined text-[20px]">logout</span>
       Sign Out
     </button>
   </div>
 </aside>
+
+<!-- Mobile bottom navigation -->
+<nav
+  class="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-[#c3c6d7] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
+  aria-label="Main navigation"
+>
+  <div class="flex items-stretch justify-around px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+    @for (tab of bottomNavItems; track tab.route) {
+      @if (tab.route === 'menu') {
+        <button
+          type="button"
+          (click)="mobileNav.openDrawer()"
+          class="mobile-bottom-nav-item flex flex-col items-center justify-center gap-0.5 min-w-0 flex-1 py-1 text-[#737686]"
+        >
+          <span class="material-symbols-outlined text-[22px]">menu</span>
+          <span class="text-[10px] font-semibold">Menu</span>
+        </button>
+      } @else {
+        <a
+          [routerLink]="tab.route"
+          routerLinkActive="mobile-bottom-nav-active"
+          [routerLinkActiveOptions]="{ exact: tab.exact ?? false }"
+          class="mobile-bottom-nav-item flex flex-col items-center justify-center gap-0.5 min-w-0 flex-1 py-1 text-[#737686]"
+        >
+          <span class="material-symbols-outlined text-[22px]">{{ tab.icon }}</span>
+          <span class="text-[10px] font-semibold truncate max-w-full px-1">{{ tab.label }}</span>
+        </a>
+      }
+    }
+  </div>
+</nav>
